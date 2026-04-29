@@ -808,9 +808,9 @@ fn is_valid_css_property(name: &str) -> bool {
     if name.starts_with("--") {
         return true;
     }
-    static VALID_PROPERTIES: std::sync::LazyLock<std::collections::HashSet<&'static str>> =
+    static VALID_PROPERTIES: std::sync::LazyLock<Vec<&'static str>> =
         std::sync::LazyLock::new(|| {
-            std::collections::HashSet::from_iter([
+            let mut props = vec![
                 "align-content",
                 "align-items",
                 "align-self",
@@ -1047,10 +1047,12 @@ fn is_valid_css_property(name: &str) -> bool {
                 "-webkit-overflow-scrolling",
                 "-webkit-text-fill-color",
                 "-moz-osx-font-smoothing",
-            ])
+            ];
+            props.sort();
+            props
         });
 
-    VALID_PROPERTIES.contains(name)
+    VALID_PROPERTIES.binary_search(&name).is_ok()
 }
 
 /// Minify CSS using lightningcss
@@ -1076,6 +1078,97 @@ fn minify_css(css: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_valid_css_property_valid() {
+        let valid = vec![
+            "display",
+            "color",
+            "background-color",
+            "border-radius",
+            "font-size",
+            "margin-top",
+            "padding-left",
+            "z-index",
+            "flex-grow",
+        ];
+        for prop in valid {
+            assert!(
+                is_valid_css_property(prop),
+                "Expected '{}' to be valid",
+                prop
+            );
+        }
+    }
+
+    #[test]
+    fn test_is_valid_css_property_custom() {
+        assert!(is_valid_css_property("--custom-prop"));
+        assert!(is_valid_css_property("--my-var"));
+        assert!(is_valid_css_property("--theme-color"));
+    }
+
+    #[test]
+    fn test_is_valid_css_property_invalid() {
+        let invalid = vec![
+            "notaproperty",
+            "fancy-style",
+            "my-property",
+            "foo-bar-baz",
+        ];
+        for prop in invalid {
+            assert!(
+                !is_valid_css_property(prop),
+                "Expected '{}' to be invalid",
+                prop
+            );
+        }
+    }
+
+    #[test]
+    fn test_is_valid_css_property_vendor_prefix() {
+        assert!(is_valid_css_property("-webkit-appearance"));
+        assert!(is_valid_css_property("-moz-osx-font-smoothing"));
+        assert!(is_valid_css_property("-webkit-backdrop-filter"));
+    }
+
+    #[test]
+    fn test_tokens_to_css_string_simple() {
+        use quote::quote;
+        let input = quote! { display: none };
+        let output = tokens_to_css_string(&input);
+        assert!(output.contains("display"));
+        assert!(output.contains("none"));
+    }
+
+    #[test]
+    fn test_tokens_to_css_string_with_hex_color() {
+        use quote::quote;
+        let input = quote! { color: #123456 };
+        let output = tokens_to_css_string(&input);
+        assert!(output.contains("color"));
+        assert!(output.contains("#123456"));
+    }
+
+    #[test]
+    fn test_tokens_to_css_string_with_function() {
+        use quote::quote;
+        let input = quote! { transform: rotate(45deg) };
+        let output = tokens_to_css_string(&input);
+        assert!(output.contains("transform"));
+        assert!(output.contains("rotate"));
+    }
+
+    #[test]
+    fn test_tokens_to_css_string_multiple_declarations() {
+        use quote::quote;
+        let input = quote! { color: red; font-size: 14px };
+        let output = tokens_to_css_string(&input);
+        assert!(output.contains("color"));
+        assert!(output.contains("red"));
+        assert!(output.contains("font-size"));
+        assert!(output.contains("14px"));
+    }
 
     #[test]
     fn test_media_query_property_stripping() {

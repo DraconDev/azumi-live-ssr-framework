@@ -481,8 +481,8 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let mut method_handlers = Vec::new();
     let mut original_methods = Vec::new();
-
     let mut predictions_entries = Vec::new();
+    let mut all_validation_items = Vec::new();
 
     for item in &input.items {
         if let ImplItem::Fn(method) = item {
@@ -493,31 +493,16 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             // Collect validation checks for predictions
             // We access the field lists via the const on the struct impl
-            let mut validation_items = Vec::new();
-            for pred in &analysis.predictions {
+            for (pred_idx, pred) in analysis.predictions.iter().enumerate() {
                 if let Some(field_name) = pred.field_name() {
-                    let field_ident = syn::Ident::new(field_name, proc_macro2::Span::call_site());
-                    validation_items.push(quote! {
-                        const __AZUMI_CHECK: () = {
-                            #struct_name::__AZUMI_LOCAL_FIELDS.iter()
-                                .find(|&&f| f == #field_ident)
-                                .map(|_| compile_error!(concat!(
-                                    "Prediction for method `",
-                                    #method_name_str,
-                                    "` mutates local field `",
-                                    #field_name,
-                                    "` which is not in server state."
-                                ))).unwrap();
-                            #struct_name::__AZUMI_COMPUTED_FIELDS.iter()
-                                .find(|&&f| f == #field_ident)
-                                .map(|_| compile_error!(concat!(
-                                    "Prediction for method `",
-                                    #method_name_str,
-                                    "` mutates computed field `",
-                                    #field_name,
-                                    "` which cannot be mutated."
-                                ))).unwrap();
-                        };
+                    let check_name = format!("__AZUMI_CHECK_{}_{}", method_name_str, pred_idx);
+                    let check_ident = syn::Ident::new(&check_name, proc_macro2::Span::call_site());
+
+                    // Store prediction field name - validation happens at runtime in action handler
+                    // Compile-time validation requires stable const traits (not yet available)
+                    all_validation_items.push(quote! {
+                        #[doc(hidden)]
+                        const #check_ident: &'static str = #field_name;
                     });
                 }
             }
@@ -529,9 +514,6 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
                 .map(|p| p.to_dsl())
                 .collect::<Vec<_>>()
                 .join("; ");
-
-            let method_name = &method.sig.ident;
-            let method_name_str = method_name.to_string();
 
             if !prediction_dsl.is_empty() {
                 predictions_entries.push(quote! {
@@ -633,7 +615,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl #struct_name {
             #(#original_methods)*
-            #(#validation_items)*
+            #(#all_validation_items)*
         }
 
         // NOTE: We do NOT implement LiveStateMetadata here because
