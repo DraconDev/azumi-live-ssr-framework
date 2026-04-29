@@ -195,6 +195,7 @@ fn verify_state_internal(
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum VerifyError {
     StateTooLarge { len: usize },
     TooManyPipes { count: usize },
