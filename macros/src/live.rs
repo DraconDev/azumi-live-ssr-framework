@@ -378,7 +378,7 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         let filtered: Punctuated<syn::Field, Token![,]> = named
             .named
             .iter()
-            .filter_map(|f| {
+            .map(|f| {
                 let attrs: Vec<_> = f
                     .attrs
                     .iter()
@@ -388,10 +388,10 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     })
                     .cloned()
                     .collect();
-                Some(syn::Field {
+                syn::Field {
                     attrs,
                     ..f.clone()
-                })
+                }
             })
             .collect();
         Fields::Named(syn::FieldsNamed {
