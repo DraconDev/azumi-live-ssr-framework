@@ -147,6 +147,12 @@ mod tests {
                 "If JS contains </script>, it should be escaped as <\\/script>"
             );
         }
+        if js_content.contains("</SCRIPT>") {
+            assert!(
+                output.contains(r"<\/SCRIPT>"),
+                "If JS contains </SCRIPT>, it should be escaped as <\\/SCRIPT>"
+            );
+        }
     }
 
     #[test]

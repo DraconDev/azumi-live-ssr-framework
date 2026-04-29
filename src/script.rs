@@ -1,5 +1,12 @@
 use crate::Component;
 
+fn escape_script_content(js: &str) -> String {
+    js.replace("</script>", r"<\/script>")
+        .replace("</Script>", r"<\/Script>")
+        .replace("</SCRIPT>", r"<\/SCRIPT>")
+        .replace("</ script>", r"<\/ script>")
+}
+
 pub struct AzumiScript;
 
 impl Component for AzumiScript {
@@ -7,7 +14,7 @@ impl Component for AzumiScript {
         write!(
             f,
             "<script>{}</script>",
-            crate::AZUMI_JS.replace("</script>", r"<\/script>")
+            escape_script_content(crate::AZUMI_JS)
         )
     }
 }

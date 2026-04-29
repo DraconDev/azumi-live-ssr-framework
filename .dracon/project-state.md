@@ -1,7 +1,9 @@
-# Project State
+# ProjectState
 
 ## Current Focus
-Enhanced error handling in security validation to provide detailed user IDs in case of mismatches.
+Enhancing script content escaping and test coverage for Azumi components
 
 ## Completed
-- [x] Updated error messages in `src/security.rs` to include explicit user IDs for more detailed debugging in security validation.
+- [x] Updated dependencies via minor version bumps reflected in Cargo.lock
+- [x] Refactored script escaping logic into dedicated `escape_script_content` function
+- [x] Added test cases for uppercase `</SCRIPT>` tag escaping validation
