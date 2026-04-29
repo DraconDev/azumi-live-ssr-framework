@@ -1,8 +1,11 @@
 # Project State
 
 ## Current Focus
-Add automatic struct name resolution in LiveState macro implementation
+Add and validate local‑state and computed‑field serialization logic through comprehensive live tests.
 
 ## Completed
-- [x] Add struct name string conversion in `macros/src/live.rs` for automatic state identification
-- [x] Update Cargo.lock dependency versions
+- [x] Introduce `LocalCounterState`, `ServerOnlyState`, `NoLocalState`, and `ComputedState` structs annotated with `#[azumi::live]`, including default implementations.
+- [x] Implement tests verifying that `to_local_scope()` includes only `#[local]` fields and excludes others.
+- [x] Implement tests ensuring `to_scope()` includes only non‑local, non‑computed fields.
+- [x] Add tests confirming that scopes are empty when no local fields exist.
+- [x] Add tests confirming that computed fields marked with `#[computed]` are omitted from the serialized scope.
