@@ -1,10 +1,7 @@
 # Project State
 
 ## Current Focus
-Add per-component local state scoping via `az-local-state` and split signed scope from local-only fields.
+Preserve per-component `az-local-state` across Idiomorph outerHTML morphs to prevent client state loss during updates.
 
 ## Completed
-- [x] Component macro now wraps render output in a conditional `az-local-state` container when live state has local fields, enabling client-side hydration of local-only data without affecting global scope.
-- [x] Live struct macro validates named fields and generates separate `to_scope` (regular fields) and `to_local_scope` (local-marked fields) methods, plus `LiveStateMetadata::local_fields` listing.
-- [x] Library exposes default `local_fields` trait method for namespacing and metadata queries.
-- [x] Cargo.lock updated to reflect resolved dependency versions.
+- [x] Capture `az-local-state` from the target before morphing and restore it on the new element after morphing when Idiomorph is available.
