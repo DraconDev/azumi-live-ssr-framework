@@ -436,3 +436,151 @@ pub async fn no_cache_middleware(req: Request, next: Next) -> Response {
 
     response
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_arg_safe_valid_simple_args() {
+        assert!(is_arg_safe("foo"));
+        assert!(is_arg_safe("bar"));
+        assert!(is_arg_safe("my_component"));
+        assert!(is_arg_safe("config.toml"));
+    }
+
+    #[test]
+    fn test_is_arg_safe_rejects_shell_operators() {
+        assert!(!is_arg_safe("; rm -rf /"));
+        assert!(!is_arg_safe("| cat /etc/passwd"));
+        assert!(!is_arg_safe("& whoami"));
+        assert!(!is_arg_safe("> /tmp/out"));
+        assert!(!is_arg_safe("< input"));
+    }
+
+    #[test]
+    fn test_is_arg_safe_rejects_variable_expansion() {
+        assert!(!is_arg_safe("$HOME"));
+        assert!(!is_arg_safe("${SECRET}"));
+        assert!(!is_arg_safe("`id`"));
+    }
+
+    #[test]
+    fn test_is_arg_safe_rejects_quote_removal() {
+        assert!(!is_arg_safe("'hello'"));
+        assert!(!is_arg_safe("\"hello\""));
+        assert!(!is_arg_safe("hello\\"));
+    }
+
+    #[test]
+    fn test_is_arg_safe_rejects_grouping_chars() {
+        assert!(!is_arg_safe("(ls)"));
+        assert!(!is_arg_safe("{ls}"));
+        assert!(!is_arg_safe("[ls]"));
+    }
+
+    #[test]
+    fn test_is_arg_safe_rejects_glob_expansion() {
+        assert!(!is_arg_safe("*.rs"));
+        assert!(!is_arg_safe("?"));
+        assert!(!is_arg_safe("#comment"));
+        assert!(!is_arg_safe("~/"));
+    }
+
+    #[test]
+    fn test_is_arg_safe_rejects_newlines() {
+        assert!(!is_arg_safe("hello\r\nworld"));
+        assert!(!is_arg_safe("line1\nline2"));
+    }
+
+    #[test]
+    fn test_is_arg_safe_rejects_space_separator() {
+        assert!(!is_arg_safe("arg with spaces"));
+        assert!(!is_arg_safe("multiple args"));
+    }
+
+    #[test]
+    fn test_extract_templates_internal_basic() {
+        let content = r#"
+fn example() {
+    html! {
+        <div>Hello</div>
+    }
+}
+"#;
+        let templates = extract_templates_internal(content, "test.rs");
+        assert!(!templates.is_empty());
+    }
+
+    #[test]
+    fn test_extract_templates_internal_no_html() {
+        let content = r#"
+fn example() {
+    let x = 5;
+}
+"#;
+        let templates = extract_templates_internal(content, "test.rs");
+        assert!(templates.is_empty());
+    }
+
+    #[test]
+    fn test_extract_templates_internal_with_style() {
+        let content = r#"
+fn example() {
+    html! {
+        <style>.foo { color: red; }</style>
+        <div>Hello</div>
+    }
+}
+"#;
+        let templates = extract_templates_internal(content, "test.rs");
+        assert!(!templates.is_empty());
+    }
+
+    #[test]
+    fn test_extract_templates_internal_multiple() {
+        let content = r#"
+fn comp1() { html! { <div>1</div> } }
+fn comp2() { html! { <span>2</span> } }
+"#;
+        let templates = extract_templates_internal(content, "test.rs");
+        assert_eq!(templates.len(), 2);
+    }
+
+    #[test]
+    fn test_extract_templates_internal_nested_braces() {
+        let content = r#"
+fn example() {
+    html! {
+        <div>
+            <style>.foo { color: red; }</style>
+            <span>{ value }</span>
+        </div>
+    }
+}
+"#;
+        let templates = extract_templates_internal(content, "test.rs");
+        assert!(!templates.is_empty());
+        let parts = templates.values().next().unwrap();
+        assert!(!parts.is_empty());
+    }
+
+    #[test]
+    fn test_extract_templates_internal_empty_file() {
+        let templates = extract_templates_internal("", "empty.rs");
+        assert!(templates.is_empty());
+    }
+
+    #[test]
+    fn test_extract_templates_internal_id_format() {
+        let content = r#"
+fn example() {
+    html! { <div>Test</div> }
+}
+"#;
+        let templates = extract_templates_internal(content, "src/components/my_comp.rs");
+        let id = templates.keys().next().unwrap();
+        assert!(id.contains("src/components/my_comp.rs"));
+        assert!(id.contains(':'));
+    }
+}
