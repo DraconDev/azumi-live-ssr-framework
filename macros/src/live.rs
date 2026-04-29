@@ -306,9 +306,21 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
     } else {
+        let field_values: Vec<_> = regular_field_names
+            .iter()
+            .map(|name| {
+                let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
+                quote! {
+                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap());
+                }
+            })
+            .collect();
+
         quote! {
             pub fn to_scope(&self) -> String {
-                let json = serde_json::to_string(self).unwrap_or_default();
+                let mut map = serde_json::Map::new();
+                #(#field_values)*
+                let json = serde_json::to_string(&map).unwrap_or_default();
                 azumi::security::sign_state(&json)
             }
         }

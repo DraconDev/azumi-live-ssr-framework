@@ -1,9 +1,10 @@
 # Project State
 
 ## Current Focus
-Refactor LiveState expansion to replace struct snapshot with inline JSON map for state signing
+Replace struct snapshot creation with an inline JSON map construction for live state serialization
 
 ## Completed
-- [x] Replace struct `__LocalOnly` creation with direct insertion into a `serde_json::Map`
-- [x] Serialize each field value into the map using `serde_json::to_value` and `stringify!`
-- [x] Use the resulting map for JSON serialization in `to_local_scope`
+- [x] Generate `field_values` entries for each regular field name and insert JSON values into a map
+- [x] Build a `serde_json::Map` and populate it with those entries
+- [x] Serialize the map to a JSON string before signing
+- [x] Updated `Cargo.lock` to reflect new dependency versions
