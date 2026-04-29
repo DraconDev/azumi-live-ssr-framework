@@ -1095,7 +1095,7 @@ mod tests {
     fn test_valid_order_content_then_style() {
         let nodes = vec![
             element_node("div"),
-            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), span: proc_macro2::Span::call_site() })),
+            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), is_global: false, span: proc_macro2::Span::call_site() })),
         ];
         let errors = validate_node_order(&nodes);
         assert!(errors.is_empty(), "Content before style should be valid");
@@ -1104,7 +1104,7 @@ mod tests {
     #[test]
     fn test_invalid_order_style_then_content() {
         let nodes = vec![
-            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), span: proc_macro2::Span::call_site() })),
+            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), is_global: false, span: proc_macro2::Span::call_site() })),
             element_node("div"),
         ];
         let errors = validate_node_order(&nodes);
@@ -1116,7 +1116,7 @@ mod tests {
         let nodes = vec![
             element_node("script"),
             element_node("div"),
-            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), span: proc_macro2::Span::call_site() })),
+            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), is_global: false, span: proc_macro2::Span::call_site() })),
         ];
         let errors = validate_node_order(&nodes);
         assert!(errors.is_empty(), "Script -> Content -> Style should be valid");
