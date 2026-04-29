@@ -234,3 +234,271 @@ pub fn validate_iframe_title(
         None
     }
 }
+
+// Test helpers
+#[cfg(test)]
+fn test_element(name: &str) -> Element {
+    use proc_macro2::Span;
+    Element {
+        name: name.to_string(),
+        attrs: vec![],
+        children: vec![],
+        bind_struct: None,
+        span: Span::call_site(),
+        full_span: Span::call_site(),
+    }
+}
+
+#[cfg(test)]
+fn test_element_with_attrs(name: &str, attrs: Vec<(&str, &str)>) -> Element {
+    use proc_macro2::Span;
+    let mut elem = test_element(name);
+    for (name, value) in attrs {
+        elem.attrs.push(crate::token_parser::Attribute {
+            name: name.to_string(),
+            name_span: Span::call_site(),
+            value: AttributeValue::Static(value.to_string()),
+            span: Span::call_site(),
+            value_span: None,
+        });
+    }
+    elem
+}
+
+#[cfg(test)]
+fn test_element_with_children(name: &str, children: Vec<crate::token_parser::Node>) -> Element {
+    let mut elem = test_element(name);
+    elem.children = children;
+    elem
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // =========================================================================
+    // validate_img_alt
+    // =========================================================================
+
+    #[test]
+    fn test_img_without_alt_fails() {
+        let elem = test_element("img");
+        let result = validate_img_alt(&elem);
+        assert!(result.is_some(), "img without alt should fail validation");
+        let msg = result.unwrap().to_string();
+        assert!(msg.contains("missing 'alt'"), "Error should mention missing alt: {}", msg);
+    }
+
+    #[test]
+    fn test_img_with_alt_passes() {
+        let elem = test_element_with_attrs("img", vec![("alt", "Description")]);
+        let result = validate_img_alt(&elem);
+        assert!(result.is_none(), "img with alt should pass validation");
+    }
+
+    #[test]
+    fn test_img_empty_alt_passes() {
+        let elem = test_element_with_attrs("img", vec![("alt", "")]);
+        let result = validate_img_alt(&elem);
+        assert!(result.is_none(), "img with empty alt (decorative) should pass");
+    }
+
+    #[test]
+    fn test_non_img_ignored() {
+        let elem = test_element("div");
+        let result = validate_img_alt(&elem);
+        assert!(result.is_none(), "non-img elements should be ignored");
+    }
+
+    // =========================================================================
+    // validate_input_type
+    // =========================================================================
+
+    #[test]
+    fn test_valid_input_type_text() {
+        let elem = test_element_with_attrs("input", vec![("type", "text")]);
+        let result = validate_input_type(&elem);
+        assert!(result.is_none(), "input type=text should be valid");
+    }
+
+    #[test]
+    fn test_valid_input_type_email() {
+        let elem = test_element_with_attrs("input", vec![("type", "email")]);
+        let result = validate_input_type(&elem);
+        assert!(result.is_none(), "input type=email should be valid");
+    }
+
+    #[test]
+    fn test_invalid_input_type_fails() {
+        let elem = test_element_with_attrs("input", vec![("type", "invalid_type")]);
+        let result = validate_input_type(&elem);
+        assert!(result.is_some(), "invalid input type should fail");
+    }
+
+    #[test]
+    fn test_valid_button_type_submit() {
+        let elem = test_element_with_attrs("button", vec![("type", "submit")]);
+        let result = validate_input_type(&elem);
+        assert!(result.is_none(), "button type=submit should be valid");
+    }
+
+    #[test]
+    fn test_invalid_button_type_fails() {
+        let elem = test_element_with_attrs("button", vec![("type", "invalid")]);
+        let result = validate_input_type(&elem);
+        assert!(result.is_some(), "invalid button type should fail");
+    }
+
+    #[test]
+    fn test_input_without_type_ignored() {
+        let elem = test_element("input");
+        let result = validate_input_type(&elem);
+        assert!(result.is_none(), "input without type attr should be ignored");
+    }
+
+    // =========================================================================
+    // validate_aria_roles
+    // =========================================================================
+
+    #[test]
+    fn test_valid_aria_role_button() {
+        let elem = test_element_with_attrs("div", vec![("role", "button")]);
+        let result = validate_aria_roles(&elem);
+        assert!(result.is_none(), "role=button should be valid");
+    }
+
+    #[test]
+    fn test_valid_aria_role_navigation() {
+        let elem = test_element_with_attrs("nav", vec![("role", "navigation")]);
+        let result = validate_aria_roles(&elem);
+        assert!(result.is_none(), "role=navigation should be valid");
+    }
+
+    #[test]
+    fn test_invalid_aria_role_fails() {
+        let elem = test_element_with_attrs("div", vec![("role", "notarole")]);
+        let result = validate_aria_roles(&elem);
+        assert!(result.is_some(), "invalid aria role should fail");
+    }
+
+    #[test]
+    fn test_element_without_role_ignored() {
+        let elem = test_element("div");
+        let result = validate_aria_roles(&elem);
+        assert!(result.is_none(), "element without role should be ignored");
+    }
+
+    // =========================================================================
+    // validate_button_content
+    // =========================================================================
+
+    #[test]
+    fn test_button_with_text_passes() {
+        let text = crate::token_parser::Text { content: "Click me".to_string(), span: proc_macro2::Span::call_site() };
+        let elem = test_element_with_children("button", vec![crate::token_parser::Node::Text(text)]);
+        let result = validate_button_content(&elem);
+        assert!(result.is_none(), "button with text should pass");
+    }
+
+    #[test]
+    fn test_button_with_aria_label_passes() {
+        let elem = test_element_with_attrs("button", vec![("aria-label", "Close")]);
+        let result = validate_button_content(&elem);
+        assert!(result.is_none(), "button with aria-label should pass");
+    }
+
+    #[test]
+    fn test_button_with_title_passes() {
+        let elem = test_element_with_attrs("button", vec![("title", "Submit")]);
+        let result = validate_button_content(&elem);
+        assert!(result.is_none(), "button with title should pass");
+    }
+
+    #[test]
+    fn test_button_without_content_fails() {
+        let elem = test_element("button");
+        let result = validate_button_content(&elem);
+        assert!(result.is_some(), "button without accessible text should fail");
+    }
+
+    #[test]
+    fn test_non_button_ignored() {
+        let elem = test_element("div");
+        let result = validate_button_content(&elem);
+        assert!(result.is_none(), "non-button elements should be ignored");
+    }
+
+    // =========================================================================
+    // validate_anchor_target_blank
+    // =========================================================================
+
+    #[test]
+    fn test_anchor_without_target_passes() {
+        let elem = test_element_with_attrs("a", vec![("href", "https://example.com")]);
+        let result = validate_anchor_target_blank(&elem);
+        assert!(result.is_none(), "anchor without target should pass");
+    }
+
+    #[test]
+    fn test_anchor_target_blank_with_rel_passes() {
+        let elem = test_element_with_attrs("a", vec![
+            ("href", "https://example.com"),
+            ("target", "_blank"),
+            ("rel", "noopener noreferrer"),
+        ]);
+        let result = validate_anchor_target_blank(&elem);
+        assert!(result.is_none(), "target=_blank with rel should pass");
+    }
+
+    #[test]
+    fn test_anchor_target_blank_without_rel_fails() {
+        let elem = test_element_with_attrs("a", vec![
+            ("href", "https://example.com"),
+            ("target", "_blank"),
+        ]);
+        let result = validate_anchor_target_blank(&elem);
+        assert!(result.is_some(), "target=_blank without rel should fail");
+    }
+
+    #[test]
+    fn test_anchor_target_self_passes() {
+        let elem = test_element_with_attrs("a", vec![
+            ("href", "/page"),
+            ("target", "_self"),
+        ]);
+        let result = validate_anchor_target_blank(&elem);
+        assert!(result.is_none(), "target=_self should pass");
+    }
+
+    #[test]
+    fn test_non_anchor_ignored() {
+        let elem = test_element("button");
+        let result = validate_anchor_target_blank(&elem);
+        assert!(result.is_none(), "non-anchor elements should be ignored");
+    }
+
+    // =========================================================================
+    // validate_iframe_title
+    // =========================================================================
+
+    #[test]
+    fn test_iframe_without_title_fails() {
+        let elem = test_element("iframe");
+        let result = validate_iframe_title(&elem);
+        assert!(result.is_some(), "iframe without title should fail");
+    }
+
+    #[test]
+    fn test_iframe_with_title_passes() {
+        let elem = test_element_with_attrs("iframe", vec![("title", "Map")]);
+        let result = validate_iframe_title(&elem);
+        assert!(result.is_none(), "iframe with title should pass");
+    }
+
+    #[test]
+    fn test_non_iframe_ignored() {
+        let elem = test_element("div");
+        let result = validate_iframe_title(&elem);
+        assert!(result.is_none(), "non-iframe elements should be ignored");
+    }
+}
