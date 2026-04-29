@@ -488,6 +488,9 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
         if let ImplItem::Fn(method) = item {
             let analysis = analyze_method(method);
 
+            let method_name = &method.sig.ident;
+            let method_name_str = method_name.to_string();
+
             // Collect validation checks for predictions
             // We access the field lists via the const on the struct impl
             let mut validation_items = Vec::new();

@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-Update dependency lock file to reflect new package versions
+Capture method name and its string representation within the live macro expansion
 
 ## Completed
-- [x] Update Cargo.lock with new dependency versions after package updates
+- [x] Added extraction of `method_name` and `method_name_str` from the method signature
