@@ -181,6 +181,10 @@ class Azumi {
     /**
      * Azumi Live: Execute optimistic prediction
      *
+     * Predictions are stored in `this.scopes` WeakMap (ephemeral, in-memory).
+     * The `az-scope` attribute remains immutable (server-signed) after initial render.
+     * Predictions do NOT modify `az-scope` — they live only in JS memory.
+     *
      * Prediction DSL format: "field = expression"
      * Expressions:
      *   - "!field" -> toggle boolean
@@ -197,20 +201,15 @@ class Azumi {
         if (!scopeAttr) return null;
 
         try {
-            // Handle signed state: "{json}|{signature}"
             let jsonStr = scopeAttr;
             if (scopeAttr.includes("|")) {
-                const parts = scopeAttr.split("|");
-                // JSON is the part before the last pipe (to handle pipes in JSON strings, though rare)
-                // Actually, Azumi security uses "last pipe" logic.
                 const lastPipe = scopeAttr.lastIndexOf("|");
                 jsonStr = scopeAttr.substring(0, lastPipe);
             }
 
             const state = JSON.parse(jsonStr);
-            const originalState = JSON.parse(jsonStr); // Keep copy for rollback
+            const originalState = JSON.parse(jsonStr);
 
-            // Parse multiple predictions separated by ;
             const predictions = prediction
                 .split(";")
                 .map((p) => p.trim())
@@ -220,18 +219,14 @@ class Azumi {
                 this.applyPrediction(state, pred);
             }
 
-            // Update the scope attribute with new state
-            scopeElement.setAttribute("az-scope", JSON.stringify(state));
-
-            // Update any bound elements
-            this.updateBindings(scopeElement, state);
+            this.scopes.set(scopeElement, state);
+            this.updateBindings(scopeElement);
 
             console.log("🚀 Prediction executed:", prediction, state);
 
             return {
                 originalState,
                 newState: state,
-                originalScopeAttr: scopeAttr,
             };
         } catch (err) {
             console.warn("Prediction execution failed:", err);
