@@ -88,3 +88,33 @@ pub fn rewrite_path(original: &str) -> Option<String> {
 
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rewrite_path_relative_returns_none() {
+        assert_eq!(rewrite_path("logo.png"), None, "relative path should not be rewritten");
+        assert_eq!(rewrite_path("static/logo.png"), None, "relative path should not be rewritten");
+    }
+
+    #[test]
+    fn test_rewrite_path_absolute_no_manifest_returns_none() {
+        // Without a manifest file, absolute paths return None
+        assert_eq!(rewrite_path("/logo.png"), None, "absolute path without manifest should return None");
+        assert_eq!(rewrite_path("/static/logo.png"), None, "absolute path without manifest should return None");
+    }
+
+    #[test]
+    fn test_rewrite_path_empty_returns_none() {
+        assert_eq!(rewrite_path(""), None, "empty path should return None");
+    }
+
+    #[test]
+    fn test_rewrite_nodes_empty() {
+        let mut nodes: Vec<Node> = vec![];
+        rewrite_nodes(&mut nodes);
+        assert!(nodes.is_empty(), "empty nodes should remain empty");
+    }
+}
