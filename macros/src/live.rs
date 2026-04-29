@@ -390,6 +390,7 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemImpl);
     let struct_name = &input.self_ty;
+    let struct_name_str = quote!(#struct_name).to_string().replace(" ", "");
 
     // Parse attributes to find component="name"
     let args = parse_macro_input!(attr with syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated);
