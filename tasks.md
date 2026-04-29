@@ -15,6 +15,11 @@
 - [x] **HashSet → Binary Search**: Replaced `HashSet` with `Vec` + `LazyLock` + `sort()` + `binary_search()` in `is_valid_css_property()` for better performance.
 - [x] **Capacity Hints**: Reviewed `Vec::new()` calls across macros/src/ - all key paths already handle capacity naturally through iteration; adding hints would be premature optimization given limited gains.
 - [x] **CI Workflow**: Existing `.github/workflows/ci.yml` already covers all required checks (cargo test --all-features, cargo clippy, cargo fmt, cargo test -p azumi-macros, cargo build --release).
+- [x] **Bug Investigation (dracon-platform workarounds)**: Investigated azumi v15 → v23 evolution re: CSS hyphen parsing and component count threshold.
+  - **CSS hyphens in values**: `inline-flex`, `flex-start`, `align-items: center` etc. all work correctly in azumi v23.2.1 style blocks - the `tokens_to_css_string` function properly handles hyphens.
+  - **30 components in single file**: Confirmed working - created stress test with 30 components, all pass.
+  - **Root cause**: Neither bug exists in current azumi. Workarounds in dracon-platform were likely for a bug that was already fixed or doesn't exist.
+- [x] **Stress tests added**: `css_hyphen_test.rs` (inline-flex, flex-start, flex properties), `component_count_stress_test.rs` (15 components), `component_count_30_test.rs` (30 components) - all passing.
 
 ## Pending
 
