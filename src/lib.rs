@@ -347,14 +347,22 @@ pub struct Escaped<T: std::fmt::Display>(pub T);
 
 impl<T: std::fmt::Display> std::fmt::Display for Escaped<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for c in self.0.to_string().chars() {
+        std::fmt::Write::write_fmt(&mut EscapedWriter, format_args!("{}", self.0))
+    }
+}
+
+struct EscapedWriter;
+
+impl std::fmt::Write for EscapedWriter {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        for c in s.chars() {
             match c {
-                '<' => write!(f, "&lt;")?,
-                '>' => write!(f, "&gt;")?,
-                '&' => write!(f, "&amp;")?,
-                '"' => write!(f, "&quot;")?,
-                '\'' => write!(f, "&#x27;")?,
-                _ => write!(f, "{}", c)?,
+                '<' => std::fmt::Write::write_str(self, "&lt;")?,
+                '>' => std::fmt::Write::write_str(self, "&gt;")?,
+                '&' => std::fmt::Write::write_str(self, "&amp;")?,
+                '"' => std::fmt::Write::write_str(self, "&quot;")?,
+                '\'' => std::fmt::Write::write_str(self, "&#x27;")?,
+                _ => std::fmt::Write::write_char(self, c)?,
             }
         }
         Ok(())
