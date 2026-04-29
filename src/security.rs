@@ -184,22 +184,53 @@ fn verify_state_internal(
     expected_user_id: Option<&str>,
     signed_state: &str,
 ) -> Result<String, String> {
+    match verify_state_internal_detailed(expected_user_id, signed_state) {
+        Ok(v) => Ok(v),
+        Err(e) => {
+            #[cfg(debug_assertions)]
+            eprintln!("[azumi] State verification failed: {:?}", e);
+            Err("Invalid state".to_string())
+        }
+    }
+}
+
+#[derive(Debug)]
+enum VerifyError {
+    StateTooLarge { len: usize },
+    TooManyPipes { count: usize },
+    MissingPipe,
+    TimestampParseFailed { raw: String },
+    TimestampFuture { ts: u64, now: u64, skew: u64 },
+    TimestampExpired { ts: u64, now: u64, max_age: u64 },
+    TimestampMaxValue,
+    UserIdMismatch { expected: String, actual: String },
+    UnexpectedUserId { actual: String },
+    SignatureDecodeFailed,
+    HmacVerificationFailed,
+}
+
+fn verify_state_internal_detailed(
+    expected_user_id: Option<&str>,
+    signed_state: &str,
+) -> Result<String, VerifyError> {
     if signed_state.len() > 100_000 {
-        return Err("Invalid state".to_string());
+        return Err(VerifyError::StateTooLarge {
+            len: signed_state.len(),
+        });
     }
 
     let pipe_count = signed_state.matches('|').count();
     if pipe_count > 10 {
-        return Err("Invalid state".to_string());
+        return Err(VerifyError::TooManyPipes { count: pipe_count });
     }
 
     let last_pipe = match signed_state.rfind('|') {
         Some(idx) => idx,
-        None => return Err("Invalid state".to_string()),
+        None => return Err(VerifyError::MissingPipe),
     };
     let second_last_pipe = match signed_state[..last_pipe].rfind('|') {
         Some(idx) => idx,
-        None => return Err("Invalid state".to_string()),
+        None => return Err(VerifyError::MissingPipe),
     };
 
     let payload_with_ts = &signed_state[..last_pipe];
@@ -208,22 +239,34 @@ fn verify_state_internal(
     let timestamp_str = &payload_with_ts[second_last_pipe + 1..];
     let timestamp: u64 = match timestamp_str.parse() {
         Ok(t) => t,
-        Err(_) => return Err("Invalid state".to_string()),
+        Err(_) => {
+            return Err(VerifyError::TimestampParseFailed {
+                raw: timestamp_str.to_string(),
+            })
+        }
     };
 
     let current_time = get_current_timestamp();
 
     if timestamp == u64::MAX {
-        return Err("Invalid state".to_string());
+        return Err(VerifyError::TimestampMaxValue);
     }
 
     if current_time.saturating_sub(timestamp) > MAX_STATE_AGE_SECS {
-        return Err("Invalid state".to_string());
+        return Err(VerifyError::TimestampExpired {
+            ts: timestamp,
+            now: current_time,
+            max_age: MAX_STATE_AGE_SECS,
+        });
     }
 
     const ALLOWED_CLOCK_SKEW: u64 = 60;
     if timestamp > current_time && timestamp - current_time > ALLOWED_CLOCK_SKEW {
-        return Err("Invalid state".to_string());
+        return Err(VerifyError::TimestampFuture {
+            ts: timestamp,
+            now: current_time,
+            skew: ALLOWED_CLOCK_SKEW,
+        });
     }
 
     let payload = &payload_with_ts[..second_last_pipe];
@@ -248,10 +291,17 @@ fn verify_state_internal(
     if let Some(expected) = expected_user_id {
         match actual_user_id {
             Some(actual) if actual == expected => {}
-            _ => return Err("Invalid state".to_string()),
+            _ => {
+                return Err(VerifyError::UserIdMismatch {
+                    expected: expected.to_string(),
+                    actual: actual_user_id.unwrap_or_default(),
+                })
+            }
         }
     } else if actual_user_id.is_some() {
-        return Err("Invalid state".to_string());
+        return Err(VerifyError::UnexpectedUserId {
+            actual: actual_user_id.unwrap_or_default(),
+        });
     }
 
     let secret = get_secret();
@@ -266,12 +316,12 @@ fn verify_state_internal(
 
     let signature_bytes = match BASE64.decode(signature_b64) {
         Ok(s) => s,
-        Err(_) => return Err("Invalid state".to_string()),
+        Err(_) => return Err(VerifyError::SignatureDecodeFailed),
     };
 
     match mac.verify_slice(&signature_bytes) {
         Ok(()) => Ok(state_json.to_string()),
-        Err(_) => Err("Invalid state".to_string()),
+        Err(_) => Err(VerifyError::HmacVerificationFailed),
     }
 }
 
