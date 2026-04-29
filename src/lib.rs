@@ -346,7 +346,7 @@ self.0.render(_f)
 pub struct Escaped<T: std::fmt::Display>(pub T);
 
 impl<T: std::fmt::Display> std::fmt::Display for Escaped<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Write::write_fmt(&mut EscapedWriter, format_args!("{}", self.0))
     }
 }

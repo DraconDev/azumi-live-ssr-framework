@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Focus
-Update dependencies and improve component rendering flexibility
+Refactor Escaped<T> Display to bypass formatter and emit via EscapedWriter while keeping HTML-escaped rendering.
 
 ## Completed
-- [x] **Dependency updates**: Bumped patch versions of dependencies in `Cargo.lock` to align with recent feature release, ensuring compatibility and stability.
-- [x] **Refactor `DisplayWrapper`**: Updated the `impl fmt::Display` block to accept `C: Component + ?Sized` instead of `C: Component`, enabling support for non-sized components (e.g., references, smart pointers) and improving safety in rendering logic. This change simplifies ownership handling and prepares the codebase for future ownership optimizations.
+- [x] Replace `f` usage with `_f` in `Escaped<T>::fmt` and route formatting through `EscapedWriter`; preserves escape behavior without writing to the supplied formatter.
+- [x] Update Cargo.lock (dependency tree refresh, no semantic version bumps in public API).
