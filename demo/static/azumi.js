@@ -234,53 +234,73 @@ class Azumi {
 
     /**
      * Apply a single prediction to state
-     * Format: "field = expression"
+     * Format: "field = expression" or "field.sub.path = expression"
      */
     applyPrediction(state, pred) {
-        // Parse: "field = expr"
-        const match = pred.match(/^(\w+)\s*=\s*(.+)$/);
+        // Parse: "field = expr" (supports nested paths like "user.count")
+        const match = pred.match(/^([\w.]+)\s*=\s*(.+)$/);
         if (!match) return;
 
-        const [, field, expr] = match;
+        const [, fieldPath, expr] = match;
         const trimmedExpr = expr.trim();
+        const pathParts = fieldPath.split(".");
+
+        // Guard against prototype pollution: reject dangerous path segments
+        const dangerous = ["__proto__", "constructor", "prototype", "prototype__", "__defineGetter__", "__defineSetter__", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "toString", "valueOf", "__lookupGetter__", "__lookupSetter__"];
+        if (pathParts.some(p => dangerous.includes(p))) {
+            console.warn("Azumi:Blocked prototype-polluting path:", fieldPath);
+            return;
+        }
+
+        // Helper: get nested property
+        const getNested = (obj, path) =>
+            path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
+        // Helper: set nested property
+        const setNested = (obj, path, value) => {
+            const last = path[path.length - 1];
+            const target = path.slice(0, -1).reduce((o, k) => (o != null ? o[k] : undefined), obj);
+            if (target != null) target[last] = value;
+        };
+
+        const currentVal = getNested(state, pathParts);
 
         // Toggle: "!field"
         if (trimmedExpr.startsWith("!")) {
-            const toggleField = trimmedExpr.slice(1).trim();
-            if (toggleField === field) {
-                state[field] = !state[field];
+            const togglePath = trimmedExpr.slice(1).trim().split(".");
+            if (togglePath.join(".") === fieldPath) {
+                setNested(state, pathParts, !currentVal);
                 return;
             }
         }
 
         // Increment: "field + value"
-        const addMatch = trimmedExpr.match(/^(\w+)\s*\+\s*(\d+)$/);
-        if (addMatch && addMatch[1] === field) {
-            state[field] = (state[field] || 0) + parseInt(addMatch[2], 10);
+        const addMatch = trimmedExpr.match(/^([\w.]+)\s*\+\s*(\d+)$/);
+        if (addMatch && addMatch[1] === fieldPath) {
+            setNested(state, pathParts, (currentVal || 0) + parseInt(addMatch[2], 10));
             return;
         }
 
         // Decrement: "field - value"
-        const subMatch = trimmedExpr.match(/^(\w+)\s*-\s*(\d+)$/);
-        if (subMatch && subMatch[1] === field) {
-            state[field] = (state[field] || 0) - parseInt(subMatch[2], 10);
+        const subMatch = trimmedExpr.match(/^([\w.]+)\s*-\s*(\d+)$/);
+        if (subMatch && subMatch[1] === fieldPath) {
+            setNested(state, pathParts, (currentVal || 0) - parseInt(subMatch[2], 10));
             return;
         }
 
         // Literal assignment
         if (trimmedExpr === "true") {
-            state[field] = true;
+            setNested(state, pathParts, true);
         } else if (trimmedExpr === "false") {
-            state[field] = false;
+            setNested(state, pathParts, false);
         } else if (/^-?\d+$/.test(trimmedExpr)) {
-            state[field] = parseInt(trimmedExpr, 10);
+            setNested(state, pathParts, parseInt(trimmedExpr, 10));
         } else if (/^-?\d+\.\d+$/.test(trimmedExpr)) {
-            state[field] = parseFloat(trimmedExpr);
+            setNested(state, pathParts, parseFloat(trimmedExpr));
         } else if (trimmedExpr.startsWith('"') && trimmedExpr.endsWith('"')) {
-            state[field] = trimmedExpr.slice(1, -1).replace(/\\(["\\])/g, '$1');
+            setNested(state, pathParts, trimmedExpr.slice(1, -1).replace(/\\(["\\])/g, '$1'));
         } else {
             // Fallback: treat as string
-            state[field] = trimmedExpr;
+            setNested(state, pathParts, trimmedExpr);
         }
     }
 
@@ -346,12 +366,19 @@ class Azumi {
         // without client-side signing keys.
         if (scopeElement) {
             if (scopeElement._azumi_pending) {
-                console.warn(
-                    "🚫 Action ignored: Request already pending for this component."
-                );
-                return;
+                // Clear stale locks after 30 seconds (server crash / network hang)
+                if (Date.now() - (scopeElement._azumi_pending_time || 0) > 30000) {
+                    console.warn("🔓 Clearing stale action lock (>30s timeout)");
+                    scopeElement._azumi_pending = false;
+                } else {
+                    console.warn(
+                        "🚫 Action ignored: Request already pending for this component."
+                    );
+                    return;
+                }
             }
             scopeElement._azumi_pending = true;
+            scopeElement._azumi_pending_time = Date.now();
         }
 
         // IMPORTANT: Capture state BEFORE prediction
@@ -359,9 +386,13 @@ class Azumi {
         // If we predict first, we might dirty the state or invalidly sign it.
         let body = null;
         if (element.tagName === "FORM") {
-            // For forms, we send the form data, not the state
+            // For forms, we send the form data alongside the parent scope's signed state.
+            // This allows the server to verify the request context.
             body = new FormData(element);
             const data = Object.fromEntries(body.entries());
+            if (scopeElement) {
+                data._azumi_scope = scopeElement.getAttribute("az-scope") || "";
+            }
             body = JSON.stringify(data);
         } else {
             if (scopeElement) {
@@ -422,11 +453,23 @@ class Azumi {
             }
 
             if (target && window.Idiomorph) {
+                // Save local state before morphing
+                const localStateElement = target.querySelector("[az-local-state]");
+                const savedLocalState = localStateElement ? localStateElement.getAttribute("az-local-state") : null;
+
                 // Morph will reconcile prediction with server truth
                 // Use outerHTML to replace component wrapper
                 window.Idiomorph.morph(target, html, {
                     morphStyle: "outerHTML",
                 });
+
+                // Restore local state after morphing
+                if (savedLocalState) {
+                    const newLocalStateEl = target.querySelector("[az-local-state]");
+                    if (newLocalStateEl) {
+                        newLocalStateEl.setAttribute("az-local-state", savedLocalState);
+                    }
+                }
             } else if (target) {
                 console.warn(
                     "Idiomorph not loaded, falling back to outerHTML replacement"
@@ -448,7 +491,6 @@ class Azumi {
             }
         }
     }
-}
 
 // Initialize
 window.azumi = new Azumi();

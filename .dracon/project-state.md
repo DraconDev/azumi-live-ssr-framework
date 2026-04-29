@@ -1,9 +1,12 @@
 # Project State
 
 ## Current Focus
-Updates Cargo.lock dependency versions and resolves dependency constraints without changing file size
+Replace compile‑time prediction validation with runtime hidden constants and add style validation tests
 
 ## Completed
-- [x] Updated Cargo.lock with new package versions reflecting recent feature additions
-- [x] Stabilized dependencies through lock file regeneration
-- [x] Resolved dependency constraints for hot reload and SEO test modules
+- [x] Replace per‑prediction compile‑time validation constants with runtime hidden consts stored in `all_validation_items`
+- [x] Remove unused `validation_items` variable and associated compile‑time error generation
+- [x] Eliminate `method_name` and `method_name_str` variables from expanded code
+- [x] Switch `VALID_PROPERTIES` from `HashSet` to sorted `Vec` and use binary search for lookup
+- [x] Add comprehensive unit tests for CSS property validation, token‑to‑CSS conversion, and edge cases
+- [x] Update task definitions reflecting new validation approach and test coverage

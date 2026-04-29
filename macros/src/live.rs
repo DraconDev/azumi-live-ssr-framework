@@ -9,8 +9,9 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
-    parse_macro_input, BinOp, Expr, ExprAssign, ExprBinary, ExprField, ExprMethodCall, ExprPath,
-    ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Member, Stmt, UnOp,
+    parse_macro_input, punctuated::Punctuated, BinOp, Expr, ExprAssign, ExprBinary, ExprField,
+    ExprMethodCall, ExprPath, ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl, ItemStruct,
+    Member, Stmt, Token, UnOp,
 };
 
 /// Represents a predictable mutation that can be executed optimistically
@@ -45,6 +46,17 @@ impl Prediction {
                 format!("{} = {} - {}", field, field, value)
             }
             Prediction::Manual(s) => s.clone(),
+        }
+    }
+
+    /// Returns the field name for this prediction, if any
+    pub fn field_name(&self) -> Option<&str> {
+        match self {
+            Prediction::SetLiteral { field, .. } => Some(field),
+            Prediction::Toggle { field } => Some(field),
+            Prediction::Add { field, .. } => Some(field),
+            Prediction::Sub { field, .. } => Some(field),
+            Prediction::Manual(_) => None, // Manual predictions skip validation
         }
     }
 }
@@ -255,10 +267,10 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_name = &input.ident;
     let struct_vis = &input.vis;
     let struct_generics = &input.generics;
-    let struct_fields = &input.fields;
+    let struct_name_str = struct_name.to_string();
 
     // Validate that struct has named fields
-    if !matches!(struct_fields, Fields::Named(_)) {
+    if !matches!(input.fields, Fields::Named(_)) {
         return syn::Error::new_spanned(
             &input,
             "#[azumi::live] only supports structs with named fields",
@@ -268,16 +280,171 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let struct_attrs = &input.attrs;
+    let struct_fields = &input.fields;
 
-    // Generate the struct with derives
+    // Parse local and computed field names
+    let mut local_field_names = Vec::new();
+    let mut computed_field_names = Vec::new();
+    let mut regular_field_names = Vec::new();
+    let mut field_idents = Vec::new();
+
+    if let Fields::Named(named) = struct_fields {
+        for field in &named.named {
+            let field_ident = field.ident.as_ref().unwrap();
+            let field_name = field_ident.to_string();
+
+            let is_local = field.attrs.iter().any(|attr| {
+                attr.path().is_ident("local")
+            });
+            let is_computed = field.attrs.iter().any(|attr| {
+                attr.path().is_ident("computed")
+            });
+            if is_local {
+                local_field_names.push(field_name.clone());
+            } else if is_computed {
+                computed_field_names.push(field_name.clone());
+            } else {
+                regular_field_names.push(field_name.clone());
+            }
+            field_idents.push(field_ident.clone());
+        }
+    }
+
+    let to_scope = if regular_field_names.is_empty() {
+        quote! {
+            pub fn to_scope(&self) -> String {
+                String::new()
+            }
+        }
+    } else {
+        let field_values: Vec<_> = regular_field_names
+            .iter()
+            .map(|name| {
+                let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
+                quote! {
+                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap());
+                }
+            })
+            .collect();
+
+        quote! {
+            pub fn to_scope(&self) -> String {
+                let mut map = serde_json::Map::new();
+                #(#field_values)*
+                let json = serde_json::to_string(&map).unwrap_or_default();
+                azumi::security::sign_state(&json)
+            }
+        }
+    };
+
+    let to_local_scope = if local_field_names.is_empty() {
+        quote! {
+            pub fn to_local_scope(&self) -> String {
+                String::new()
+            }
+        }
+    } else {
+        let field_values: Vec<_> = local_field_names
+            .iter()
+            .map(|name| {
+                let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
+                quote! {
+                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap());
+                }
+            })
+            .collect();
+
+        quote! {
+            pub fn to_local_scope(&self) -> String {
+                let mut map = serde_json::Map::new();
+                #(#field_values)*
+                let json = serde_json::to_string(&map).unwrap_or_default();
+                azumi::security::sign_state(&json)
+            }
+        }
+    };
+
+    let local_field_names_static: Vec<_> = local_field_names
+        .iter()
+        .map(|s| quote!(#s))
+        .collect();
+
+    let computed_field_names_static: Vec<_> = computed_field_names
+        .iter()
+        .map(|s| quote!(#s))
+        .collect();
+
+    let filtered_named_fields = if let Fields::Named(named) = struct_fields {
+        let filtered: Punctuated<syn::Field, Token![,]> = named
+            .named
+            .iter()
+            .filter_map(|f| {
+                let attrs: Vec<_> = f
+                    .attrs
+                    .iter()
+                    .filter(|attr| {
+                        let ident = attr.path().get_ident();
+                        !matches!(ident, Some(i) if i == "local" || i == "computed")
+                    })
+                    .cloned()
+                    .collect();
+                Some(syn::Field {
+                    attrs,
+                    ..f.clone()
+                })
+            })
+            .collect();
+        Fields::Named(syn::FieldsNamed {
+            brace_token: named.brace_token,
+            named: filtered,
+        })
+    } else {
+        struct_fields.clone()
+    };
+
+    // Emit private constants with field names for compile-time validation
+    // These are used by #[azumi::live_impl] to validate predictions
+    let local_const_entries: Vec<_> = local_field_names
+        .iter()
+        .map(|s| quote!(#s))
+        .collect();
+    let computed_const_entries: Vec<_> = computed_field_names
+        .iter()
+        .map(|s| quote!(#s))
+        .collect();
+
     let expanded = quote! {
         #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
         #(#struct_attrs)*
-        #struct_vis struct #struct_name #struct_generics #struct_fields
+        #struct_vis struct #struct_name #struct_generics #filtered_named_fields
 
         impl #struct_generics #struct_name #struct_generics {
-            /// Serialize state for az-scope attribute
-            pub fn to_scope(&self) -> String {
+            #to_scope
+            #to_local_scope
+
+            #[doc(hidden)]
+            const __AZUMI_LOCAL_FIELDS: &'static [&'static str] = &[#(#local_const_entries),*];
+            #[doc(hidden)]
+            const __AZUMI_COMPUTED_FIELDS: &'static [&'static str] = &[#(#computed_const_entries),*];
+        }
+
+        impl azumi::LiveStateMetadata for #struct_name {
+            fn predictions() -> &'static [(&'static str, &'static str)] {
+                &[]
+            }
+            fn struct_name() -> &'static str {
+                #struct_name_str
+            }
+            fn local_fields() -> &'static [&'static str] {
+                &[#(#local_field_names_static),*]
+            }
+            fn computed_fields() -> &'static [&'static str] {
+                &[#(#computed_field_names_static),*]
+            }
+        }
+
+        impl azumi::LiveState for #struct_name {
+            fn to_scope(&self) -> String {
                 let json = serde_json::to_string(self).unwrap_or_default();
                 azumi::security::sign_state(&json)
             }
@@ -292,10 +459,7 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemImpl);
     let struct_name = &input.self_ty;
-    // Get struct name as string for namespacing
-    let struct_name_str = quote!(#struct_name).to_string();
-    // Clean up struct name (remove spaces)
-    let struct_name_str = struct_name_str.replace(" ", "");
+    let struct_name_str = quote!(#struct_name).to_string().replace(" ", "");
 
     // Parse attributes to find component="name"
     let args = parse_macro_input!(attr with syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated);
@@ -317,12 +481,31 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let mut method_handlers = Vec::new();
     let mut original_methods = Vec::new();
-
     let mut predictions_entries = Vec::new();
+    let mut all_validation_items = Vec::new();
 
     for item in &input.items {
         if let ImplItem::Fn(method) = item {
             let analysis = analyze_method(method);
+
+            let method_name = &method.sig.ident;
+            let method_name_str = method_name.to_string();
+
+            // Collect validation checks for predictions
+            // We access the field lists via the const on the struct impl
+            for (pred_idx, pred) in analysis.predictions.iter().enumerate() {
+                if let Some(field_name) = pred.field_name() {
+                    let check_name = format!("__AZUMI_CHECK_{}_{}", method_name_str, pred_idx);
+                    let check_ident = syn::Ident::new(&check_name, proc_macro2::Span::call_site());
+
+                    // Store prediction field name - validation happens at runtime in action handler
+                    // Compile-time validation requires stable const traits (not yet available)
+                    all_validation_items.push(quote! {
+                        #[doc(hidden)]
+                        const #check_ident: &'static str = #field_name;
+                    });
+                }
+            }
 
             // Generate prediction string
             let prediction_dsl: String = analysis
@@ -331,9 +514,6 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
                 .map(|p| p.to_dsl())
                 .collect::<Vec<_>>()
                 .join("; ");
-
-            let method_name = &method.sig.ident;
-            let method_name_str = method_name.to_string();
 
             if !prediction_dsl.is_empty() {
                 predictions_entries.push(quote! {
@@ -431,27 +611,16 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let handler_mod_name =
         format_ident!("__azumi_live_handlers_{}", struct_name_str.to_lowercase());
+
     let expanded = quote! {
         impl #struct_name {
             #(#original_methods)*
+            #(#all_validation_items)*
         }
 
-        impl azumi::LiveStateMetadata for #struct_name {
-            fn predictions() -> &'static [(&'static str, &'static str)] {
-                &[
-                    #(#predictions_entries),*
-                ]
-            }
-            fn struct_name() -> &'static str {
-                #struct_name_str
-            }
-        }
-
-        impl azumi::LiveState for #struct_name {
-            fn to_scope(&self) -> String {
-                self.to_scope()
-            }
-        }
+        // NOTE: We do NOT implement LiveStateMetadata here because
+        // #[azumi::live] already provides the full implementation.
+        // #[azumi::live_impl] only adds action handlers.
 
         #[allow(non_snake_case)]
         mod #handler_mod_name {

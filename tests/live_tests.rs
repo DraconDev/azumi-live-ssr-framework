@@ -353,3 +353,133 @@ fn test_different_states_different_signatures() {
     let sig2 = azumi::security::sign_state(json2);
     assert_ne!(sig1, sig2);
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION 6: Local State Tests
+// ════════════════════════════════════════════════════════════════════════════
+
+mod local_state_tests {
+    use super::*;
+
+    #[azumi::live]
+    pub struct LocalCounterState {
+        pub count: i32,
+        #[local]
+        pub input_value: String,
+    }
+
+    impl Default for LocalCounterState {
+        fn default() -> Self {
+            Self {
+                count: 0,
+                input_value: String::new(),
+            }
+        }
+    }
+
+    #[azumi::live]
+    pub struct ServerOnlyState {
+        pub name: String,
+        #[local]
+        pub scroll_pos: i32,
+        #[computed]
+        pub full_greeting: String,
+    }
+
+    impl Default for ServerOnlyState {
+        fn default() -> Self {
+            Self {
+                name: String::new(),
+                scroll_pos: 0,
+                full_greeting: String::new(),
+            }
+        }
+    }
+
+    #[test]
+    fn test_local_scope_only_includes_local_fields() {
+        let state = LocalCounterState {
+            count: 10,
+            input_value: "test".to_string(),
+        };
+        let local_json = state.to_local_scope();
+        eprintln!("local_json = {:?}", local_json);
+        assert!(local_json.contains("input_value"), "local_json should contain input_value");
+        assert!(!local_json.contains("count"), "local_json should NOT contain count");
+    }
+
+    #[test]
+    fn test_scope_excludes_local_fields() {
+        let state = LocalCounterState {
+            count: 10,
+            input_value: "test".to_string(),
+        };
+        let scope = state.to_scope();
+        assert!(scope.contains("count"));
+        assert!(!scope.contains("input_value"));
+    }
+
+    #[test]
+    fn test_local_scope_empty_when_no_local_fields() {
+        #[azumi::live]
+        pub struct NoLocalState {
+            pub value: i32,
+        }
+        impl Default for NoLocalState {
+            fn default() -> Self {
+                Self { value: 0 }
+            }
+        }
+        let state = NoLocalState { value: 5 };
+        let local = state.to_local_scope();
+        assert!(local.is_empty());
+    }
+
+    #[test]
+    fn test_computed_fields_not_serialized() {
+        #[azumi::live]
+        pub struct ComputedState {
+            pub first: String,
+            pub last: String,
+            #[computed]
+            pub full: String,
+        }
+        impl Default for ComputedState {
+            fn default() -> Self {
+                Self {
+                    first: String::new(),
+                    last: String::new(),
+                    full: String::new(),
+                }
+            }
+        }
+        let state = ComputedState {
+            first: "John".to_string(),
+            last: "Doe".to_string(),
+            full: "John Doe".to_string(),
+        };
+        let scope = state.to_scope();
+        assert!(scope.contains("first"));
+        assert!(scope.contains("last"));
+        assert!(!scope.contains("full"));
+    }
+
+    #[test]
+    fn test_local_and_computed_fields() {
+        let state = ServerOnlyState {
+            name: "Test".to_string(),
+            scroll_pos: 100,
+            full_greeting: "Hello Test".to_string(),
+        };
+        let local = state.to_local_scope();
+        let scope = state.to_scope();
+
+        assert!(local.contains("scroll_pos"));
+        assert!(!local.contains("name"));
+        assert!(!local.contains("full_greeting"));
+
+        assert!(scope.contains("name"));
+        assert!(!scope.contains("scroll_pos"));
+        assert!(!scope.contains("full_greeting"));
+    }
+}
