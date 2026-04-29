@@ -1,9 +1,5 @@
 # Project State
-
-## Current Focus
-Fix quote handling in macro generation by removing unnecessary stripping operations
+This commit modifies the macro generation logic in `macros/src/lib.rs`. The primary change is refactoring the `generate_body_with_context` function to replace custom quote formatting with safer alternation expressions, ensuring consistent and error-free string generation across different contexts. The updated logic maintains the same functionality but improves robustness in handling escape sequences and attribute value names.
 
 ## Completed
-- [x] Remove quote stripping from text node content handling
-- [x] Remove quote stripping from static attribute value handling
-- [x] Remove quote stripping from event handler DSL generation
+- Refactored macro injection to remove fragile quine-style string building and improve safety.

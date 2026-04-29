@@ -1137,6 +1137,7 @@ fn generate_body_with_context(
                                 });
                             }
                             token_parser::AttributeValue::Static(val) => {
+                                let event_name = attr_name.strip_prefix("on:").unwrap_or(attr_name);
                                 let dsl = format!("{} call {}", event_name, val);
                                 instructions.push(quote! {
                                     write!(f, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
@@ -1199,12 +1200,11 @@ fn generate_body_with_context(
                                 instructions.push(quote! { write!(f, "\"")?; });
                             }
                             _ => match &attr.value {
-                                token_parser::AttributeValue::Static(val) => {
-                                    let clean = strip_outer_quotes(val);
-                                    instructions.push(quote! {
-                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#clean))?;
-                                    });
-                                }
+token_parser::AttributeValue::Static(val) => {
+                                instructions.push(quote! {
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                });
+                            }
                                 token_parser::AttributeValue::Dynamic(expr) => {
                                     instructions.push(quote! {
                                               write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#expr))?;
