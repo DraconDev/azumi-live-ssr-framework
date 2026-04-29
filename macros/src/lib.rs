@@ -1033,10 +1033,9 @@ fn generate_body_with_context(
         match node {
             token_parser::Node::Text(text) => {
                 let content = &text.content;
-                let clean_content = strip_outer_quotes(content);
-                if !clean_content.is_empty() {
+                if !content.is_empty() {
                     instructions.push(quote! {
-                        write!(f, "{}", azumi::Escaped(&#clean_content))?;
+                        write!(f, "{}", azumi::Escaped(#content))?;
                     });
                 }
             }
@@ -1071,9 +1070,8 @@ fn generate_body_with_context(
                                     });
                                 }
                                 token_parser::AttributeValue::Static(val) => {
-                                    let clean = strip_outer_quotes(val);
                                     instructions.push(quote! {
-                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#clean))?;
+                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                     });
                                 }
                                 _ => {}
@@ -1139,9 +1137,7 @@ fn generate_body_with_context(
                                 });
                             }
                             token_parser::AttributeValue::Static(val) => {
-                                let clean = strip_outer_quotes(val);
-                                let event_name = attr_name.strip_prefix("on:").unwrap_or(attr_name);
-                                let dsl = format!("{} call {}", event_name, clean);
+                                let dsl = format!("{} call {}", event_name, val);
                                 instructions.push(quote! {
                                     write!(f, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
                                 });

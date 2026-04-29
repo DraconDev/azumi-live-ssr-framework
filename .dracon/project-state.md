@@ -1,7 +1,9 @@
 # Project State
 
 ## Current Focus
-Updated release version in documentation to v15.18.6
+Fix quote handling in macro generation by removing unnecessary stripping operations
 
 ## Completed
-- [x] docs(readme): Updated release version from v15.18.2 to v15.18.6 in README.md
+- [x] Remove quote stripping from text node content handling
+- [x] Remove quote stripping from static attribute value handling
+- [x] Remove quote stripping from event handler DSL generation
