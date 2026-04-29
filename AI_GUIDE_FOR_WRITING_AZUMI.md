@@ -1885,7 +1885,7 @@ User clicks on:click={state.increment}
 5. VERIFY: If prediction was wrong, server wins
 ```
 
-**Note**: Predictions are NOT auto-generated. You must add `data-predict` attributes to buttons manually.
+**Note**: `#[azumi::live_impl]` auto-analyzes simple method mutations (toggle, increment, literal assignment) for validation, but `data-predict` attributes are **currently not auto-injected** into HTML. You must add them manually to enable optimistic UI. For complex mutations that can't be auto-detected, use `#[azumi::predict("...")]` on the method.
 
 ### Supported Prediction Patterns
 
@@ -2563,7 +2563,7 @@ This guide covers all aspects of Azumi development. Use it as your comprehensive
 | `<script>alert(1)</script>` | `<script src="/app.js"></script>` | Inline scripts blocked |
 | `Raw(dynamic_value)` | `<style>` / `<script>` / data attrs | Raw disables escaping — XSS risk |
 | `Raw(format!("<div>{}</div>", x))` | `{x}` (auto-escaped) or data attributes | Use Azumi's built-in escaping |
-| `state.counter = 42` (in predict) | `#[azumi::predict("counter = 42")]` | Use predict macro for mutations |
+| `state.counter = 42` (in predict) | `#[azumi::predict("counter = 42")]` on method in `#[azumi::live_impl]` | Manual prediction attribute for complex mutations |
 
 ---
 
