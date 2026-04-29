@@ -1,8 +1,10 @@
-#Project State
+# Project State
 
 ## Current Focus
-Struct escaping refactor to eliminate EscapedWriter abstraction and improve formatting logic
+Add per-component local state scoping via `az-local-state` and split signed scope from local-only fields.
 
 ## Completed
-- [x] Refactored `Escaped<T>` implementation: Replaced nested `EscapedWriter` struct with direct formatter interaction, simplifying escape logic and improving type safety by handling characters directly via `write_str` and `write_char` calls
-- [x] Enhanced escaping safety: Split into individual character matches with discrete escape operations while maintaining full UTF-8 handling through safe byte buffer conversion
+- [x] Component macro now wraps render output in a conditional `az-local-state` container when live state has local fields, enabling client-side hydration of local-only data without affecting global scope.
+- [x] Live struct macro validates named fields and generates separate `to_scope` (regular fields) and `to_local_scope` (local-marked fields) methods, plus `LiveStateMetadata::local_fields` listing.
+- [x] Library exposes default `local_fields` trait method for namespacing and metadata queries.
+- [x] Cargo.lock updated to reflect resolved dependency versions.

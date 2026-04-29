@@ -80,6 +80,11 @@ pub trait LiveStateMetadata {
 
     /// Returns the struct name for namespacing actions
     fn struct_name() -> &'static str;
+
+    /// Returns the list of local field names (not serialized to az-scope)
+    fn local_fields() -> &'static [&'static str] {
+        &[]
+    }
 }
 
 /// Marker trait for live state structs
@@ -95,6 +100,18 @@ pub trait LiveState:
                     This usually means a field doesn't implement Serialize. \
                     Check that all state fields implement serde::Serialize.", e);
             }
+        };
+        crate::security::sign_state(&json)
+    }
+
+    fn to_local_scope(&self) -> String {
+        let local_fields = Self::local_fields();
+        if local_fields.is_empty() {
+            return String::new();
+        }
+        let json = match serde_json::to_string(self) {
+            Ok(j) => j,
+            Err(_) => return String::new(),
         };
         crate::security::sign_state(&json)
     }
@@ -116,6 +133,9 @@ impl<T: LiveStateMetadata> LiveStateMetadata for &T {
     fn struct_name() -> &'static str {
         T::struct_name()
     }
+    fn local_fields() -> &'static [&'static str] {
+        T::local_fields()
+    }
 }
 impl<T: LiveStateMetadata> LiveStateMetadata for &mut T {
     fn predictions() -> &'static [(&'static str, &'static str)] {
@@ -123,6 +143,9 @@ impl<T: LiveStateMetadata> LiveStateMetadata for &mut T {
     }
     fn struct_name() -> &'static str {
         T::struct_name()
+    }
+    fn local_fields() -> &'static [&'static str] {
+        T::local_fields()
     }
 }
 

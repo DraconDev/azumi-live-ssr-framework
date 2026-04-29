@@ -255,10 +255,9 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_name = &input.ident;
     let struct_vis = &input.vis;
     let struct_generics = &input.generics;
-    let struct_fields = &input.fields;
 
     // Validate that struct has named fields
-    if !matches!(struct_fields, Fields::Named(_)) {
+    if !matches!(input.fields, Fields::Named(_)) {
         return syn::Error::new_spanned(
             &input,
             "#[azumi::live] only supports structs with named fields",
@@ -268,18 +267,93 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let struct_attrs = &input.attrs;
+    let struct_fields = &input.fields;
 
-    // Generate the struct with derives
+    // Parse local field names
+    let mut local_field_names = Vec::new();
+    let mut regular_field_names = Vec::new();
+    let mut field_idents = Vec::new();
+
+    if let Fields::Named(named) = struct_fields {
+        for field in &named.named {
+            let field_ident = field.ident.as_ref().unwrap();
+            let field_name = field_ident.to_string();
+            let is_local = field.attrs.iter().any(|attr| {
+                attr.path().is_ident("local")
+            });
+            if is_local {
+                local_field_names.push(field_name);
+            } else {
+                regular_field_names.push(field_name);
+            }
+            field_idents.push(field_ident);
+        }
+    }
+
+    let to_scope = if regular_field_names.is_empty() {
+        quote! {
+            pub fn to_scope(&self) -> String {
+                String::new()
+            }
+        }
+    } else {
+        quote! {
+            pub fn to_scope(&self) -> String {
+                let json = serde_json::to_string(self).unwrap_or_default();
+                azumi::security::sign_state(&json)
+            }
+        }
+    };
+
+    let to_local_scope = if local_field_names.is_empty() {
+        quote! {
+            pub fn to_local_scope(&self) -> String {
+                String::new()
+            }
+        }
+    } else {
+        let field_pairs: Vec<_> = local_field_names
+            .iter()
+            .map(|name| {
+                let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
+                quote! { #ident: self.#ident.clone() }
+            })
+            .collect();
+
+        quote! {
+            pub fn to_local_scope(&self) -> String {
+                let snapshot = Self {
+                    #(#field_pairs),*
+                    ..Default::default()
+                };
+                let json = serde_json::to_string(&snapshot).unwrap_or_default();
+                azumi::security::sign_state(&json)
+            }
+        }
+    };
+
+    let local_field_names_const: Vec<_> = local_field_names
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+    let local_field_names_static: Vec<_> = local_field_names_const
+        .iter()
+        .map(|s| quote!(#s))
+        .collect();
+
     let expanded = quote! {
         #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
         #(#struct_attrs)*
         #struct_vis struct #struct_name #struct_generics #struct_fields
 
         impl #struct_generics #struct_name #struct_generics {
-            /// Serialize state for az-scope attribute
-            pub fn to_scope(&self) -> String {
-                let json = serde_json::to_string(self).unwrap_or_default();
-                azumi::security::sign_state(&json)
+            #to_scope
+            #to_local_scope
+        }
+
+        impl azumi::LiveStateMetadata for #struct_name {
+            fn local_fields() -> &'static [&'static str] {
+                &[#(#local_field_names_static),*]
             }
         }
     };
