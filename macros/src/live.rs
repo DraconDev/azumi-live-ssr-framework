@@ -325,14 +325,17 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
             .iter()
             .map(|name| {
                 let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
-                quote! { #ident: self.#ident.clone() }
+                quote! {
+                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap());
+                }
             })
             .collect();
 
         quote! {
             pub fn to_local_scope(&self) -> String {
-                struct __LocalOnly { #(#local_field_names: String,)* }
-                let json = serde_json::to_string(&__LocalOnly { #(#field_values),* }).unwrap_or_default();
+                let mut map = serde_json::Map::new();
+                #(#field_values)*
+                let json = serde_json::to_string(&map).unwrap_or_default();
                 azumi::security::sign_state(&json)
             }
         }
