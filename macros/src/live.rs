@@ -271,28 +271,16 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_attrs = &input.attrs;
     let struct_fields = &input.fields;
 
-    // Parse local and computed field names, and filter out azumi-specific attributes
+    // Parse local and computed field names
     let mut local_field_names = Vec::new();
     let mut computed_field_names = Vec::new();
     let mut regular_field_names = Vec::new();
     let mut field_idents = Vec::new();
-    let mut filtered_fields = Vec::new();
 
     if let Fields::Named(named) = struct_fields {
         for field in &named.named {
             let field_ident = field.ident.as_ref().unwrap();
             let field_name = field_ident.to_string();
-
-            // Filter out azumi-specific attributes
-            let filtered_attrs: Vec<_> = field
-                .attrs
-                .iter()
-                .filter(|attr| {
-                    let ident = attr.path().get_ident();
-                    !matches!(ident, Some(i) if i == "local" || i == "computed")
-                })
-                .cloned()
-                .collect();
 
             let is_local = field.attrs.iter().any(|attr| {
                 attr.path().is_ident("local")
@@ -308,16 +296,6 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 regular_field_names.push(field_name.clone());
             }
             field_idents.push(field_ident.clone());
-
-            // Create filtered field with azumi attributes removed
-            let filtered_field = syn::Field {
-                attrs: filtered_attrs,
-                ty: field.ty.clone(),
-                vis: field.vis.clone(),
-                colon_token: field.colon_token,
-                ident: field.ident.clone(),
-            };
-            filtered_fields.push(filtered_field);
         }
     }
 
@@ -374,20 +352,28 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         .collect();
 
     let filtered_named_fields = if let Fields::Named(named) = struct_fields {
-        let fields: Punctuated<syn::Field, Token![,]> = filtered_fields
-            .into_iter()
-            .map(|f| {
-                let mut f = f;
-                f.attrs.retain(|attr| {
-                    let ident = attr.path().get_ident();
-                    !matches!(ident, Some(i) if i == "local" || i == "computed")
-                });
-                f
+        let filtered: Punctuated<syn::Field, Token![,]> = named
+            .named
+            .iter()
+            .filter_map(|f| {
+                let attrs: Vec<_> = f
+                    .attrs
+                    .iter()
+                    .filter(|attr| {
+                        let ident = attr.path().get_ident();
+                        !matches!(ident, Some(i) if i == "local" || i == "computed")
+                    })
+                    .cloned()
+                    .collect();
+                Some(syn::Field {
+                    attrs,
+                    ..f.clone()
+                })
             })
             .collect();
         Fields::Named(syn::FieldsNamed {
             brace_token: named.brace_token,
-            named: fields,
+            named: filtered,
         })
     } else {
         struct_fields.clone()
