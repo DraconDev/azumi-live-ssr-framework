@@ -58,8 +58,14 @@ mod tests {
     fn test_scope_id_format_valid() {
         let id = compute_scope_id(100, 25);
         assert!(
-            id.chars().all(|c| c.is_ascii_hexdigit() || c == 's'),
-            "Scope ID should be hex chars with 's' prefix, got: {}",
+            id.starts_with('s') && id.len() >= 2 && id.len() <= 18,
+            "Scope ID should start with 's' and be reasonable length, got: {}",
+            id
+        );
+        let hex_part = &id[1..];
+        assert!(
+            hex_part.chars().all(|c| c.is_ascii_hexdigit()),
+            "Scope ID hex part should be hex chars only, got: {}",
             id
         );
     }
