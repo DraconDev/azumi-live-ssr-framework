@@ -110,15 +110,7 @@ pub trait LiveState:
     }
 
     fn to_local_scope(&self) -> String {
-        let local_fields = Self::local_fields();
-        if local_fields.is_empty() {
-            return String::new();
-        }
-        let json = match serde_json::to_string(self) {
-            Ok(j) => j,
-            Err(_) => return String::new(),
-        };
-        crate::security::sign_state(&json)
+        String::new()
     }
 }
 
