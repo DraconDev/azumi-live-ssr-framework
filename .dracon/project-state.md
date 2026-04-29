@@ -1,7 +1,8 @@
 # Project State
 
 ## Current Focus
-feat(macros): add trailing comma after field_pairs expansion to enable proper struct literal syntax
+Update dependency lock file to reflect new package versions
 
 ## Completed
-- [x] add trailing comma after field_pairs expansion
+- [x] Update Cargo.lock with new dependency versions to match compiled releases
+- [x] Refresh lock file integrity checksums after version upgrades
