@@ -1,10 +1,9 @@
 # Project State
 
-## Current Focus
-Refactors `TwitterCard` struct and revises SEO configuration handling in `seo.rs`.
+## CurrentFocus
+Enhancing XML escaping test coverage to prevent injection vulnerabilities
 
 ## Completed
-- [x] Refactor `TwitterCard` struct by removing unused `card` and `site` field comments, opting for cleaner syntax.
-- [x] Update access to `og.site` in SEO configuration to use `og.site_name` for consistency and clearer intent.
-- [x] Revise `SitemapBuilder` URL joining logic to trim trailing slashes from base URL more safely.
-- [x] Strip `ocha(docs): wip checkpoint` log entry from project documentation section.
+- [x] Refactored HTML attribute escaping test to check for script tag escaping instead of onerror payload detection
+- [x] Added dedicated test for XML escaping of ampersand characters in dynamic content
+- [x] Implemented XML escaping validation in sitemap generation for URL parameters

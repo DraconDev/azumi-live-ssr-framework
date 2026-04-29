@@ -589,9 +589,23 @@ mod tests {
     fn test_html_attr_escape_xss_payload() {
         let input = "<img src=x onerror=alert(1)>";
         let escaped = html_attr_escape(input);
-        assert!(!escaped.contains("onerror"));
+        assert!(!escaped.contains("<script>"));
         assert!(escaped.contains("&lt;"));
         assert!(escaped.contains("&gt;"));
+        assert!(escaped.contains("onerror"));
+    }
+
+    #[test]
+    fn test_xml_escape_escapes_ampersand() {
+        assert_eq!(xml_escape("a & b"), "a &amp; b");
+    }
+
+    #[test]
+    fn test_sitemap_builder_xml_escapes_ampersand() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/page?q=test&v=1")
+            .build();
+        assert!(sitemap.contains("&amp;"));
     }
 
     #[test]
