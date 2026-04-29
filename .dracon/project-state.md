@@ -1,8 +1,9 @@
 # Project State
 
 ## Current Focus
-Update dependency lock file to reflect new package versions
+Add debug output and more explicit assertions in the live scope test
 
 ## Completed
-- [x] Update Cargo.lock with new dependency versions to match compiled releases
-- [x] Refresh lock file integrity checksums after version upgrades
+- [x] Print `local_json` using `eprintln!` for debugging
+- [x] Assert that `local_json` contains `"input_value"` with a clear message
+- [x] Assert that `local_json` does not contain `"count"` with a clear message

@@ -403,8 +403,9 @@ mod local_state_tests {
             input_value: "test".to_string(),
         };
         let local_json = state.to_local_scope();
-        assert!(local_json.contains("input_value"));
-        assert!(!local_json.contains("count"));
+        eprintln!("local_json = {:?}", local_json);
+        assert!(local_json.contains("input_value"), "local_json should contain input_value");
+        assert!(!local_json.contains("count"), "local_json should NOT contain count");
     }
 
     #[test]
