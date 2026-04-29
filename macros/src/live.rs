@@ -489,35 +489,31 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
             let analysis = analyze_method(method);
 
             // Collect validation checks for predictions
+            // We access the field lists via the const on the struct impl
             let mut validation_items = Vec::new();
             for pred in &analysis.predictions {
                 if let Some(field_name) = pred.field_name() {
-                    // Generate const that will fail to compile if field is local or computed
                     let field_ident = syn::Ident::new(field_name, proc_macro2::Span::call_site());
                     validation_items.push(quote! {
                         const __AZUMI_CHECK: () = {
-                            // Reject local fields
-                            #(#local_const_entries,)*
-                            .iter()
-                            .find(|&&f| f == #field_ident)
-                            .map(|_| compile_error!(concat!(
-                                "Prediction for method `",
-                                #method_name_str,
-                                "` mutates local field `",
-                                #field_name,
-                                "` which is not in server state."
-                            )));
-                            // Reject computed fields
-                            #(#computed_const_entries,)*
-                            .iter()
-                            .find(|&&f| f == #field_ident)
-                            .map(|_| compile_error!(concat!(
-                                "Prediction for method `",
-                                #method_name_str,
-                                "` mutates computed field `",
-                                #field_name,
-                                "` which cannot be mutated."
-                            )));
+                            #struct_name::__AZUMI_LOCAL_FIELDS.iter()
+                                .find(|&&f| f == #field_ident)
+                                .map(|_| compile_error!(concat!(
+                                    "Prediction for method `",
+                                    #method_name_str,
+                                    "` mutates local field `",
+                                    #field_name,
+                                    "` which is not in server state."
+                                ))).unwrap();
+                            #struct_name::__AZUMI_COMPUTED_FIELDS.iter()
+                                .find(|&&f| f == #field_ident)
+                                .map(|_| compile_error!(concat!(
+                                    "Prediction for method `",
+                                    #method_name_str,
+                                    "` mutates computed field `",
+                                    #field_name,
+                                    "` which cannot be mutated."
+                                ))).unwrap();
                         };
                     });
                 }
@@ -634,6 +630,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl #struct_name {
             #(#original_methods)*
+            #(#validation_items)*
         }
 
         // NOTE: We do NOT implement LiveStateMetadata here because
