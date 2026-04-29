@@ -310,10 +310,14 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
             field_idents.push(field_ident.clone());
 
             // Create filtered field with azumi attributes removed
-            filtered_fields.push(syn::Field {
+            let filtered_field = syn::Field {
                 attrs: filtered_attrs,
-                ..field.clone()
-            });
+                ty: field.ty.clone(),
+                vis: field.vis.clone(),
+                colon_token: field.colon_token,
+                ident: field.ident.clone(),
+            };
+            filtered_fields.push(filtered_field);
         }
     }
 
@@ -370,14 +374,20 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         .collect();
 
     let filtered_named_fields = if let Fields::Named(named) = struct_fields {
-        let mut pairs = Punctuated::<syn::Field, Token![,]>::new();
-        for f in filtered_fields {
-            pairs.push(f);
-        }
-        pairs.push_trailing(Token![,] (proc_macro2::Span::call_site()));
+        let fields: Punctuated<syn::Field, Token![,]> = filtered_fields
+            .into_iter()
+            .map(|f| {
+                let mut f = f;
+                f.attrs.retain(|attr| {
+                    let ident = attr.path().get_ident();
+                    !matches!(ident, Some(i) if i == "local" || i == "computed")
+                });
+                f
+            })
+            .collect();
         Fields::Named(syn::FieldsNamed {
             brace_token: named.brace_token,
-            named: pairs,
+            named: fields,
         })
     } else {
         struct_fields.clone()
