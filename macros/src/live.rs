@@ -270,16 +270,29 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_attrs = &input.attrs;
     let struct_fields = &input.fields;
 
-    // Parse local and computed field names
+    // Parse local and computed field names, and filter out azumi-specific attributes
     let mut local_field_names = Vec::new();
     let mut computed_field_names = Vec::new();
     let mut regular_field_names = Vec::new();
     let mut field_idents = Vec::new();
+    let mut filtered_fields = Vec::new();
 
     if let Fields::Named(named) = struct_fields {
         for field in &named.named {
             let field_ident = field.ident.as_ref().unwrap();
             let field_name = field_ident.to_string();
+
+            // Filter out azumi-specific attributes
+            let filtered_attrs: Vec<_> = field
+                .attrs
+                .iter()
+                .filter(|attr| {
+                    let ident = attr.path().get_ident();
+                    !matches!(ident, Some(i) if i == "local" || i == "computed")
+                })
+                .cloned()
+                .collect();
+
             let is_local = field.attrs.iter().any(|attr| {
                 attr.path().is_ident("local")
             });
@@ -287,13 +300,19 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 attr.path().is_ident("computed")
             });
             if is_local {
-                local_field_names.push(field_name);
+                local_field_names.push(field_name.clone());
             } else if is_computed {
-                computed_field_names.push(field_name);
+                computed_field_names.push(field_name.clone());
             } else {
-                regular_field_names.push(field_name);
+                regular_field_names.push(field_name.clone());
             }
-            field_idents.push(field_ident);
+            field_idents.push(field_ident.clone());
+
+            // Create filtered field with azumi attributes removed
+            filtered_fields.push(syn::Field {
+                attrs: filtered_attrs,
+                ..field.clone()
+            });
         }
     }
 
@@ -349,10 +368,19 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         .map(|s| quote!(#s))
         .collect();
 
+    let filtered_named_fields = if let Fields::Named(named) = struct_fields {
+        Fields::Named(syn::FieldsNamed {
+            brace_token: named.brace_token,
+            named: filtered_fields.into_iter().collect(),
+        })
+    } else {
+        struct_fields.clone()
+    };
+
     let expanded = quote! {
         #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
         #(#struct_attrs)*
-        #struct_vis struct #struct_name #struct_generics #struct_fields
+        #struct_vis struct #struct_name #struct_generics #filtered_named_fields
 
         impl #struct_generics #struct_name #struct_generics {
             #to_scope
