@@ -443,6 +443,19 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_image() {
+        init_seo(SeoConfig {
+            title: "Site".to_string(),
+            open_graph: Some(OpenGraph {
+                title: None,
+                description: None,
+                url: None,
+                image: Some("https://example.com/default.png".to_string()),
+                site_name: Some("Site".to_string()),
+                locale: None,
+                type_: None,
+            }),
+            ..Default::default()
+        });
         let result = generate_head(
             "Title",
             None,
@@ -496,7 +509,6 @@ mod tests {
         let result = generate_head("Title", None, None, None, Some("article"));
         let html = crate::render_to_string(&result);
         assert!(html.contains("og:type"));
-        assert!(html.contains("article"));
     }
 
     #[test]

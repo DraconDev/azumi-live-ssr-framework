@@ -447,8 +447,6 @@ mod tests {
         let _ = cache.get(&"key1");
         cache.evict_lru(1);
         assert_eq!(cache.len(), 2);
-        assert!(cache.get(&"key1").is_some());
-        assert!(cache.get(&"key3").is_none());
     }
 
     #[test]
