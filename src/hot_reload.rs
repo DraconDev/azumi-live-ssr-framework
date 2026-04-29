@@ -332,3 +332,139 @@ async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) {
     println!("Hot Reload: Updated template \"{}\"", payload.id.replace('"', "\\\""));
     let _ = get_broadcast_channel().send(serde_json::json!({"type": "reload"}).to_string());
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_dev_token_valid_exact_match() {
+        std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
+        assert!(is_dev_token_valid(Some("secret123")));
+        std::env::remove_var("AZUMI_DEV_TOKEN");
+    }
+
+    #[test]
+    fn test_is_dev_token_valid_wrong_token() {
+        std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
+        assert!(!is_dev_token_valid(Some("wrongtoken")));
+        std::env::remove_var("AZUMI_DEV_TOKEN");
+    }
+
+    #[test]
+    fn test_is_dev_token_valid_partial_match_rejected() {
+        std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
+        assert!(!is_dev_token_valid(Some("secret")));
+        std::env::remove_var("AZUMI_DEV_TOKEN");
+    }
+
+    #[test]
+    fn test_is_dev_token_valid_empty_token() {
+        std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
+        assert!(!is_dev_token_valid(Some("")));
+        std::env::remove_var("AZUMI_DEV_TOKEN");
+    }
+
+    #[test]
+    fn test_is_dev_token_valid_no_env_var() {
+        std::env::remove_var("AZUMI_DEV_TOKEN");
+        assert!(!is_dev_token_valid(Some("secret123")));
+    }
+
+    #[test]
+    fn test_is_dev_token_valid_none_token() {
+        std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
+        assert!(!is_dev_token_valid(None));
+        std::env::remove_var("AZUMI_DEV_TOKEN");
+    }
+
+    #[test]
+    fn test_lru_cache_insert_and_get() {
+        let mut cache = LRUCache::new();
+        cache.insert("key1", "value1");
+        assert_eq!(cache.get(&"key1"), Some(&"value1"));
+    }
+
+    #[test]
+    fn test_lru_cache_update_existing_key() {
+        let mut cache = LRUCache::new();
+        cache.insert("key1", "value1");
+        cache.insert("key1", "value2");
+        assert_eq!(cache.get(&"key1"), Some(&"value2"));
+    }
+
+    #[test]
+    fn test_lru_cache_get_nonexistent() {
+        let mut cache = LRUCache::new();
+        cache.insert("key1", "value1");
+        assert_eq!(cache.get(&"key2"), None);
+    }
+
+    #[test]
+    fn test_lru_cache_len() {
+        let mut cache = LRUCache::new();
+        assert_eq!(cache.len(), 0);
+        cache.insert("key1", "value1");
+        assert_eq!(cache.len(), 1);
+        cache.insert("key2", "value2");
+        assert_eq!(cache.len(), 2);
+    }
+
+    #[test]
+    fn test_lru_cache_evict_lru() {
+        let mut cache = LRUCache::new();
+        cache.insert("key1", "v1");
+        cache.insert("key2", "v2");
+        cache.insert("key3", "v3");
+        assert_eq!(cache.len(), 3);
+        cache.evict_lru(1);
+        assert_eq!(cache.len(), 2);
+    }
+
+    #[test]
+    fn test_lru_cache_evict_all() {
+        let mut cache = LRUCache::new();
+        cache.insert("key1", "v1");
+        cache.insert("key2", "v2");
+        cache.evict_lru(10);
+        assert_eq!(cache.len(), 0);
+    }
+
+    #[test]
+    fn test_lru_cache_evict_zero_does_nothing() {
+        let mut cache = LRUCache::new();
+        cache.insert("key1", "v1");
+        cache.evict_lru(0);
+        assert_eq!(cache.len(), 1);
+    }
+
+    #[test]
+    fn test_lru_cache_access_updates_lru_order() {
+        let mut cache = LRUCache::new();
+        cache.insert("key1", "v1");
+        cache.insert("key2", "v2");
+        cache.insert("key3", "v3");
+        let _ = cache.get(&"key1");
+        cache.evict_lru(1);
+        assert_eq!(cache.len(), 2);
+        assert!(cache.get(&"key1").is_some());
+        assert!(cache.get(&"key3").is_none());
+    }
+
+    #[test]
+    fn test_runtime_template_render() {
+        use std::fmt::Write;
+        let template = RuntimeTemplate {
+            static_parts: vec!["hello ".to_string(), " world".to_string()],
+        };
+        let mut out = String::new();
+        template.render(&mut out, &[]).unwrap();
+        assert_eq!(out, "hello  world");
+    }
+
+    #[test]
+    fn test_lru_cache_default() {
+        let cache: LRUCache<String, i32> = LRUCache::default();
+        assert_eq!(cache.len(), 0);
+    }
+}

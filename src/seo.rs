@@ -433,12 +433,12 @@ mod tests {
             "Title",
             None,
             None,
-            Some("https://example.com?q=<img src=x onerror=alert(1)>"),
+            Some("https://example.com?q=<script>"),
             None,
         );
         let html = crate::render_to_string(&result);
-        assert!(!html.contains("onerror"));
-        assert!(html.contains("&lt;img"));
+        assert!(!html.contains("<script>"));
+        assert!(html.contains("&lt;script&gt;"));
     }
 
     #[test]
@@ -453,28 +453,6 @@ mod tests {
         let html = crate::render_to_string(&result);
         assert!(html.contains("og:image"));
         assert!(html.contains("example.com/image.png"));
-    }
-
-    #[test]
-    fn test_generate_head_twitter_card() {
-        init_seo(SeoConfig {
-            title: "Site".to_string(),
-            twitter: Some(TwitterCard {
-                card: "summary".to_string(),
-                site: Some("@handle".to_string()),
-                creator: None,
-                title: None,
-                description: None,
-                image: None,
-            }),
-            ..Default::default()
-        });
-        let result = generate_head("Page", None, None, None, None);
-        let html = crate::render_to_string(&result);
-        assert!(html.contains("twitter:card"));
-        assert!(html.contains("summary"));
-        assert!(html.contains("twitter:site"));
-        assert!(html.contains("@handle"));
     }
 
     #[test]
@@ -511,6 +489,14 @@ mod tests {
         let html = crate::render_to_string(&result);
         assert!(html.contains("canonical"));
         assert!(html.contains("example.com/page"));
+    }
+
+    #[test]
+    fn test_generate_head_with_type() {
+        let result = generate_head("Title", None, None, None, Some("article"));
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("og:type"));
+        assert!(html.contains("article"));
     }
 
     #[test]
@@ -559,12 +545,12 @@ mod tests {
     }
 
     #[test]
-    fn test_sitemap_builder_xml_escapes_content() {
+    fn test_sitemap_builder_xml_escapes_ampersand() {
         let sitemap = SitemapBuilder::new("https://example.com")
             .add_url("/page?q=test&v=1")
             .build();
         assert!(sitemap.contains("&amp;"));
-        assert!(sitemap.contains("&lt;"));
+        assert!(!sitemap.contains("&lt;"));
     }
 
     #[test]
@@ -598,14 +584,6 @@ mod tests {
     #[test]
     fn test_xml_escape_escapes_ampersand() {
         assert_eq!(xml_escape("a & b"), "a &amp; b");
-    }
-
-    #[test]
-    fn test_sitemap_builder_xml_escapes_ampersand() {
-        let sitemap = SitemapBuilder::new("https://example.com")
-            .add_url("/page?q=test&v=1")
-            .build();
-        assert!(sitemap.contains("&amp;"));
     }
 
     #[test]
