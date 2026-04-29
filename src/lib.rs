@@ -336,7 +336,7 @@ where
 pub fn render_to_string<C: Component + ?Sized>(component: &C) -> String {
     struct DisplayWrapper<'a, C: Component + ?Sized>(&'a C);
     impl<'a, C: Component + ?Sized> std::fmt::Display for DisplayWrapper<'a, C> {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             self.0.render(f)
         }
     }
