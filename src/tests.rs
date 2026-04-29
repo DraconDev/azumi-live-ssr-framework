@@ -22,6 +22,22 @@ mod tests {
     }
 
     #[test]
+    fn test_scope_css_media_query_preserved() {
+        let css = "@media (max-width: 768px) { .foo { color: red; } }";
+        let scoped = scope_css(css, "xyz");
+        assert!(scoped.contains("@media (max-width: 768px)"));
+        assert!(scoped.contains(".foo[data-xyz]"));
+    }
+
+    #[test]
+    fn test_scope_css_at_font_face_not_scoped() {
+        let css = "@font-face { src: url(font.woff2); } .foo { color: blue; }";
+        let scoped = scope_css(css, "q1");
+        assert!(scoped.contains("@font-face"));
+        assert!(scoped.contains(".foo[data-q1]"));
+    }
+
+    #[test]
     fn test_compute_scope_id_deterministic() {
         let id1 = compute_scope_id(10, 5);
         let id2 = compute_scope_id(10, 5);
@@ -36,6 +52,29 @@ mod tests {
         let id3 = compute_scope_id(11, 5);
         assert_ne!(id1, id2, "Different column should produce different ID");
         assert_ne!(id1, id3, "Different line should produce different ID");
+    }
+
+    #[test]
+    fn test_scope_id_format_valid() {
+        let id = compute_scope_id(100, 25);
+        assert!(
+            id.len() >= 2 && id.len() <= 16,
+            "Scope ID should be reasonable length, got: {}",
+            id
+        );
+        assert!(
+            id.chars().all(|c| c.is_ascii_hexdigit()),
+            "Scope ID should be hex chars only, got: {}",
+            id
+        );
+    }
+
+    #[test]
+    fn test_scope_css_keyframes_content_not_scoped() {
+        let css = "@keyframes fade { 0% { opacity: 0; } 100% { opacity: 1; } }";
+        let scoped = scope_css(css, "kf1");
+        assert!(scoped.contains("@keyframes fade"));
+        assert!(scoped.contains("0%"), "keyframes percentages should be preserved");
     }
 
     #[test]

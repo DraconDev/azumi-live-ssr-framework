@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-Minor dependency version updates in Cargo.lock after recent feature addition.
+The code focuses on refining CSS scoping tests.
 
 ## Completed
-- [x] Minor dependency version updates in Cargo.lock
+- Refactored test case adjustments.
