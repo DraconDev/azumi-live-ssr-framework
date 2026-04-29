@@ -436,3 +436,492 @@ impl SitemapBuilder {
         xml
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_head_basic() {
+        let result = generate_head("Test Title", Some("Test desc"), None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("<title>Test Title</title>"));
+        assert!(html.contains(r#"name="description""#));
+        assert!(html.contains("Test desc"));
+    }
+
+    #[test]
+    fn test_generate_head_empty_title_fallback() {
+        let result = generate_head("", None, None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("<title>"));
+    }
+
+    #[test]
+    fn test_generate_head_xss_prevention_in_title() {
+        let result = generate_head(
+            "<script>alert('xss')</script>",
+            None,
+            None,
+            None,
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(!html.contains("<script>"));
+        assert!(html.contains("&lt;script&gt;"));
+    }
+
+    #[test]
+    fn test_generate_head_xss_prevention_in_description() {
+        let result = generate_head(
+            "Title",
+            Some("<script>alert('xss')</script>"),
+            None,
+            None,
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(!html.contains("<script>"));
+    }
+
+    #[test]
+    fn test_generate_head_xss_prevention_in_url() {
+        let result = generate_head(
+            "Title",
+            None,
+            None,
+            Some("https://example.com?q=<img src=x onerror=alert(1)>"),
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(!html.contains("onerror"));
+        assert!(html.contains("&lt;img"));
+    }
+
+    #[test]
+    fn test_generate_head_with_image() {
+        let result = generate_head(
+            "Title",
+            None,
+            Some("https://example.com/image.png"),
+            None,
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("og:image"));
+        assert!(html.contains("example.com/image.png"));
+    }
+
+    #[test]
+    fn test_generate_head_twitter_card() {
+        init_seo(SeoConfig {
+            title: "Site".to_string(),
+            twitter: Some(TwitterCard {
+                card: "summary".to_string(),
+                site: Some("@handle".to_string()),
+                creator: None,
+                title: None,
+                description: None,
+                image: None,
+            }),
+            ..Default::default()
+        });
+        let result = generate_head("Page", None, None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("twitter:card"));
+        assert!(html.contains("summary"));
+        assert!(html.contains("twitter:site"));
+        assert!(html.contains("@handle"));
+    }
+
+    #[test]
+    fn test_generate_head_open_graph() {
+        init_seo(SeoConfig {
+            title: "Site".to_string(),
+            open_graph: Some(OpenGraph {
+                title: None,
+                description: None,
+                url: None,
+                image: None,
+                site_name: Some("My Site".to_string()),
+                locale: None,
+                type_: None,
+            }),
+            ..Default::default()
+        });
+        let result = generate_head("Page Title", None, None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("og:title"));
+        assert!(html.contains("og:site_name"));
+        assert!(html.contains("My Site"));
+    }
+
+    #[test]
+    fn test_generate_head_canonical_url() {
+        let result = generate_head(
+            "Title",
+            None,
+            None,
+            Some("https://example.com/page"),
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("canonical"));
+        assert!(html.contains("example.com/page"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_basic() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/page1")
+            .add_url("/page2")
+            .build();
+        assert!(sitemap.contains("<?xml"));
+        assert!(sitemap.contains("https://example.com/page1"));
+        assert!(sitemap.contains("https://example.com/page2"));
+        assert!(sitemap.contains("</urlset>"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_absolute_url_matching_base() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("https://example.com/absolute")
+            .build();
+        assert!(sitemap.contains("https://example.com/absolute"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_rejects_cross_origin() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("https://evil.com/malicious")
+            .build();
+        assert!(!sitemap.contains("evil.com"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_normalizes_path_trailing_slash() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/page/")
+            .build();
+        assert!(sitemap.contains("example.com/page/"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_resolves_dot_dot() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/foo/bar/../baz")
+            .build();
+        assert!(sitemap.contains("example.com/foo/baz"));
+        assert!(!sitemap.contains("/foo/bar/../"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_xml_escapes_content() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/page?q=test&v=1")
+            .build();
+        assert!(sitemap.contains("&amp;"));
+        assert!(sitemap.contains("&lt;"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_empty_urls() {
+        let sitemap = SitemapBuilder::new("https://example.com").build();
+        assert!(sitemap.contains("<?xml"));
+        assert!(sitemap.contains("</urlset>"));
+        assert!(!sitemap.contains("<loc>"));
+    }
+
+    #[test]
+    fn test_html_attr_escape_double_quote() {
+        assert_eq!(html_attr_escape("say \"hello\""), "say &quot;hello&quot;");
+    }
+
+    #[test]
+    fn test_html_attr_escape_single_quote() {
+        assert_eq!(html_attr_escape("it's"), "it&#x27;s");
+    }
+
+    #[test]
+    fn test_html_attr_escape_xss_payload() {
+        let input = "<img src=x onerror=alert(1)>";
+        let escaped = html_attr_escape(input);
+        assert!(!escaped.contains("onerror"));
+        assert!(escaped.contains("&lt;"));
+        assert!(escaped.contains("&gt;"));
+    }
+
+    #[test]
+    fn test_xml_escape_all_special_chars() {
+        assert_eq!(xml_escape("&<>\"'"), "&amp;&lt;&gt;&quot;&apos;");
+    }
+
+    #[test]
+    fn test_html_text_escape() {
+        assert_eq!(html_text_escape("<script>"), "&lt;script&gt;");
+        assert_eq!(html_text_escape("a & b"), "a &amp; b");
+    }
+
+    #[test]
+    fn test_html_text_escape_preserves_newlines() {
+        let input = "line1\nline2";
+        let escaped = html_text_escape(input);
+        assert!(escaped.contains('\n'));
+    }
+
+    #[test]
+    fn test_render_automatic_seo_empty_context() {
+        let result = render_automatic_seo();
+        let html = crate::render_to_string(&result);
+        assert!(html.starts_with("<title>"));
+    }
+}
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_head_basic() {
+        let result = generate_head("Test Title", Some("Test desc"), None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("<title>Test Title</title>"));
+        assert!(html.contains(r#"name="description""#));
+        assert!(html.contains("Test desc"));
+    }
+
+    #[test]
+    fn test_generate_head_empty_title_fallback() {
+        let result = generate_head("", None, None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("<title>"));
+    }
+
+    #[test]
+    fn test_render_automatic_seo_empty_context() {
+        let result = render_automatic_seo();
+        let html = crate::render_to_string(&result);
+        assert!(html.starts_with("<title>"));
+    }
+}
+
+    #[test]
+    fn test_generate_head_xss_prevention_in_title() {
+        let result = generate_head(
+            "<script>alert('xss')</script>",
+            None,
+            None,
+            None,
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(!html.contains("<script>"));
+        assert!(html.contains("&lt;script&gt;"));
+    }
+
+    #[test]
+    fn test_generate_head_xss_prevention_in_description() {
+        let result = generate_head(
+            "Title",
+            Some("<script>alert('xss')</script>"),
+            None,
+            None,
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(!html.contains("<script>"));
+    }
+
+    #[test]
+    fn test_generate_head_xss_prevention_in_url() {
+        let result = generate_head(
+            "Title",
+            None,
+            None,
+            Some("https://example.com?q=<img src=x onerror=alert(1)>"),
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(!html.contains("onerror"));
+        assert!(html.contains("&lt;img"));
+    }
+
+    #[test]
+    fn test_generate_head_with_image() {
+        let result = generate_head(
+            "Title",
+            None,
+            Some("https://example.com/image.png"),
+            None,
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("og:image"));
+        assert!(html.contains("example.com/image.png"));
+    }
+
+    #[test]
+    fn test_generate_head_twitter_card() {
+        init_seo(SeoConfig {
+            title: "Site".to_string(),
+            twitter: Some(TwitterCard {
+                card: "summary".to_string(),
+                site: Some("@handle".to_string()),
+                creator: None,
+                title: None,
+                description: None,
+                image: None,
+            }),
+            ..Default::default()
+        });
+        let result = generate_head("Page", None, None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("twitter:card"));
+        assert!(html.contains("summary"));
+        assert!(html.contains("twitter:site"));
+        assert!(html.contains("@handle"));
+    }
+
+    #[test]
+    fn test_generate_head_open_graph() {
+        init_seo(SeoConfig {
+            title: "Site".to_string(),
+            open_graph: Some(OpenGraph {
+                title: None,
+                description: None,
+                url: None,
+                image: None,
+                site_name: Some("My Site".to_string()),
+                locale: None,
+                type_: None,
+            }),
+            ..Default::default()
+        });
+        let result = generate_head("Page Title", None, None, None, None);
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("og:title"));
+        assert!(html.contains("og:site_name"));
+        assert!(html.contains("My Site"));
+    }
+
+    #[test]
+    fn test_generate_head_canonical_url() {
+        let result = generate_head(
+            "Title",
+            None,
+            None,
+            Some("https://example.com/page"),
+            None,
+        );
+        let html = crate::render_to_string(&result);
+        assert!(html.contains("canonical"));
+        assert!(html.contains("example.com/page"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_basic() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/page1")
+            .add_url("/page2")
+            .build();
+        assert!(sitemap.contains("<?xml"));
+        assert!(sitemap.contains("https://example.com/page1"));
+        assert!(sitemap.contains("https://example.com/page2"));
+        assert!(sitemap.contains("</urlset>"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_absolute_url_matching_base() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("https://example.com/absolute")
+            .build();
+        assert!(sitemap.contains("https://example.com/absolute"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_rejects_cross_origin() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("https://evil.com/malicious")
+            .build();
+        assert!(!sitemap.contains("evil.com"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_normalizes_path_trailing_slash() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/page/")
+            .build();
+        assert!(sitemap.contains("example.com/page/"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_resolves_dot_dot() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/foo/bar/../baz")
+            .build();
+        assert!(sitemap.contains("example.com/foo/baz"));
+        assert!(!sitemap.contains("/foo/bar/../"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_xml_escapes_content() {
+        let sitemap = SitemapBuilder::new("https://example.com")
+            .add_url("/page?q=test&v=1")
+            .build();
+        assert!(sitemap.contains("&amp;"));
+        assert!(sitemap.contains("&lt;"));
+    }
+
+    #[test]
+    fn test_sitemap_builder_empty_urls() {
+        let sitemap = SitemapBuilder::new("https://example.com").build();
+        assert!(sitemap.contains("<?xml"));
+        assert!(sitemap.contains("</urlset>"));
+        assert!(!sitemap.contains("<loc>"));
+    }
+
+    #[test]
+    fn test_html_attr_escape_double_quote() {
+        assert_eq!(html_attr_escape("say \"hello\""), "say &quot;hello&quot;");
+    }
+
+    #[test]
+    fn test_html_attr_escape_single_quote() {
+        assert_eq!(html_attr_escape("it's"), "it&#x27;s");
+    }
+
+    #[test]
+    fn test_html_attr_escape_xss_payload() {
+        let input = "<img src=x onerror=alert(1)>";
+        let escaped = html_attr_escape(input);
+        assert!(!escaped.contains("onerror"));
+        assert!(escaped.contains("&lt;"));
+        assert!(escaped.contains("&gt;"));
+    }
+
+    #[test]
+    fn test_xml_escape_all_special_chars() {
+        assert_eq!(xml_escape("&<>\"'"), "&amp;&lt;&gt;&quot;&apos;");
+    }
+
+    #[test]
+    fn test_html_text_escape() {
+        assert_eq!(html_text_escape("<script>"), "&lt;script&gt;");
+        assert_eq!(html_text_escape("a & b"), "a &amp; b");
+    }
+
+    #[test]
+    fn test_html_text_escape_preserves_newlines() {
+        let input = "line1\nline2";
+        let escaped = html_text_escape(input);
+        assert!(escaped.contains('\n'));
+    }
+
+    #[test]
+    fn test_render_automatic_seo_empty_context() {
+        let result = render_automatic_seo();
+        let html = crate::render_to_string(&result);
+        assert!(html.starts_with("<title>"));
+    }
+}
