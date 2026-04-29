@@ -48,3 +48,99 @@ impl TrustedHtml {
         TrustedHtml(html.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test;
+
+    // =========================================================================
+    // escape_script_content
+    // =========================================================================
+
+    #[test]
+    fn test_escape_script_content_no_closing_tag() {
+        let input = "console.log('hello');";
+        assert_eq!(escape_script_content(input), input, "No closing tag should not change");
+    }
+
+    #[test]
+    fn test_escape_script_content_lowercase() {
+        let input = "</script>";
+        assert_eq!(escape_script_content(input), r"<\/script>", "Should escape lowercase </script>");
+    }
+
+    #[test]
+    fn test_escape_script_content_titlecase() {
+        let input = "</Script>";
+        assert_eq!(escape_script_content(input), r"<\/Script>", "Should escape titlecase </Script>");
+    }
+
+    #[test]
+    fn test_escape_script_content_uppercase() {
+        let input = "</SCRIPT>";
+        assert_eq!(escape_script_content(input), r"<\/SCRIPT>", "Should escape uppercase </SCRIPT>");
+    }
+
+    #[test]
+    fn test_escape_script_content_with_space() {
+        let input = "</ script>";
+        assert_eq!(escape_script_content(input), r"<\/ script>", "Should escape </ script> with space");
+    }
+
+    #[test]
+    fn test_escape_script_content_multiple() {
+        let input = "a</script>b</Script>c";
+        let expected = r"a<\/script>b<\/Script>c";
+        assert_eq!(escape_script_content(input), expected, "Should escape multiple occurrences");
+    }
+
+    #[test]
+    fn test_escape_script_content_partial_no_match() {
+        let input = "<script>";
+        assert_eq!(escape_script_content(input), "<script>", "Opening tag should NOT be escaped");
+    }
+
+    // =========================================================================
+    // TrustedHtml
+    // =========================================================================
+
+    #[test]
+    fn test_trusted_html_new() {
+        let html = TrustedHtml::new("<div>test</div>");
+        assert_eq!(html.0, "<div>test</div>");
+    }
+
+    #[test]
+    fn test_trusted_html_rendering() {
+        let html = TrustedHtml::new("<div>test</div>");
+        let output = test::render(&html);
+        assert_eq!(output, "<div>test</div>", "TrustedHtml should render without escaping");
+    }
+
+    #[test]
+    fn test_trusted_html_preserves_script_tags() {
+        let html = TrustedHtml::new("<script>alert(1)</script>");
+        let output = test::render(&html);
+        assert!(output.contains("<script>"), "TrustedHtml should preserve script tags");
+    }
+
+    // =========================================================================
+    // SessionCleanupScript
+    // =========================================================================
+
+    #[test]
+    fn test_session_cleanup_script_renders() {
+        let script = SessionCleanupScript;
+        let output = test::render(&script);
+        assert!(output.starts_with("<script>"), "Should start with <script>");
+        assert!(output.ends_with("</script>"), "Should end with </script>");
+        assert!(output.contains("session"), "Should contain session cleanup logic");
+    }
+
+    #[test]
+    fn test_session_cleanup_script_constant() {
+        assert!(!SessionCleanupScript::SCRIPT.is_empty(), "SCRIPT constant should not be empty");
+        assert!(SessionCleanupScript::SCRIPT.contains("history.replaceState"), "Should contain history.replaceState");
+    }
+}
