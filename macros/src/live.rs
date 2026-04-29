@@ -331,9 +331,8 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
         quote! {
             pub fn to_local_scope(&self) -> String {
-                let json = serde_json::json!({
-                    #(#field_values),*
-                }).to_string();
+                struct __LocalOnly { #(#local_field_names: String,)* }
+                let json = serde_json::to_string(&__LocalOnly { #(#field_values),* }).unwrap_or_default();
                 azumi::security::sign_state(&json)
             }
         }

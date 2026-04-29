@@ -1,9 +1,10 @@
 # Project State
 
 ## Current Focus
-Replace struct snapshot creation with an inline JSON object for signing local state and remove the need for `Default`.
+Replace inline JSON construction with an explicit struct serialization for local scope signing.
 
 ## Completed
-- [x] Renamed `field_pairs` to `field_values` and switched from building a `Self` snapshot struct to constructing a JSON object via `serde_json!` macro
-- [x] Removed manual serialization with `serde_json::to_string` and replaced it with direct `json!` macro usage
-- [x] Simplified the signing call to operate on the generated JSON string directly
+- [x] Replace `serde_json::json!({ #(#field_values),* }).to_string()` with a generated `__LocalOnly` struct and `serde_json::to_string(&__LocalOnly { #(#field_values),* })`
+- [x] Use `unwrap_or_default()` on the serialized JSON to safely handle empty cases
+- [x] Remove reliance on the `json!` macro and eliminate the intermediate `.to_string()` step
+- [x] Introduce a dedicated struct (`__LocalOnly`) to encapsulate field names and values for clearer serialization logic
