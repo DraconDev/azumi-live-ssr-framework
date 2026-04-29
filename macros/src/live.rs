@@ -255,6 +255,7 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_name = &input.ident;
     let struct_vis = &input.vis;
     let struct_generics = &input.generics;
+    let struct_name_str = struct_name.to_string();
 
     // Validate that struct has named fields
     if !matches!(input.fields, Fields::Named(_)) {
@@ -359,11 +360,24 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
 
         impl azumi::LiveStateMetadata for #struct_name {
+            fn predictions() -> &'static [(&'static str, &'static str)] {
+                &[]
+            }
+            fn struct_name() -> &'static str {
+                #struct_name_str
+            }
             fn local_fields() -> &'static [&'static str] {
                 &[#(#local_field_names_static),*]
             }
             fn computed_fields() -> &'static [&'static str] {
                 &[#(#computed_field_names_static),*]
+            }
+        }
+
+        impl azumi::LiveState for #struct_name {
+            fn to_scope(&self) -> String {
+                let json = serde_json::to_string(self).unwrap_or_default();
+                azumi::security::sign_state(&json)
             }
         }
     };
@@ -376,10 +390,6 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemImpl);
     let struct_name = &input.self_ty;
-    // Get struct name as string for namespacing
-    let struct_name_str = quote!(#struct_name).to_string();
-    // Clean up struct name (remove spaces)
-    let struct_name_str = struct_name_str.replace(" ", "");
 
     // Parse attributes to find component="name"
     let args = parse_macro_input!(attr with syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated);
@@ -531,6 +541,9 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
             #(#method_handlers)*
         }
     };
+
+    TokenStream::from(expanded)
+}
 
 #[cfg(test)]
 mod tests {

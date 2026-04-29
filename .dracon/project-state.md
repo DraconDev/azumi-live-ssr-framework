@@ -1,10 +1,11 @@
 # Project State
 
 ## Current Focus
-Removed manual LiveStateMetadata and LiveState implementations from expanded code, simplifying the generated macro and relying on #[azumi::live] for those traits.
+Add automatic struct name resolution and state signing to LiveStateMetadata and LiveState implementations.
 
 ## Completed
-- [x] Removed LiveStateMetadata impl from generated code
-- [x] Removed LiveState impl from generated code
-- [x] Removed TokenStream::from(expanded) and stray closing brace
-- [x] Added explanatory comment about skipping LiveStateMetadata implementation
+- [x] Impl `LiveStateMetadata::struct_name()` returning the struct name string.
+- [x] Add empty `LiveStateMetadata::predictions()` method placeholder.
+- [x] Implement `LiveState::to_scope` that serializes state to JSON and signs it.
+- [x] Remove unnecessary struct name extraction code from `expand_live_impl`.
+- [x] Update macro expansion to include new trait methods and state signing logic.
