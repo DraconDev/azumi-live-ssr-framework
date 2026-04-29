@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-Add VerifyError enum for verification failures in state validation
+Update dependency lock file for the macros crate
 
 ## Completed
-- [x] Added VerifyError enum with StateTooLarge and TooManyPipes variants to src/security.rs
+- [x] Update dependency versions in macros/Cargo.toml
