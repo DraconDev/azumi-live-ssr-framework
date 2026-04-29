@@ -169,12 +169,10 @@ class Azumi {
         return null;
     }
 
-    // Execute: "call toggle_like -> #box" or "set open = true"
+    // Execute: "call toggle_like -> #box"
     async execute(action, element) {
         if (action.type === "call") {
             await this.callAction(action, element);
-        } else if (action.type === "set") {
-            this.setState(action, element);
         }
     }
 
@@ -288,39 +286,51 @@ class Azumi {
 
     /**
      * Update DOM elements that display state values
-     * Looks for elements with data-bind="fieldName" attribute
+     * Reads from WeakMap first (ephemeral predictions), falls back to az-scope (server state)
      */
-    updateBindings(scopeElement, state) {
-        // Find all elements with data-bind within the scope
+    updateBindings(scopeElement) {
+        const state = this.scopes.get(scopeElement) || (() => {
+            const scopeAttr = scopeElement.getAttribute("az-scope");
+            if (!scopeAttr) return null;
+            let jsonStr = scopeAttr;
+            if (scopeAttr.includes("|")) {
+                jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
+            }
+            try { return JSON.parse(jsonStr); } catch { return null; }
+        })();
+
+        if (!state) return;
+
         const bindings = scopeElement.querySelectorAll("[data-bind]");
         bindings.forEach((el) => {
             const field = el.getAttribute("data-bind");
-            if (field && state.hasOwnProperty(field)) {
+            if (!field) return;
+
+            if (field.includes(".")) {
+                const parts = field.split(".");
+                const val = parts.reduce(
+                    (o, k) => (o != null ? o[k] : undefined),
+                    state
+                );
+                if (val !== undefined) el.textContent = val;
+            } else if (state.hasOwnProperty(field)) {
                 el.textContent = state[field];
             }
         });
-
-        // Also update text content that might be interpolated
-        // This is a simple approach - for complex cases, re-render from server
     }
 
     /**
      * Rollback prediction if server response differs
+     * Clears the WeakMap entry — az-scope remains untouched (server-signed)
      */
-    rollbackPrediction(scopeElement, originalState, originalScopeAttr) {
+    rollbackPrediction(scopeElement, originalState) {
         if (!scopeElement) return;
 
-        if (originalScopeAttr) {
-            scopeElement.setAttribute("az-scope", originalScopeAttr);
-        } else if (originalState) {
-            scopeElement.setAttribute(
-                "az-scope",
-                JSON.stringify(originalState)
-            );
-        }
-
         if (originalState) {
-            this.updateBindings(scopeElement, originalState);
+            this.scopes.set(scopeElement, originalState);
+            this.updateBindings(scopeElement);
+        } else {
+            this.scopes.delete(scopeElement);
         }
         console.log("⏪ Prediction rolled back");
     }
@@ -429,66 +439,13 @@ class Azumi {
             if (predictionResult && scopeElement) {
                 this.rollbackPrediction(
                     scopeElement,
-                    predictionResult.originalState,
-                    predictionResult.originalScopeAttr
+                    predictionResult.originalState
                 );
             }
         } finally {
             if (scopeElement) {
                 scopeElement._azumi_pending = false;
             }
-        }
-    }
-
-    // Local state change (no server roundtrip)
-    setState(action, element) {
-        const scopeElement = element.closest("[az-scope]");
-        if (!scopeElement) {
-            console.warn("setState: No az-scope found");
-            return;
-        }
-
-        const scopeAttr = scopeElement.getAttribute("az-scope");
-        if (!scopeAttr) return;
-
-        try {
-            // Handle signed state: "{json}|{signature}"
-            let jsonStr = scopeAttr;
-            let signature = "";
-
-            if (scopeAttr.includes("|")) {
-                const lastPipe = scopeAttr.lastIndexOf("|");
-                jsonStr = scopeAttr.substring(0, lastPipe);
-                signature = scopeAttr.substring(lastPipe); // Keep signature ("|sig")
-            }
-
-            const state = JSON.parse(jsonStr);
-
-            // Apply the prediction DSL (reuse existing logic)
-            const prediction = `${action.field} = ${action.value}`;
-            this.applyPrediction(state, prediction);
-
-            // Update the scope attribute (preserve signature!)
-            // We can't re-sign on client, so we just append the old signature.
-            // WARNING: This invalidates the signature technically, but for local-only state it might be fine?
-            // Actually, for Server Actions, the server will reject this if we send it back.
-            // But setState is for local components or temporary toggles.
-
-            const newStateStr = JSON.stringify(state) + signature;
-            scopeElement.setAttribute("az-scope", newStateStr);
-
-            // Update bound elements
-            this.updateBindings(scopeElement, state);
-
-            console.log(
-                "🎯 Client set:",
-                action.field,
-                "=",
-                action.value,
-                state
-            );
-        } catch (err) {
-            console.warn("setState failed:", err);
         }
     }
 }
