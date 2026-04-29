@@ -452,34 +452,7 @@ fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
     format!("s{:x}", hasher.finish())
 }
 
-fn strip_outer_quotes(s: &str) -> String {
-    let trimmed = s.trim();
-    if trimmed.len() >= 2
-        && ((trimmed.starts_with('"') && trimmed.ends_with('"'))
-            || (trimmed.starts_with('\'') && trimmed.ends_with('\'')))
-    {
-        // SAFETY: trimmed.len() >= 2 and starts with quote char, so first char exists
-        let quote_char = trimmed.chars().next().unwrap();
-        let mut result = String::with_capacity(trimmed.len() - 2);
-        let mut chars = trimmed[1..trimmed.len() - 1].chars().peekable();
 
-        while let Some(c) = chars.next() {
-            if c == '\\' {
-                if let Some(&next) = chars.peek() {
-                    if next == quote_char || next == '\\' {
-                        result.push(next);
-                        chars.next();
-                        continue;
-                    }
-                }
-            }
-            result.push(c);
-        }
-        result
-    } else {
-        s.to_string()
-    }
-}
 
 #[derive(Clone, PartialEq, Debug)]
 enum Context {
@@ -1088,9 +1061,8 @@ fn generate_body_with_context(
                                 });
                             }
                             token_parser::AttributeValue::Static(val) => {
-                                let clean = strip_outer_quotes(val);
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#clean))?;
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                 });
                             }
                             _ => {}
@@ -1151,9 +1123,8 @@ fn generate_body_with_context(
                     if attr_name == "class" {
                         match &attr.value {
                             token_parser::AttributeValue::Static(val) => {
-                                let clean = strip_outer_quotes(val);
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#clean))?;
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                 });
                             }
                             token_parser::AttributeValue::Dynamic(tokens) => {
@@ -1217,9 +1188,8 @@ token_parser::AttributeValue::Static(val) => {
                     } else {
                         match &attr.value {
                             token_parser::AttributeValue::Static(val) => {
-                                let clean = strip_outer_quotes(val);
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#clean))?;
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                 });
                             }
                             token_parser::AttributeValue::Dynamic(expr) => {

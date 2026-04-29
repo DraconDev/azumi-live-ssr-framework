@@ -63,7 +63,7 @@ impl Parse for HeadArgs {
 pub fn expand_head(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as HeadArgs);
 
-    let title = args.title.unwrap();
+    let title = args.title.expect("head! macro requires title");
 
     let description = if let Some(d) = args.description {
         quote! { Some(#d) }

@@ -1132,7 +1132,7 @@ class Azumi {
         } else if (/^-?\d+\.\d+$/.test(trimmedExpr)) {
             state[field] = parseFloat(trimmedExpr);
         } else if (trimmedExpr.startsWith('"') && trimmedExpr.endsWith('"')) {
-            state[field] = trimmedExpr.slice(1, -1);
+            state[field] = trimmedExpr.slice(1, -1).replace(/\\(["\\])/g, '$1');
         } else {
             // Fallback: treat as string
             state[field] = trimmedExpr;

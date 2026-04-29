@@ -378,6 +378,7 @@ pub fn escape_css_string(s: &str) -> String {
             '\n' => result.push_str("\\a "),
             '\r' => result.push_str("\\d "),
             '\t' => result.push_str("\\9 "),
+            '\0' => result.push_str("\\0 "),
             _ => result.push(c),
         }
     }
