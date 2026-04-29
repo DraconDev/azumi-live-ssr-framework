@@ -48,6 +48,17 @@ impl Prediction {
             Prediction::Manual(s) => s.clone(),
         }
     }
+
+    /// Returns the field name for this prediction, if any
+    pub fn field_name(&self) -> Option<&str> {
+        match self {
+            Prediction::SetLiteral { field, .. } => Some(field),
+            Prediction::Toggle { field } => Some(field),
+            Prediction::Add { field, .. } => Some(field),
+            Prediction::Sub { field, .. } => Some(field),
+            Prediction::Manual(_) => None, // Manual predictions skip validation
+        }
+    }
 }
 
 /// Metadata about an analyzed method
