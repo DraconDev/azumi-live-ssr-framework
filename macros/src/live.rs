@@ -332,7 +332,7 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         quote! {
             pub fn to_local_scope(&self) -> String {
                 let snapshot = Self {
-                    #(#field_pairs),*
+                    #(#field_pairs,)*
                     ..Default::default()
                 };
                 let json = serde_json::to_string(&snapshot).unwrap_or_default();
