@@ -9,8 +9,9 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
-    parse_macro_input, BinOp, Expr, ExprAssign, ExprBinary, ExprField, ExprMethodCall, ExprPath,
-    ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl, ItemStruct, Member, Stmt, UnOp,
+    parse_macro_input, punctuated::Punctuated, BinOp, Expr, ExprAssign, ExprBinary, ExprField,
+    ExprMethodCall, ExprPath, ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl, ItemStruct,
+    Member, Stmt, Token, UnOp,
 };
 
 /// Represents a predictable mutation that can be executed optimistically
@@ -369,9 +370,14 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         .collect();
 
     let filtered_named_fields = if let Fields::Named(named) = struct_fields {
+        let mut pairs = Punctuated::<syn::Field, Token![,]>::new();
+        for f in filtered_fields {
+            pairs.push(f);
+        }
+        pairs.push_trailing(Token![,] (proc_macro2::Span::call_site()));
         Fields::Named(syn::FieldsNamed {
             brace_token: named.brace_token,
-            named: filtered_fields.into_iter().collect(),
+            named: pairs,
         })
     } else {
         struct_fields.clone()

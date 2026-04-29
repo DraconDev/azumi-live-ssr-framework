@@ -1,10 +1,8 @@
 # Project State
 
 ## Current Focus
-Filter out azumi-specific attributes (`local`, `computed`) from live structs in the LiveState macro, ensuring generated structs only contain relevant attributes.
+feat(deps): bump dependency versions and add trailing comma handling in live macro field expansion
 
 ## Completed
-- [x] Implement filtering of `local` and `computed` attributes from struct fields before code generation in macros/src/live.rs
-- [x] Preserve remaining field attributes while constructing new `syn::Field` instances for the filtered struct
-- [x] Replace original `struct_fields` with `filtered_named_fields` when generating the expanded struct definition
-- [x] Update Cargo.lock to lock new dependency versions (binary unchanged)
+- [x] Added punctuated list with trailing comma in filtered_named_fields generation
+- [x] Updated Cargo.lock with new dependency versions
