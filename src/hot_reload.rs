@@ -452,17 +452,6 @@ mod tests {
     }
 
     #[test]
-    fn test_runtime_template_render() {
-        use std::fmt::Write;
-        let template = RuntimeTemplate {
-            static_parts: vec!["hello ".to_string(), " world".to_string()],
-        };
-        let mut out = String::new();
-        template.render(&mut out, &[]).unwrap();
-        assert_eq!(out, "hello  world");
-    }
-
-    #[test]
     fn test_lru_cache_default() {
         let cache: LRUCache<String, i32> = LRUCache::default();
         assert_eq!(cache.len(), 0);

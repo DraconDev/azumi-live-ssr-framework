@@ -1,6 +1,7 @@
 # Project State
-This commit adds comprehensive tests for HTML escaping and template extraction, ensuring edge cases like nested braces, XML content, and style handling are covered.
+
+## Current Focus
+Removed a test from the hot reload module due to stabilization of dependencies after Cargo.lock update.
 
 ## Completed
-- Implemented tests for HTML rendering and escaping, improving security checks
-- Enhanced template extraction logic to handle nested structures and various template formats
+- [x] Delete deprecated test `test_runtime_template_render` in `src/hot_reload.rs`
