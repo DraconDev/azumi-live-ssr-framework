@@ -1017,17 +1017,19 @@ class Azumi {
         return null;
     }
 
-    // Execute: "call toggle_like -> #box" or "set open = true"
+    // Execute: "call toggle_like -> #box"
     async execute(action, element) {
         if (action.type === "call") {
             await this.callAction(action, element);
-        } else if (action.type === "set") {
-            this.setState(action, element);
         }
     }
 
     /**
      * Azumi Live: Execute optimistic prediction
+     *
+     * Predictions are stored in `this.scopes` WeakMap (ephemeral, in-memory).
+     * The `az-scope` attribute remains immutable (server-signed) after initial render.
+     * Predictions do NOT modify `az-scope` — they live only in JS memory.
      *
      * Prediction DSL format: "field = expression"
      * Expressions:
@@ -1045,20 +1047,15 @@ class Azumi {
         if (!scopeAttr) return null;
 
         try {
-            // Handle signed state: "{json}|{signature}"
             let jsonStr = scopeAttr;
             if (scopeAttr.includes("|")) {
-                const parts = scopeAttr.split("|");
-                // JSON is the part before the last pipe (to handle pipes in JSON strings, though rare)
-                // Actually, Azumi security uses "last pipe" logic.
                 const lastPipe = scopeAttr.lastIndexOf("|");
                 jsonStr = scopeAttr.substring(0, lastPipe);
             }
 
             const state = JSON.parse(jsonStr);
-            const originalState = JSON.parse(jsonStr); // Keep copy for rollback
+            const originalState = JSON.parse(jsonStr);
 
-            // Parse multiple predictions separated by ;
             const predictions = prediction
                 .split(";")
                 .map((p) => p.trim())
@@ -1068,18 +1065,14 @@ class Azumi {
                 this.applyPrediction(state, pred);
             }
 
-            // Update the scope attribute with new state
-            scopeElement.setAttribute("az-scope", JSON.stringify(state));
-
-            // Update any bound elements
-            this.updateBindings(scopeElement, state);
+            this.scopes.set(scopeElement, state);
+            this.updateBindings(scopeElement);
 
             console.log("🚀 Prediction executed:", prediction, state);
 
             return {
                 originalState,
                 newState: state,
-                originalScopeAttr: scopeAttr,
             };
         } catch (err) {
             console.warn("Prediction execution failed:", err);
@@ -1141,39 +1134,51 @@ class Azumi {
 
     /**
      * Update DOM elements that display state values
-     * Looks for elements with data-bind="fieldName" attribute
+     * Reads from WeakMap first (ephemeral predictions), falls back to az-scope (server state)
      */
-    updateBindings(scopeElement, state) {
-        // Find all elements with data-bind within the scope
+    updateBindings(scopeElement) {
+        const state = this.scopes.get(scopeElement) || (() => {
+            const scopeAttr = scopeElement.getAttribute("az-scope");
+            if (!scopeAttr) return null;
+            let jsonStr = scopeAttr;
+            if (scopeAttr.includes("|")) {
+                jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
+            }
+            try { return JSON.parse(jsonStr); } catch { return null; }
+        })();
+
+        if (!state) return;
+
         const bindings = scopeElement.querySelectorAll("[data-bind]");
         bindings.forEach((el) => {
             const field = el.getAttribute("data-bind");
-            if (field && state.hasOwnProperty(field)) {
+            if (!field) return;
+
+            if (field.includes(".")) {
+                const parts = field.split(".");
+                const val = parts.reduce(
+                    (o, k) => (o != null ? o[k] : undefined),
+                    state
+                );
+                if (val !== undefined) el.textContent = val;
+            } else if (state.hasOwnProperty(field)) {
                 el.textContent = state[field];
             }
         });
-
-        // Also update text content that might be interpolated
-        // This is a simple approach - for complex cases, re-render from server
     }
 
     /**
      * Rollback prediction if server response differs
+     * Clears the WeakMap entry — az-scope remains untouched (server-signed)
      */
-    rollbackPrediction(scopeElement, originalState, originalScopeAttr) {
+    rollbackPrediction(scopeElement, originalState) {
         if (!scopeElement) return;
 
-        if (originalScopeAttr) {
-            scopeElement.setAttribute("az-scope", originalScopeAttr);
-        } else if (originalState) {
-            scopeElement.setAttribute(
-                "az-scope",
-                JSON.stringify(originalState)
-            );
-        }
-
         if (originalState) {
-            this.updateBindings(scopeElement, originalState);
+            this.scopes.set(scopeElement, originalState);
+            this.updateBindings(scopeElement);
+        } else {
+            this.scopes.delete(scopeElement);
         }
         console.log("⏪ Prediction rolled back");
     }
