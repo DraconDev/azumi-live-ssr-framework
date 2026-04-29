@@ -529,6 +529,12 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
             fn struct_name() -> &'static str {
                 #struct_name_str
             }
+            fn local_fields() -> &'static [&'static str] {
+                <#struct_name as azumi::LiveStateMetadata>::local_fields()
+            }
+            fn computed_fields() -> &'static [&'static str] {
+                <#struct_name as azumi::LiveStateMetadata>::computed_fields()
+            }
         }
 
         impl azumi::LiveState for #struct_name {
