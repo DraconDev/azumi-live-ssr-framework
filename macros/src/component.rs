@@ -133,7 +133,12 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
                 azumi::from_fn(move |f| {
                     let scope_json = <_ as azumi::LiveState>::to_scope(#state_ident);
                     let struct_name = <#live_state_type as azumi::LiveStateMetadata>::struct_name();
-                    write!(f, "<div az-scope=\"{}\" az-struct=\"{}\" style=\"display: contents\">", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
+                    let local_json = azumi::LiveState::to_local_scope(#state_ident);
+                    write!(f, "<div az-scope=\"{}\" az-struct=\"{}\"", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
+                    if !local_json.is_empty() {
+                        write!(f, " az-local-state=\"{}\"", azumi::Escaped(&local_json))?;
+                    }
+                    write!(f, " style=\"display: contents\">")?;
                     let inner = #fn_block;
                     inner.render(f)?;
                     write!(f, "</div>")?;
@@ -144,31 +149,10 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
             quote! { #fn_block }
         };
 
-        // Also wrap az-local-state for components with local fields
-        let local_body = if let Some(state_ident) = live_state_ident {
-            quote! {
-                azumi::from_fn(move |f| {
-                    let local_json = azumi::LiveState::to_local_scope(#state_ident);
-                    if !local_json.is_empty() {
-                        write!(f, "<div az-local-state=\"{}\" style=\"display: contents\">", azumi::Escaped(&local_json))?;
-                        let inner = #body;
-                        inner.render(f)?;
-                        write!(f, "</div>")?;
-                    } else {
-                        let inner = #body;
-                        inner.render(f)?;
-                    }
-                    Ok(())
-                })
-            }
-        } else {
-            body
-        };
-
         quote! {
             pub fn render #impl_generics (props: Props #ty_generics, children: #children_ty) #fn_output #where_clause {
                 #(#props_init)*
-                #local_body
+                #body
             }
         }
     } else {
@@ -177,7 +161,12 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
                 azumi::from_fn(move |f| {
                     let scope_json = <_ as azumi::LiveState>::to_scope(#state_ident);
                     let struct_name = <#live_state_type as azumi::LiveStateMetadata>::struct_name();
-                    write!(f, "<div az-scope=\"{}\" az-struct=\"{}\" style=\"display: contents\">", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
+                    let local_json = azumi::LiveState::to_local_scope(#state_ident);
+                    write!(f, "<div az-scope=\"{}\" az-struct=\"{}\"", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
+                    if !local_json.is_empty() {
+                        write!(f, " az-local-state=\"{}\"", azumi::Escaped(&local_json))?;
+                    }
+                    write!(f, " style=\"display: contents\">")?;
                     let inner = #fn_block;
                     inner.render(f)?;
                     write!(f, "</div>")?;
@@ -188,30 +177,10 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
             quote! { #fn_block }
         };
 
-        let local_body = if let Some(state_ident) = live_state_ident {
-            quote! {
-                azumi::from_fn(move |f| {
-                    let local_json = azumi::LiveState::to_local_scope(#state_ident);
-                    if !local_json.is_empty() {
-                        write!(f, "<div az-local-state=\"{}\" style=\"display: contents\">", azumi::Escaped(&local_json))?;
-                        let inner = #body;
-                        inner.render(f)?;
-                        write!(f, "</div>")?;
-                    } else {
-                        let inner = #body;
-                        inner.render(f)?;
-                    }
-                    Ok(())
-                })
-            }
-        } else {
-            body
-        };
-
         quote! {
             pub fn render #impl_generics (props: Props #ty_generics) #fn_output #where_clause {
                 #(#props_init)*
-                #local_body
+                #body
             }
         }
     };

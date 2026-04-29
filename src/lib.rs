@@ -85,6 +85,11 @@ pub trait LiveStateMetadata {
     fn local_fields() -> &'static [&'static str] {
         &[]
     }
+
+    /// Returns the list of computed field names (derived at runtime, never serialized)
+    fn computed_fields() -> &'static [&'static str] {
+        &[]
+    }
 }
 
 /// Marker trait for live state structs
@@ -136,6 +141,9 @@ impl<T: LiveStateMetadata> LiveStateMetadata for &T {
     fn local_fields() -> &'static [&'static str] {
         T::local_fields()
     }
+    fn computed_fields() -> &'static [&'static str] {
+        T::computed_fields()
+    }
 }
 impl<T: LiveStateMetadata> LiveStateMetadata for &mut T {
     fn predictions() -> &'static [(&'static str, &'static str)] {
@@ -146,6 +154,9 @@ impl<T: LiveStateMetadata> LiveStateMetadata for &mut T {
     }
     fn local_fields() -> &'static [&'static str] {
         T::local_fields()
+    }
+    fn computed_fields() -> &'static [&'static str] {
+        T::computed_fields()
     }
 }
 

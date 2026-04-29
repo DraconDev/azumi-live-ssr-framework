@@ -269,8 +269,9 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_attrs = &input.attrs;
     let struct_fields = &input.fields;
 
-    // Parse local field names
+    // Parse local and computed field names
     let mut local_field_names = Vec::new();
+    let mut computed_field_names = Vec::new();
     let mut regular_field_names = Vec::new();
     let mut field_idents = Vec::new();
 
@@ -281,8 +282,13 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
             let is_local = field.attrs.iter().any(|attr| {
                 attr.path().is_ident("local")
             });
+            let is_computed = field.attrs.iter().any(|attr| {
+                attr.path().is_ident("computed")
+            });
             if is_local {
                 local_field_names.push(field_name);
+            } else if is_computed {
+                computed_field_names.push(field_name);
             } else {
                 regular_field_names.push(field_name);
             }
@@ -332,11 +338,12 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    let local_field_names_const: Vec<_> = local_field_names
+    let local_field_names_static: Vec<_> = local_field_names
         .iter()
-        .map(|s| s.as_str())
+        .map(|s| quote!(#s))
         .collect();
-    let local_field_names_static: Vec<_> = local_field_names_const
+
+    let computed_field_names_static: Vec<_> = computed_field_names
         .iter()
         .map(|s| quote!(#s))
         .collect();
@@ -354,6 +361,9 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         impl azumi::LiveStateMetadata for #struct_name {
             fn local_fields() -> &'static [&'static str] {
                 &[#(#local_field_names_static),*]
+            }
+            fn computed_fields() -> &'static [&'static str] {
+                &[#(#computed_field_names_static),*]
             }
         }
     };
