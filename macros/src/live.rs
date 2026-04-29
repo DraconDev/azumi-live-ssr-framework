@@ -402,6 +402,17 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         struct_fields.clone()
     };
 
+    // Emit private constants with field names for compile-time validation
+    // These are used by #[azumi::live_impl] to validate predictions
+    let local_const_entries: Vec<_> = local_field_names
+        .iter()
+        .map(|s| quote!(#s))
+        .collect();
+    let computed_const_entries: Vec<_> = computed_field_names
+        .iter()
+        .map(|s| quote!(#s))
+        .collect();
+
     let expanded = quote! {
         #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
         #(#struct_attrs)*
@@ -410,6 +421,11 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         impl #struct_generics #struct_name #struct_generics {
             #to_scope
             #to_local_scope
+
+            #[doc(hidden)]
+            const __AZUMI_LOCAL_FIELDS: &'static [&'static str] = &[#(#local_const_entries),*];
+            #[doc(hidden)]
+            const __AZUMI_COMPUTED_FIELDS: &'static [&'static str] = &[#(#computed_const_entries),*];
         }
 
         impl azumi::LiveStateMetadata for #struct_name {

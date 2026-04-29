@@ -1,8 +1,9 @@
 # Project State
 
 ## Current Focus
-Add `field_name` method to `Prediction` enum to retrieve the identifier field for validation
+Emit compile‑time validation constants for local and computed fields
 
 ## Completed
-- [x] Added `field_name` method implementation in the `Prediction` impl block
-- [x] Implemented field extraction for `SetLiteral`, `Toggle`, `Add`, and `Sub` variants, returning `None` for `Manual`
+- [x] Added `__AZUMI_LOCAL_FIELDS` constant array containing local field identifiers
+- [x] Added `__AZUMI_COMPUTED_FIELDS` constant array containing computed field identifiers
+- [x] Integrated the constants into the generated impl block for validation by `#[azumi::live_impl]`
