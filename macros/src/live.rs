@@ -321,7 +321,7 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
     } else {
-        let field_pairs: Vec<_> = local_field_names
+        let field_values: Vec<_> = local_field_names
             .iter()
             .map(|name| {
                 let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
@@ -331,11 +331,9 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
         quote! {
             pub fn to_local_scope(&self) -> String {
-                let snapshot = Self {
-                    #(#field_pairs,)*
-                    ..Default::default()
-                };
-                let json = serde_json::to_string(&snapshot).unwrap_or_default();
+                let json = serde_json::json!({
+                    #(#field_values),*
+                }).to_string();
                 azumi::security::sign_state(&json)
             }
         }

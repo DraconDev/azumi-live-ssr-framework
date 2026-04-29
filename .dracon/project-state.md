@@ -1,9 +1,9 @@
 # Project State
 
 ## Current Focus
-Add debug output and more explicit assertions in the live scope test
+Replace struct snapshot creation with an inline JSON object for signing local state and remove the need for `Default`.
 
 ## Completed
-- [x] Print `local_json` using `eprintln!` for debugging
-- [x] Assert that `local_json` contains `"input_value"` with a clear message
-- [x] Assert that `local_json` does not contain `"count"` with a clear message
+- [x] Renamed `field_pairs` to `field_values` and switched from building a `Self` snapshot struct to constructing a JSON object via `serde_json!` macro
+- [x] Removed manual serialization with `serde_json::to_string` and replaced it with direct `json!` macro usage
+- [x] Simplified the signing call to operate on the generated JSON string directly
