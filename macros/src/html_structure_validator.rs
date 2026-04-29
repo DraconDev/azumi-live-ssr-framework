@@ -1034,4 +1034,402 @@ mod tests {
             errors
         );
     }
+
+    // =========================================================================
+    // Structural Validator Tests
+    // =========================================================================
+
+    // Helper to create a simple element node
+    fn element_node(name: &str) -> Node {
+        Node::Element(Element {
+            name: name.to_string(),
+            attrs: vec![],
+            children: vec![],
+            bind_struct: None,
+            span: proc_macro2::Span::call_site(),
+            full_span: proc_macro2::Span::call_site(),
+        })
+    }
+
+    fn element_with_children(name: &str, children: Vec<Node>) -> Node {
+        Node::Element(Element {
+            name: name.to_string(),
+            attrs: vec![],
+            children,
+            bind_struct: None,
+            span: proc_macro2::Span::call_site(),
+            full_span: proc_macro2::Span::call_site(),
+        })
+    }
+
+    fn text_node(content: &str) -> Node {
+        Node::Text(crate::token_parser::Text {
+            content: content.to_string(),
+            span: proc_macro2::Span::call_site(),
+        })
+    }
+
+    fn element_with_attrs(name: &str, attrs: Vec<(&str, &str)>) -> Node {
+        let mut elem = Element {
+            name: name.to_string(),
+            attrs: vec![],
+            children: vec![],
+            bind_struct: None,
+            span: proc_macro2::Span::call_site(),
+            full_span: proc_macro2::Span::call_site(),
+        };
+        for (name, value) in attrs {
+            elem.attrs.push(crate::token_parser::Attribute {
+                name: name.to_string(),
+                name_span: proc_macro2::Span::call_site(),
+                value: crate::token_parser::AttributeValue::Static(value.to_string()),
+                span: proc_macro2::Span::call_site(),
+                value_span: None,
+            });
+        }
+        Node::Element(elem)
+    }
+
+    // validate_node_order
+    #[test]
+    fn test_valid_order_content_then_style() {
+        let nodes = vec![
+            element_node("div"),
+            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), span: proc_macro2::Span::call_site() })),
+        ];
+        let errors = validate_node_order(&nodes);
+        assert!(errors.is_empty(), "Content before style should be valid");
+    }
+
+    #[test]
+    fn test_invalid_order_style_then_content() {
+        let nodes = vec![
+            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), span: proc_macro2::Span::call_site() })),
+            element_node("div"),
+        ];
+        let errors = validate_node_order(&nodes);
+        assert!(!errors.is_empty(), "Content after style should be invalid");
+    }
+
+    #[test]
+    fn test_valid_order_script_then_content_then_style() {
+        let nodes = vec![
+            element_node("script"),
+            element_node("div"),
+            Node::Block(crate::token_parser::Block::Style(crate::token_parser::StyleBlock { content: proc_macro2::TokenStream::new(), span: proc_macro2::Span::call_site() })),
+        ];
+        let errors = validate_node_order(&nodes);
+        assert!(errors.is_empty(), "Script -> Content -> Style should be valid");
+    }
+
+    #[test]
+    fn test_invalid_order_script_after_content() {
+        let nodes = vec![
+            element_node("div"),
+            element_node("script"),
+        ];
+        let errors = validate_node_order(&nodes);
+        assert!(!errors.is_empty(), "Script after content should be invalid");
+    }
+
+    // validate_table_children
+    #[test]
+    fn test_table_with_valid_children() {
+        let table = element_with_children("table", vec![
+            element_node("tr"),
+            element_node("thead"),
+            element_node("tbody"),
+        ]);
+        if let Node::Element(ref elem) = table {
+            let errors = validate_table_children(elem);
+            assert!(errors.is_empty(), "table with valid children should pass");
+        }
+    }
+
+    #[test]
+    fn test_table_with_invalid_child() {
+        let table = element_with_children("table", vec![
+            element_node("div"),
+        ]);
+        if let Node::Element(ref elem) = table {
+            let errors = validate_table_children(elem);
+            assert!(!errors.is_empty(), "div inside table should fail");
+        }
+    }
+
+    #[test]
+    fn test_non_table_ignored() {
+        let div = element_with_children("div", vec![element_node("span")]);
+        if let Node::Element(ref elem) = div {
+            let errors = validate_table_children(elem);
+            assert!(errors.is_empty(), "non-table should be ignored");
+        }
+    }
+
+    // validate_list_children
+    #[test]
+    fn test_ul_with_li_children() {
+        let ul = element_with_children("ul", vec![
+            element_node("li"),
+            element_node("li"),
+        ]);
+        if let Node::Element(ref elem) = ul {
+            let errors = validate_list_children(elem);
+            assert!(errors.is_empty(), "ul with li children should pass");
+        }
+    }
+
+    #[test]
+    fn test_ul_with_invalid_child() {
+        let ul = element_with_children("ul", vec![
+            element_node("div"),
+        ]);
+        if let Node::Element(ref elem) = ul {
+            let errors = validate_list_children(elem);
+            assert!(!errors.is_empty(), "div inside ul should fail");
+        }
+    }
+
+    #[test]
+    fn test_non_list_ignored() {
+        let div = element_with_children("div", vec![element_node("span")]);
+        if let Node::Element(ref elem) = div {
+            let errors = validate_list_children(elem);
+            assert!(errors.is_empty(), "non-list should be ignored");
+        }
+    }
+
+    // validate_nested_forms
+    #[test]
+    fn test_form_inside_form_fails() {
+        let form = element_node("form");
+        if let Node::Element(ref elem) = form {
+            let errors = validate_nested_forms(elem, true);
+            assert!(!errors.is_empty(), "nested form should fail");
+        }
+    }
+
+    #[test]
+    fn test_form_not_inside_form_passes() {
+        let form = element_node("form");
+        if let Node::Element(ref elem) = form {
+            let errors = validate_nested_forms(elem, false);
+            assert!(errors.is_empty(), "form not nested should pass");
+        }
+    }
+
+    #[test]
+    fn test_non_form_ignored() {
+        let div = element_node("div");
+        if let Node::Element(ref elem) = div {
+            let errors = validate_nested_forms(elem, true);
+            assert!(errors.is_empty(), "non-form should be ignored even inside form");
+        }
+    }
+
+    // validate_button_interactive
+    #[test]
+    fn test_button_inside_button_fails() {
+        let button = element_node("button");
+        if let Node::Element(ref elem) = button {
+            let errors = validate_button_interactive(elem, true);
+            assert!(!errors.is_empty(), "button inside button should fail");
+        }
+    }
+
+    #[test]
+    fn test_input_inside_button_fails() {
+        let input = element_node("input");
+        if let Node::Element(ref elem) = input {
+            let errors = validate_button_interactive(elem, true);
+            assert!(!errors.is_empty(), "input inside button should fail");
+        }
+    }
+
+    #[test]
+    fn test_span_inside_button_passes() {
+        let span = element_node("span");
+        if let Node::Element(ref elem) = span {
+            let errors = validate_button_interactive(elem, true);
+            assert!(errors.is_empty(), "span inside button should pass");
+        }
+    }
+
+    #[test]
+    fn test_not_inside_button_passes() {
+        let button = element_node("button");
+        if let Node::Element(ref elem) = button {
+            let errors = validate_button_interactive(elem, false);
+            assert!(errors.is_empty(), "not inside button should pass");
+        }
+    }
+
+    // validate_paragraph_content
+    #[test]
+    fn test_div_inside_p_fails() {
+        let p = element_with_children("p", vec![element_node("div")]);
+        if let Node::Element(ref elem) = p {
+            let errors = validate_paragraph_content(elem);
+            assert!(!errors.is_empty(), "div inside p should fail");
+        }
+    }
+
+    #[test]
+    fn test_span_inside_p_passes() {
+        let p = element_with_children("p", vec![element_node("span")]);
+        if let Node::Element(ref elem) = p {
+            let errors = validate_paragraph_content(elem);
+            assert!(errors.is_empty(), "span inside p should pass");
+        }
+    }
+
+    #[test]
+    fn test_non_p_ignored() {
+        let div = element_with_children("div", vec![element_node("div")]);
+        if let Node::Element(ref elem) = div {
+            let errors = validate_paragraph_content(elem);
+            assert!(errors.is_empty(), "non-p should be ignored");
+        }
+    }
+
+    // validate_anchor_nesting
+    #[test]
+    fn test_anchor_inside_anchor_fails() {
+        let a = element_node("a");
+        if let Node::Element(ref elem) = a {
+            let errors = validate_anchor_nesting(elem, true);
+            assert!(!errors.is_empty(), "nested anchor should fail");
+        }
+    }
+
+    #[test]
+    fn test_anchor_not_nested_passes() {
+        let a = element_node("a");
+        if let Node::Element(ref elem) = a {
+            let errors = validate_anchor_nesting(elem, false);
+            assert!(errors.is_empty(), "anchor not nested should pass");
+        }
+    }
+
+    // validate_heading_content
+    #[test]
+    fn test_div_inside_h1_fails() {
+        let h1 = element_with_children("h1", vec![element_node("div")]);
+        if let Node::Element(ref elem) = h1 {
+            let errors = validate_heading_content(elem);
+            assert!(!errors.is_empty(), "div inside h1 should fail");
+        }
+    }
+
+    #[test]
+    fn test_span_inside_h1_passes() {
+        let h1 = element_with_children("h1", vec![element_node("span")]);
+        if let Node::Element(ref elem) = h1 {
+            let errors = validate_heading_content(elem);
+            assert!(errors.is_empty(), "span inside h1 should pass");
+        }
+    }
+
+    #[test]
+    fn test_non_heading_ignored() {
+        let div = element_with_children("div", vec![element_node("div")]);
+        if let Node::Element(ref elem) = div {
+            let errors = validate_heading_content(elem);
+            assert!(errors.is_empty(), "non-heading should be ignored");
+        }
+    }
+
+    // validate_tag_name
+    #[test]
+    fn test_valid_tag_div() {
+        let div = element_node("div");
+        if let Node::Element(ref elem) = div {
+            let result = validate_tag_name(elem);
+            assert!(result.is_none(), "div should be a valid tag");
+        }
+    }
+
+    #[test]
+    fn test_custom_element_with_dash_passes() {
+        let custom = element_node("my-component");
+        if let Node::Element(ref elem) = custom {
+            let result = validate_tag_name(elem);
+            assert!(result.is_none(), "custom element with dash should pass");
+        }
+    }
+
+    #[test]
+    fn test_invalid_tag_fails() {
+        let unknown = element_node("notatag");
+        if let Node::Element(ref elem) = unknown {
+            let result = validate_tag_name(elem);
+            assert!(result.is_some(), "unknown tag should fail");
+        }
+    }
+
+    // validate_attribute_name
+    #[test]
+    fn test_valid_attr_class() {
+        let attr = crate::token_parser::Attribute {
+            name: "class".to_string(),
+            name_span: proc_macro2::Span::call_site(),
+            value: crate::token_parser::AttributeValue::Static("foo".to_string()),
+            span: proc_macro2::Span::call_site(),
+            value_span: None,
+        };
+        let result = validate_attribute_name(&attr);
+        assert!(result.is_none(), "class should be a valid attribute");
+    }
+
+    #[test]
+    fn test_data_attr_passes() {
+        let attr = crate::token_parser::Attribute {
+            name: "data-value".to_string(),
+            name_span: proc_macro2::Span::call_site(),
+            value: crate::token_parser::AttributeValue::Static("123".to_string()),
+            span: proc_macro2::Span::call_site(),
+            value_span: None,
+        };
+        let result = validate_attribute_name(&attr);
+        assert!(result.is_none(), "data-* should be a valid attribute");
+    }
+
+    #[test]
+    fn test_on_event_passes() {
+        let attr = crate::token_parser::Attribute {
+            name: "on:click".to_string(),
+            name_span: proc_macro2::Span::call_site(),
+            value: crate::token_parser::AttributeValue::Static("handler".to_string()),
+            span: proc_macro2::Span::call_site(),
+            value_span: None,
+        };
+        let result = validate_attribute_name(&attr);
+        assert!(result.is_none(), "on:event should be a valid attribute");
+    }
+
+    #[test]
+    fn test_native_onclick_fails() {
+        let attr = crate::token_parser::Attribute {
+            name: "onclick".to_string(),
+            name_span: proc_macro2::Span::call_site(),
+            value: crate::token_parser::AttributeValue::Static("handler".to_string()),
+            span: proc_macro2::Span::call_site(),
+            value_span: None,
+        };
+        let result = validate_attribute_name(&attr);
+        assert!(result.is_some(), "native onclick should fail with suggestion");
+    }
+
+    #[test]
+    fn test_unknown_attr_fails() {
+        let attr = crate::token_parser::Attribute {
+            name: "notanattr".to_string(),
+            name_span: proc_macro2::Span::call_site(),
+            value: crate::token_parser::AttributeValue::Static("value".to_string()),
+            span: proc_macro2::Span::call_site(),
+            value_span: None,
+        };
+        let result = validate_attribute_name(&attr);
+        assert!(result.is_some(), "unknown attribute should fail");
+    }
 }
