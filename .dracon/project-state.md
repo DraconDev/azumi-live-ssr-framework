@@ -1,9 +1,11 @@
 # Project State
 
 ## Current Focus
-Emit compile‑time validation constants for local and computed fields
+Add compile‑time validation checks for predictions that reject references to local or computed fields
 
 ## Completed
-- [x] Added `__AZUMI_LOCAL_FIELDS` constant array containing local field identifiers
-- [x] Added `__AZUMI_COMPUTED_FIELDS` constant array containing computed field identifiers
-- [x] Integrated the constants into the generated impl block for validation by `#[azumi::live_impl]`
+- [x] Introduce `validation_items` vector to collect compile‑time warnings
+- [x] Iterate over `analysis.predictions` and generate `__AZUMI_CHECK` constants per prediction
+- [x] Dynamically reject predictions that reference local fields using `local_const_entries`
+- [x] Dynamically reject predictions that reference computed fields using `computed_const_entries`
+- [x] Emit `compile_error!` messages when a prediction mutates a forbidden field
