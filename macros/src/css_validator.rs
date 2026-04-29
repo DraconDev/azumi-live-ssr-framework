@@ -94,3 +94,125 @@ pub fn resolve_css_file_path(css_path: &str) -> String {
 
     manifest_path.join(clean_path).to_string_lossy().to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn element_with_attrs(name: &str, attrs: Vec<(&str, &str)>) -> Node {
+        let mut elem = crate::token_parser::Element {
+            name: name.to_string(),
+            attrs: vec![],
+            children: vec![],
+            bind_struct: None,
+            span: proc_macro2::Span::call_site(),
+            full_span: proc_macro2::Span::call_site(),
+        };
+        for (name, value) in attrs {
+            elem.attrs.push(crate::token_parser::Attribute {
+                name: name.to_string(),
+                name_span: proc_macro2::Span::call_site(),
+                value: crate::token_parser::AttributeValue::Static(value.to_string()),
+                span: proc_macro2::Span::call_site(),
+                value_span: None,
+            });
+        }
+        Node::Element(elem)
+    }
+
+    // =========================================================================
+    // validate_component_css
+    // =========================================================================
+
+    #[test]
+    fn test_no_external_css_returns_empty() {
+        let nodes = vec![];
+        let result = validate_component_css(&nodes);
+        assert!(result.to_string().is_empty(), "No nodes should return empty");
+    }
+
+    #[test]
+    fn test_style_without_src_returns_empty() {
+        let style = element_with_attrs("style", vec![]);
+        let result = validate_component_css(&[style]);
+        assert!(result.to_string().is_empty(), "Style without src should be allowed");
+    }
+
+    #[test]
+    fn test_style_with_src_fails() {
+        let style = element_with_attrs("style", vec![("src", "/styles.css")]);
+        let result = validate_component_css(&[style]);
+        let s = result.to_string();
+        assert!(s.contains("compile_error"), "External CSS should produce compile_error");
+        assert!(s.contains("External CSS files are banned"), "Error should mention ban");
+    }
+
+    #[test]
+    fn test_global_css_allowed() {
+        let style = element_with_attrs("style", vec![("src", "global.css")]);
+        let result = validate_component_css(&[style]);
+        assert!(result.to_string().is_empty(), "global.css should be allowed");
+    }
+
+    // =========================================================================
+    // collect_css_files
+    // =========================================================================
+
+    #[test]
+    fn test_collect_no_css_files() {
+        let nodes = vec![];
+        let mut files = vec![];
+        collect_css_files(&nodes, &mut files);
+        assert!(files.is_empty(), "No nodes should collect no files");
+    }
+
+    #[test]
+    fn test_collect_style_with_src() {
+        let style = element_with_attrs("style", vec![("src", "/styles.css")]);
+        let mut files = vec![];
+        collect_css_files(&[style], &mut files);
+        assert_eq!(files.len(), 1, "Should collect one CSS file");
+        assert!(files[0].ends_with("styles.css"), "Should end with styles.css");
+    }
+
+    #[test]
+    fn test_collect_skips_global_css() {
+        let style = element_with_attrs("style", vec![("src", "global.css")]);
+        let mut files = vec![];
+        collect_css_files(&[style], &mut files);
+        assert!(files.is_empty(), "global.css should be skipped");
+    }
+
+    #[test]
+    fn test_collect_recurses_into_children() {
+        let inner_style = element_with_attrs("style", vec![("src", "/inner.css")]);
+        let div = crate::token_parser::Element {
+            name: "div".to_string(),
+            attrs: vec![],
+            children: vec![inner_style],
+            bind_struct: None,
+            span: proc_macro2::Span::call_site(),
+            full_span: proc_macro2::Span::call_site(),
+        };
+        let mut files = vec![];
+        collect_css_files(&[Node::Element(div)], &mut files);
+        assert_eq!(files.len(), 1, "Should recurse into children");
+    }
+
+    // =========================================================================
+    // resolve_css_file_path
+    // =========================================================================
+
+    #[test]
+    fn test_resolve_strips_leading_slash() {
+        let result = resolve_css_file_path("/styles.css");
+        assert!(!result.starts_with("/styles.css"), "Should strip leading slash");
+        assert!(result.ends_with("styles.css"), "Should end with styles.css");
+    }
+
+    #[test]
+    fn test_resolve_relative_path() {
+        let result = resolve_css_file_path("styles.css");
+        assert!(result.ends_with("styles.css"), "Should end with styles.css");
+    }
+}
