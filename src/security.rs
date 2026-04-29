@@ -294,13 +294,13 @@ fn verify_state_internal_detailed(
             _ => {
                 return Err(VerifyError::UserIdMismatch {
                     expected: expected.to_string(),
-                    actual: actual_user_id.unwrap_or_default(),
+                    actual: actual_user_id.unwrap_or("").to_string(),
                 })
             }
         }
     } else if actual_user_id.is_some() {
         return Err(VerifyError::UnexpectedUserId {
-            actual: actual_user_id.unwrap_or_default(),
+            actual: actual_user_id.unwrap_or("").to_string(),
         });
     }
 
