@@ -22,7 +22,7 @@ Then add `data-predict` attributes to buttons for instant UI updates:
 <button on:click={state.increment} data-predict="count = count + 1">"+1"</button>
 ```
 
-The `#[azumi::live_impl]` macro analyzes the mutations and stores predictions in `LiveStateMetadata`. The server confirms (or corrects) the prediction when the request arrives.
+The `#[azumi::live_impl]` macro analyzes the mutations and stores predictions in `LiveStateMetadata`. The component macro injects these predictions as `az-predictions` JSON on the scope div. The client JavaScript auto-detects and executes predictions when buttons are clicked. The server confirms (or corrects) the prediction when the request arrives.
 
 This is "optimistic UI" done at the language level, not as a library pattern.
 

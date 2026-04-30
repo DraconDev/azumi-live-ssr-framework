@@ -130,11 +130,11 @@ Built-in a11y checks at compile time:
 - `<a target="_blank">` must have `rel="noopener noreferrer"`
 - `<iframe>` must have `title`
 
-### 4. Optimistic UI (Manual Prediction)
+### 4. Optimistic UI (Auto-Detected Predictions)
 
 Write Rust. Get instant UI. No JavaScript required.
 
-**Manual prediction:** Add `data-predict` attributes to buttons for optimistic UI.
+**Auto-detection:** `#[azumi::live_impl]` analyzes your methods and auto-detects predictions. The client executes them optimistically when buttons are clicked.
 
 ```rust
 #[azumi::live_impl(component = "counter_view")]
@@ -146,13 +146,22 @@ impl Counter {
 #[azumi::component]
 pub fn counter_view<'a>(state: &'a Counter) -> impl Component + 'a {
     html! {
-        <button on:click={state.increment} data-predict="count = count + 1">"+1"</button>
-        <button on:click={state.toggle} data-predict="active = !active">"Toggle"</button>
+        // Predictions are auto-detected from #[azumi::live_impl]!
+        // No data-predict needed for simple mutations
+        <button on:click={state.increment}>"+1"</button>
+        <button on:click={state.toggle}>"Toggle"</button>
     }
 }
 ```
 
-**Prediction patterns** you can use in `data-predict`:
+**Manual override:** Add `data-predict` attributes for custom predictions or complex mutations:
+
+```rust
+// Manual prediction for complex cases
+<button on:click={state.reset} data-predict="count = 0">"Reset"</button>
+```
+
+**Supported prediction patterns:**
 - `"field = value"` — Set a field
 - `"field = !field"` — Toggle a boolean
 - `"field = field + value"` — Increment
