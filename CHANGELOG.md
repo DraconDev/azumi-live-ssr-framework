@@ -5,6 +5,29 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [29.0.0] - 2026-04-30
+
+### Added
+- **Component macro refactor**: Centralized live-state scope wrapper generation in `macros/src/component.rs`
+- Simplified asset pipeline: standard HTML `srcset` with automatic path rewriting (removed `asset!()` and `image!()` macro references)
+- `window.azumi.execute()` JavaScript API for manual action execution
+
+### Changed
+- **Documentation sweep**: Updated README to v28.0.2, fixed features table (devtools=Optional), corrected live components diagram to show az-predictions auto-detection
+- **client/README.md**: Complete rewrite — removed deprecated `set` command, documented az-predictions JSON auto-detection, updated server protocol to namespaced paths
+- **AI_GUIDE**: Removed `set` command section, fixed section numbering (6→11), removed duplicate headings, updated predictions to auto-detection as primary
+- **AZUMI_DESCRIPTION.md**: Opening example now shows auto-detection flow
+
+### Fixed
+- **Removed**: `az-on="click set ..."` syntax no longer documented (command was removed from client JS)
+- **Removed**: `window.azumi.setState()` API documentation (method doesn't exist in client JS)
+- **Removed**: Non-existent `image!()` and `asset!()` macro references from ASSET_PIPELINE_DESIGN.md
+
+### Migration
+`#[azumi::live]` + `#[azumi::live_impl]` required together. Manual `data-predict` now optional — predictions auto-detected from `#[azumi::live_impl]`.
+
+---
+
 ## [27.0.0] - 2026-04-30
 
 ### Added

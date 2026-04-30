@@ -19,9 +19,9 @@ No runtime errors. No "works on my machine". No surprises.
 
 ---
 
-## 🚀 v28.0.2 Release Notes
+## 🚀 v29.0.0 Release Notes
 
-**Azumi v28.0.2** — Auto-detected optimistic predictions, SEO test isolation fixes, and macro architecture separation.
+**Azumi v29.0.0** — Component macro refactor, full documentation sweep, auto-detected predictions as primary feature.
 
 ### What's New
 - **TrustedHtml Component**: User-facing escape hatch for pre-sanitized HTML from trusted sources
