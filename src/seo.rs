@@ -153,7 +153,7 @@ pub fn generate_head(
         .or(context_meta.image)
         .or(global.and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
 
-    if let Some(ref g) = global {
+    let full_title = if let Some(ref g) = global {
         if let Some(ref og) = g.open_graph {
             if let Some(ref site_name) = og.site_name {
                 if !effective_title.is_empty() {
