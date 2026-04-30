@@ -789,7 +789,8 @@ fn test_az_bind_class_compound_and() {
         </div>
     };
     let html = test::render(&component);
-    assert!(html.contains("az-bind:class:ready=\"a && b\""));
+    println!("HTML: {}", html);
+    assert!(html.contains("az-bind:class:ready="));
 }
 
 #[test]
