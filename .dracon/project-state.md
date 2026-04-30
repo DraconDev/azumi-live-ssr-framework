@@ -1,9 +1,9 @@
 # Project State
 
 ## Current Focus
-Adds an `az-predictions` attribute to the generated HTML component when prediction metadata is present and non‑empty.
+Added runtime auto‑detection of prediction values from the `az-predictions` attribute when `data-predict` is not set, with console logging and error handling.
 
 ## Completed
-- [x] Extract predictions via `LiveStateMetadata::predictions()` in component rendering
-- [x] Serialize predictions to a JSON string for attribute value
-- [x] Conditionally render `az-predictions` attribute only when the JSON is non‑empty and not `"[]"`
+- [x] Added logic to parse `az-predictions` JSON and extract a prediction based on the `az-on` attribute in `client/azumi.js`
+- [x] Added identical auto‑detection logic to the minified `src/client.min.js`
+- [x] Updated `Cargo.lock` to reflect the latest dependency versions introduced by recent commits
