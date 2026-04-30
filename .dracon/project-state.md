@@ -1,8 +1,9 @@
 # Project State
 
 ## Current Focus
-Replace OnceLock with Mutex for SEO global state and add reset_seo() call in test_generate_head_with_type
+Replace the SEO global singleton with a thread‑safe mutable guard that can be reset for testing.
 
 ## Completed
-- [x] Switched `use std::sync::OnceLock;` to `use std::sync::Mutex;` in `src/seo.rs`.
-- [x] Added `reset_seo();` invocation before `generate_head` in `test_generate_head_with_type`.
+- [x] Changed `SITE_CONFIG` from `OnceLock<SeoConfig>` to `Mutex<Option<SeoConfig>>`.
+- [x] Updated `init_seo` to acquire the lock, insert the config only when empty, and emit a warning on subsequent calls.
+- [x] Added `reset_seo` (test‑only) to clear the global state by locking and setting `None`.
