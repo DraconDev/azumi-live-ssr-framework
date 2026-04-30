@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-Add debug logging to `init_seo` to report `guard.is_none()`
+Update dependency lock file to reflect new versions
 
 ## Completed
-- [x] Add debug `eprintln!` statement in `init_seo` to log `guard.is_none()`
+- [x] Update Cargo.lock to reflect updated dependency versions
