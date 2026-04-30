@@ -1,8 +1,14 @@
 # Project State
-This commit modifies the Azumi client component to centralize state management, enabling smoother transitions between client-side and server-side predictions.
+
+## Current Focus
+Implement client‑side state reading and binding evaluation for new az‑bind directives.
 
 ## Completed
-- Implemented state resolution logic using a WeakMap, az-ui, and az-scope attributes
-- Added integration and fallback mechanisms for reading from multiple scales
-- Enhanced data binding support with improved syntax handling
-- Refactored the `readState` and `updateBindings` methods for cleaner logic and priority ordering
+- [x] Add `readState(scopeElement)` to resolve state from WeakMap, az-ui, or az-scope in priority order.
+- [x] Implement `evaluateBinding(expr, state)` to handle boolean negation, equality, inequality, and simple truthy checks.
+- [x] Refactor `updateBindings` to use `readState`, support legacy `data-bind`, and new directive patterns:
+  * `az-bind:text` for text content binding.
+  * `az-bind:class:*` (colon syntax) and `az-bind.class.*` (dot syntax) for dynamic class toggling.
+- [x] Remove duplicated state resolution logic from `updateBindings`.
+- [x] Add graceful handling for browsers lacking `getAttributeNames`.
+- [x] Update comments and documentation strings to reflect new binding behaviour.
