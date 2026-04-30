@@ -7,10 +7,10 @@ While designed to work seamlessly with `azumi-rs`, it can be used independently 
 ## Features
 
 -   **Event Delegation**: Declarative `az-on` attributes for click, submit, change, and input events.
--   **Optimistic UI**: Instant state updates via `data-predict` with zero network latency.
+-   **Optimistic UI**: Instant state updates via auto-detected `az-predictions` or manual `data-predict` overrides.
 -   **DOM Morphing**: Uses [Idiomorph](https://github.com/bigskysoftware/idiomorph) for smooth DOM transitions, preserving focus and input state.
 -   **Hot Reload**: Built-in WebSocket connection for instant development feedback.
--   **Micro-State Management**: embed JSON state directly in the DOM with `az-scope`.
+-   **Micro-State Management**: Embed JSON state directly in the DOM with `az-scope`.
 
 ## Installation
 
@@ -34,74 +34,82 @@ The client initializes automatically as `window.azumi`.
 Components store their state as a JSON string in the `az-scope` attribute. This serves as the single source of truth for the client.
 
 ```html
-<div id="counter" az-scope='{"count": 0}'>
+<div id="counter" az-scope='{"count": 0}' az-struct="CounterState">
     <span data-bind="count">0</span>
     ...
 </div>
 ```
 
--   **`data-bind="field"`**: Automatically updates text content when the scope state changes (optimistically or via local set).
+-   **`data-bind="field"`**: Automatically updates text content when the scope state changes (optimistically or via server response).
 
 ### 2. Events (`az-on`)
 
 Azumi uses a declarative syntax for event handling.
 
-**Syntax**: `az-on="{trigger} {command} {args...}"`
-
-| Command  | Syntax                        | Description                                                      |
-| :------- | :---------------------------- | :--------------------------------------------------------------- |
-| **Call** | `call {action} -> {selector}` | Calls a server endpoint and morphs the response into the target. |
-| **Set**  | `set {field} = {value}`       | Updates local state immediately without a server roundtrip.      |
+**Syntax**: `az-on="{trigger} call {action_name} -> {target_selector}"`
 
 **Examples**:
 
 ```html
-<!-- Server Action -->
+<!-- Server Action with auto-detected prediction -->
 <button az-on="click call increment -> #counter">Increment</button>
-
-<!-- Local State Set -->
-<button az-on="click set isOpen = true">Open Modal</button>
 
 <!-- Form Submission -->
 <form az-on="submit call login -> #auth-box">...</form>
 ```
 
-### 3. Optimistic UI (`data-predict`)
+The `call` command sends a POST request to the server action endpoint and morphs the response into the target element.
 
-**Note**: Predictions must be added manually to HTML elements. The framework does not auto-generate them.
+### 3. Optimistic UI (`az-predictions`)
 
-Predict the outcome of a server action to update the UI immediately (0ms latency). Azumi captures the state, applies the prediction, and rolls it back if the server request fails.
+Predictions are **auto-detected** by the `#[azumi::live_impl]` macro and injected as JSON into the scope div via the `az-predictions` attribute. The client reads this attribute and executes predictions automatically when buttons are clicked.
 
-**Syntax**: `data-predict="{field} {operation} {value?}"`
-
-| Operation     | Syntax              | Example             |
-| :------------ | :------------------ | :------------------ |
-| **Toggle**    | `!{field}`          | `!liked`            |
-| **Increment** | `{field} + {n}`     | `likes + 1`         |
-| **Decrement** | `{field} - {n}`     | `likes - 1`         |
-| **Assign**    | `{field} = {value}` | `status = "active"` |
-
-**Example**:
+**How it works**:
 
 ```html
-<button
-    az-on="click call toggle_like -> #card"
-    data-predict="!liked; likes + 1"
->
-    Like
-</button>
+<!-- Server-rendered HTML -->
+<div az-scope='{"count": 0}' az-struct="CounterState"
+     az-predictions='[["increment","count = count + 1"],["toggle","active = !active"]]'>
+    <span data-bind="count">0</span>
+    <button az-on="click call increment">+1</button>
+    <button az-on="click call toggle">Toggle</button>
+</div>
 ```
+
+When the user clicks the "+1" button:
+1. Client parses `az-predictions` JSON
+2. Looks up "increment" → finds `"count = count + 1"`
+3. Executes prediction instantly (0ms latency)
+4. Sends request to server with original signed state
+
+**Manual override with `data-predict`**:
+
+For custom predictions or when auto-detection isn't sufficient, add `data-predict` to the element. Manual `data-predict` takes precedence over auto-detected predictions.
+
+```html
+<button az-on="click call reset" data-predict="count = 0">Reset</button>
+```
+
+**Supported prediction DSL**:
+
+| Prediction | Effect |
+| :--------- | :----- |
+| `field = !field` | Toggle boolean |
+| `field = true` | Set to literal |
+| `field = field + 1` | Increment |
+| `field = field - 1` | Decrement |
+| `field = value` | Assignment |
 
 ### 4. Server Protocol
 
 If you are using `azumi.js` without `azumi-rs`, your server must implement the following:
 
-1.  **Endpoint**: `POST /_azumi/action/{action_name}`
+1.  **Endpoint**: `POST /_azumi/action/{StructName}/{MethodName}` (namespaced)
 2.  **Request Body**:
-    -   **Forms**: `JSON` object of form fields.
+    -   **Forms**: `JSON` object of form fields with `_azumi_scope` key.
     -   **Others**: `JSON` object of the current `az-scope` state.
 3.  **Response**:
-    -   **Success (200)**: HTML fragment to swap into the target.
+    -   **Success (200)**: HTML fragment to morph into the target.
     -   **Error (4xx/5xx)**: Client rolls back optimistic updates.
 
 ### 5. Hot Reload
@@ -123,14 +131,5 @@ window.azumi.execute(
         target: "#my-component",
     },
     elementReference
-);
-
-// Update local state programmatically
-window.azumi.setState(
-    {
-        field: "count",
-        value: 10,
-    },
-    elementWithinScope
 );
 ```
