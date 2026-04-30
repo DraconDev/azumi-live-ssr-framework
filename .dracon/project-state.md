@@ -1,11 +1,14 @@
-# Project State
+#Project State
 
 ## Current Focus
-Enhance Azumi client predicate/expression evaluation with parenthetical grouping, expanded numeric comparisons, and robust ternary parsing
+Implemented parenthetical predicate evaluation, advanced ternary expression parsing, and expanded numeric comparison support (including >=, <= and floating‑point values) with dedicated parsing helpers.
 
 ## Completed
-- [x] Add parenthetical expression support: evaluate predicates/expressions wrapped in outer parentheses by stripping them and re-evaluating the inner content
-- [x] Replace regex-based ternary matching with parseTernary and findTernaryIndex methods that respect string literals, escape characters, and nesting depth for accurate ternary operation parsing
-- [x] Add support for >, <=, >= numeric comparison operators in evaluatePredicate to complement the existing < operator
-- [x] Update numeric comparisons to support decimal values using parseFloat and regex patterns matching digits and decimal points, replacing integer-only parseInt logic
-- [x] Apply new ternary parsing logic to both evaluatePredicate and evaluateExpression methods to ensure consistent ternary operation behavior across evaluation contexts
+- [x] Added parenthetical predicate handling (`( expr )`) that bypasses the negation shortcut and delegates to `evaluatePredicate`.
+- [x] Replaced the simple `!field` regex match with explicit parenthesis detection and predicate evaluation.
+- [x] Introduced `parseTernary` and `findTernaryIndex` methods to correctly locate outermost ternary operators while respecting nested ternaries, quotes, and brackets.
+- [x] Updated ternary evaluation to use the new parsing utilities, evaluating condition, true‑branch, and false‑branch separately and converting truthiness to a boolean.
+- [x] Upgraded numeric comparison operators (`<`, `>`, `<=`, `>=`) to use `parseFloat`/`Number` and handle decimal literals.
+- [x] Modified `<` comparison to parse both left and right operands as floats for more accurate evaluation.
+- [x] Added support for `<=`, `>`, and `>=` comparison patterns alongside the existing `<` pattern.
+- [x] Removed legacy ternary regex matching code and integrated the new robust parsing logic throughout the expression evaluator.
