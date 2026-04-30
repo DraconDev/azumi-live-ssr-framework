@@ -121,6 +121,92 @@ fn test_data_bind_attribute() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// LiveStateMetadata::predictions() Tests
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_predictions_metadata_count() {
+    let predictions = <CounterState as azumi::LiveStateMetadata>::predictions();
+    assert_eq!(
+        predictions.len(),
+        3,
+        "Expected 3 predictions, found {}: {:?}",
+        predictions.len(),
+        predictions
+    );
+}
+
+#[test]
+fn test_predictions_metadata_increment() {
+    let predictions = <CounterState as azumi::LiveStateMetadata>::predictions();
+    let pred_map: std::collections::HashMap<_, _> = predictions.iter().copied().collect();
+    
+    assert!(
+        pred_map.contains_key("increment"),
+        "increment prediction missing: {:?}",
+        predictions
+    );
+    assert_eq!(
+        pred_map.get("increment"),
+        Some(&"count = count + 1"),
+        "increment prediction DSL mismatch"
+    );
+}
+
+#[test]
+fn test_predictions_metadata_toggle() {
+    let predictions = <CounterState as azumi::LiveStateMetadata>::predictions();
+    let pred_map: std::collections::HashMap<_, _> = predictions.iter().copied().collect();
+    
+    assert!(
+        pred_map.contains_key("toggle"),
+        "toggle prediction missing: {:?}",
+        predictions
+    );
+    assert_eq!(
+        pred_map.get("toggle"),
+        Some(&"active = !active"),
+        "toggle prediction DSL mismatch"
+    );
+}
+
+#[test]
+fn test_predictions_metadata_reset() {
+    let predictions = <CounterState as azumi::LiveStateMetadata>::predictions();
+    let pred_map: std::collections::HashMap<_, _> = predictions.iter().copied().collect();
+    
+    assert!(
+        pred_map.contains_key("reset"),
+        "reset prediction missing: {:?}",
+        predictions
+    );
+    assert_eq!(
+        pred_map.get("reset"),
+        Some(&"count = 0"),
+        "reset prediction DSL mismatch"
+    );
+}
+
+#[test]
+fn test_predictions_metadata_struct_name() {
+    assert_eq!(
+        <CounterState as azumi::LiveStateMetadata>::struct_name(),
+        "CounterState",
+        "struct_name mismatch"
+    );
+}
+
+#[test]
+fn test_predictions_metadata_empty_for_no_methods() {
+    let predictions = <NestedState as azumi::LiveStateMetadata>::predictions();
+    assert!(
+        predictions.is_empty(),
+        "Expected no predictions for NestedState (do_nothing has no mutations), found {:?}",
+        predictions
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // Complex Live State (Nested/Multiple)
 // ════════════════════════════════════════════════════════════════════════════
 

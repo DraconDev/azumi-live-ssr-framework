@@ -1,10 +1,12 @@
 # Project State
 
 ## Current Focus
-Rename internal variables in `macros/src/live.rs` to use an underscore prefix to signal they are temporary/local and follow a private naming convention, and regenerate `Cargo.lock`.
+Add comprehensive prediction metadata tests for CounterState and NestedState
 
 ## Completed
-- [x] Prefix `struct_name_str` to `_struct_name_str`
-- [x] Prefix `local_field_names_static` to `_local_field_names_static`
-- [x] Prefix `computed_field_names_static` to `_computed_field_names_static`
-- [x] Update Cargo.lock dependency manifest
+- [x] Add test_predictions_metadata_count for CounterState
+- [x] Add test_predictions_metadata_increment for CounterState
+- [x] Add test_predictions_metadata_toggle for CounterState
+- [x] Add test_predictions_metadata_reset for CounterState
+- [x] Add test_predictions_metadata_struct_name for CounterState
+- [x] Add test_predictions_metadata_empty_for_no_methods for NestedState
