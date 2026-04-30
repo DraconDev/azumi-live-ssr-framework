@@ -134,6 +134,7 @@ pub fn generate_head(
     type_: Option<&str>,
 ) -> crate::Raw<String> {
     let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
+    let global_for_title = global.clone();
 
     let context_meta = crate::context::get_page_meta();
 
@@ -146,14 +147,14 @@ pub fn generate_head(
     let effective_desc = description
         .map(|s| s.to_string())
         .or(context_meta.description)
-        .or(global.and_then(|g| g.description.clone()));
+        .or(global.as_ref().and_then(|g| g.description.clone()));
 
     let effective_image = image
         .map(|s| s.to_string())
         .or(context_meta.image)
-        .or(global.and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
+        .or(global.as_ref().and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
 
-    let full_title = if let Some(ref g) = global {
+    let full_title = if let Some(ref g) = global_for_title {
         if let Some(ref og) = g.open_graph {
             if let Some(ref site_name) = og.site_name {
                 if !effective_title.is_empty() {
@@ -520,6 +521,7 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_type() {
+        reset_seo();
         let result = generate_head("Title", None, None, None, Some("article"));
         let html = crate::render_to_string(&result);
         assert!(html.contains("og:type"));
