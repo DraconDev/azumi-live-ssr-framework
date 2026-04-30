@@ -1,8 +1,7 @@
 # Project State
 
-## Current Focus
-Added comprehensive JavaScript tests for Azumi client expression evaluators (evaluatePredicate, evaluateExpression, readState, findOperatorIndex).
+## CurrentFocus
+Update Cargo.lock with latest dependency versions for azumi 2 release
 
 ## Completed
-- [x] Added `tests/azumi_js_tests.js` containing a full AzumiTest stub and unit tests
-- [x] Implemented test utilities and assertion helpers for automated verification
+- [x] chore(docs): update Cargo.lock with latest dependency versions for the azumi 2 release
