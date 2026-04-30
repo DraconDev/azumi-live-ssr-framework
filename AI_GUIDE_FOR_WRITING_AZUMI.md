@@ -1535,7 +1535,7 @@ html! {
 <div az-bind:class:open="is_expanded">
 ```
 
-**v1 Limitations**: The expression evaluator supports field lookup, equality (`== 'val'`), inequality (`!= 'val'`), negation (`!field`), and truthy checks. Ternary expressions (`field ? 'a' : 'b'`) and compound operators (`&&`, `||`) are not yet supported.
+**v1 Limitations**: The expression evaluator supports field lookup, equality (`== 'val'`), inequality (`!= 'val'`), negation (`!field`), truthy checks, ternary expressions (`field ? 'a' : 'b'`), and compound operators (`&&`, `||`).
 
 ---
 

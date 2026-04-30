@@ -22,7 +22,7 @@ pub fn like_button(state: LikeState) -> impl Component {
                 az-bind:class.liked="liked"
                 az-on={click call toggle_like -> #like_box}
             >
-                <span az-bind:text="if liked { 'Unlike' } else { 'Like' }">
+                <span az-bind:text="liked ? 'Unlike' : 'Like'">
                     {if state.liked { "Unlike" } else { "Like" }}
                 </span>
             </button>
