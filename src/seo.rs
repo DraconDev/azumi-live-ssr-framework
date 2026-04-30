@@ -111,6 +111,7 @@ impl SeoConfig {
 
 pub fn init_seo(config: SeoConfig) {
     if let Ok(mut guard) = SITE_CONFIG.lock() {
+        eprintln!("DEBUG init_seo: guard.is_none() = {}", guard.is_none());
         if guard.is_none() {
             *guard = Some(config);
         } else {
