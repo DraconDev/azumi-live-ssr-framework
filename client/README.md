@@ -44,9 +44,10 @@ Components store their state as a JSON string in the `az-scope` attribute. This 
 
 ### 2. Events (`az-on`)
 
-Azumi uses a declarative syntax for event handling.
+Azumi uses a declarative syntax for event handling. There are two command types:
 
 **Syntax**: `az-on="{trigger} call {action_name} -> {target_selector}"`
+**Syntax**: `az-on="{trigger} set {field} = {value}"`
 
 **Examples**:
 
@@ -56,9 +57,14 @@ Azumi uses a declarative syntax for event handling.
 
 <!-- Form Submission -->
 <form az-on="submit call login -> #auth-box">...</form>
+
+<!-- Client-Side UI State (az-ui) -->
+<button az-on="click set active_tab = 'rust'">Rust</button>
 ```
 
 The `call` command sends a POST request to the server action endpoint and morphs the response into the target element.
+
+The `set` command mutates `az-ui` state locally without a server round-trip.
 
 ### 3. Optimistic UI (`az-predictions`)
 
@@ -100,7 +106,40 @@ For custom predictions or when auto-detection isn't sufficient, add `data-predic
 | `field = field - 1` | Decrement |
 | `field = value` | Assignment |
 
-### 4. Server Protocol
+### 4. Client-Side UI State (`az-ui`)
+
+For ephemeral UI state that doesn't need to persist or round-trip to the server (tabs, accordions, toggles), use the `az-ui` attribute with the `set` command.
+
+**Key differences**:
+
+| Attribute | Purpose | Server Round-Trip? | Survives Refresh? |
+| :-------- | :------ | :----------------- | :--------------- |
+| `az-scope` | Server data (signed, HMAC-protected) | ✅ Yes | ✅ Yes (re-renders) |
+| `az-ui` | UI chrome (client-only) | ❌ No | ❌ No (ephemeral) |
+
+**Example**:
+
+```html
+<div az-ui='{"active_tab": "rust", "is_open": false}'>
+    <button az-on="click set active_tab = 'rust'">Rust</button>
+    <button az-on="click set active_tab = 'python'">Python</button>
+    <div az-bind:class:active="active_tab == 'rust'">Rust content</div>
+    <div az-bind:class:active="active_tab == 'python'">Python content</div>
+</div>
+```
+
+**How it works**:
+1. User clicks a tab button
+2. Client finds parent `[az-ui]` element
+3. Parses JSON, applies mutation via prediction DSL
+4. Writes updated JSON back to `az-ui` attribute
+5. Updates bound elements (`az-bind:class`, `az-bind:text`)
+
+**Binding syntax**: `az-bind:class:{classname}="expression"` works with `az-ui` values.
+
+**Preserved across morphs**: `az-ui` state survives Idiomorph DOM morphing (e.g., when a sibling server action completes).
+
+### 5. Server Protocol
 
 If you are using `azumi.js` without `azumi-rs`, your server must implement the following:
 

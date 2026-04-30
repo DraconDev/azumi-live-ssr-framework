@@ -1,10 +1,10 @@
-# Project State
+# ProjectState
 
 ## Current Focus
-Restore and harden client-side ephemeral UI state via az-ui + set commands with morph preservation.
+Add client-side UI state management via `az-ui` attribute with `set` command support for ephemeral state.
 
 ## Completed
-- [x] Preserve az-local-state and az-ui across Idiomorph morphs by saving/restoring attributes before and after morph.
-- [x] Reintroduce set command in client runtime to mutate az-ui state without server round-trips, resolving assignment expressions against the closest [az-ui] element.
-- [x] Update azumi_plus_demo and Lesson 10 to use az-ui for client-side counters, tabs, and accordions and clarify az-ui vs az-scope semantics.
-- [x] Adjust asset manifest ordering and add nature.jpg entry with updated hashed filenames; lock updated dependencies.
+- [x] Introduced `az-ui` attribute for client-side UI chrome (tabs, toggles) that stores JSON state locally without server round-trips
+- [x] Implemented `set` command in `az-on` syntax for mutating `az-ui` state (e.g., `<button az-on="click set active_tab = 'rust'">`)
+- [x] Added documentation comparing `az-scope` (persistent server data) vs `az-ui` (ephemeral UI chrome) with usage examples
+- [x] Enhanced `az-bind` syntax to work with `az-ui` values for dynamic UI updates
