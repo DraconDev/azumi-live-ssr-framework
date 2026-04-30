@@ -11,18 +11,29 @@ Azumi is a web framework that generates **client-side predictions from server-si
 You write mutation logic once:
 
 ```rust
-pub fn increment(&mut self) {
-    self.count += 1;
+#[azumi::live]
+pub struct Counter { pub count: i32 }
+
+#[azumi::live_impl(component = "counter_view")]
+impl Counter {
+    pub fn increment(&mut self) {
+        self.count += 1;
+    }
 }
 ```
 
-Then add `data-predict` attributes to buttons for instant UI updates:
+The `#[azumi::live_impl]` macro analyzes the mutations and stores predictions in `LiveStateMetadata`. The component macro injects these predictions as `az-predictions` JSON on the scope div:
 
-```rust
-<button on:click={state.increment} data-predict="count = count + 1">"+1"</button>
+```html
+<div az-scope="{signed_json}" az-struct="Counter"
+     az-predictions='[["increment","count = count + 1"]]'>
+    <button az-on="click call increment">"+1"</button>
+</div>
 ```
 
-The `#[azumi::live_impl]` macro analyzes the mutations and stores predictions in `LiveStateMetadata`. The component macro injects these predictions as `az-predictions` JSON on the scope div. The client JavaScript auto-detects and executes predictions when buttons are clicked. The server confirms (or corrects) the prediction when the request arrives.
+The client JavaScript auto-detects and executes predictions when buttons are clicked. The server confirms (or corrects) the prediction when the request arrives.
+
+For custom predictions or complex mutations, you can still add manual `data-predict` attributes — they take precedence over auto-detected predictions.
 
 This is "optimistic UI" done at the language level, not as a library pattern.
 

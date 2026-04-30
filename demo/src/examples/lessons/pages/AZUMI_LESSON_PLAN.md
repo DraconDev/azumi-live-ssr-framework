@@ -428,7 +428,8 @@ pub fn like_view<'a>(state: &'a LikeButton) -> impl Component + 'a {
         </style>
 
         // NEW: on:event={state.method} syntax!
-        // Auto-generates: az-on="click call toggle" data-predict="..."
+        // Auto-generates: az-on="click call toggle"
+        // Predictions auto-detected from #[azumi::live_impl] via az-predictions JSON
         <button class={like_btn} on:click={state.toggle}>
             {if state.liked { "❤️" } else { "🤍" }}
             " " {state.count}
@@ -440,8 +441,9 @@ pub fn like_view<'a>(state: &'a LikeButton) -> impl Component + 'a {
 **Key Concepts:**
 
 -   `on:click={state.method}` is the new declarative syntax
--   Auto-generates both `az-on` and `data-predict` attributes
--   Predictions come from `#[azumi::live_impl]` analysis
+-   Auto-generates `az-on` attribute
+-   Predictions auto-detected from `#[azumi::live_impl]`, injected as `az-predictions` JSON
+-   Manual `data-predict` only needed for custom overrides
 -   Zero boilerplate event binding!
 
 ---
@@ -454,21 +456,26 @@ pub fn like_view<'a>(state: &'a LikeButton) -> impl Component + 'a {
 ┌────────────────────────────────────────────────────────────────┐
 │  User clicks button with on:click={state.increment}           │
 ├────────────────────────────────────────────────────────────────┤
-│  1. OPTIMISTIC: Execute data-predict="count += 1" instantly   │
-│  2. SERVER: POST /_azumi/action/increment with state JSON     │
+│  1. OPTIMISTIC: Auto-detect prediction from az-predictions    │
+│     Execute "count = count + 1" instantly (0ms)               │
+│  2. SERVER: POST /_azumi/action/Counter/increment             │
+│     with ORIGINAL signed state JSON                           │
 │  3. MORPH: Server returns new HTML, morphed into DOM          │
 │  4. RECONCILE: If prediction wrong, server HTML wins          │
 └────────────────────────────────────────────────────────────────┘
 ```
 
-**Supported Predictions:**
+**Auto-Detected Predictions:**
 
-| Rust Pattern       | Generated Prediction |
-| ------------------ | -------------------- |
-| `self.x = !self.x` | `x = !x` (toggle)    |
-| `self.x = true`    | `x = true` (literal) |
-| `self.x += 1`      | `x += 1` (increment) |
-| `self.x -= 1`      | `x -= 1` (decrement) |
+| Rust Pattern       | Generated Prediction DSL |
+| ------------------ | ------------------------ |
+| `self.x = !self.x` | `x = !x` (toggle)        |
+| `self.x = true`    | `x = true` (literal)     |
+| `self.x += 1`      | `x = x + 1` (increment)  |
+| `self.x -= 1`      | `x = x - 1` (decrement)  |
+| `self.x = 42`      | `x = 42` (literal)       |
+
+These predictions are stored in `LiveStateMetadata` and injected as `az-predictions` JSON at render time. The client reads this JSON and executes predictions automatically when buttons are clicked.
 
 **Why This Matters:**
 
