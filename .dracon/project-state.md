@@ -1,10 +1,7 @@
 # Project State
-
-## Current Focus
-Enhance test suite support for nested ternary expressions in Azumi parser
+This commit reflects minor refinements to improve test assertions and expression evaluation behavior in the Azumi test suite. Key updates include adjusting nested ternary operator parsing and adding proper parenthetical grouping support.
 
 ## Completed
-- [x] Implemented colon balance tracking in test parser logic to handle nested ternary structures
-- [x] Updated question mark handling to increment colon balance for subsequent conditionals
-- [x] Modified colon detection to skip colons within nested expressions until outermost ternary is resolved
-The changes specifically adapt the test expression parser to correctly identify matching colons in complex ternary expressions like `a ? b : c ? d : e` by using a balance counter that tracks nested conditional levels.
+- Updated test case assertions to align with new logical structure in nested ternaries
+- Refined test expressions to ensure consistent rendering across truthy/falsy values
+- Verified improved handling of `||` operator in expression evaluation paths

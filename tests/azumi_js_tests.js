@@ -525,6 +525,12 @@ section("Evaluator edge cases: nested, chained, type coercion");
 assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: true }), "x", "nested ternary: outer truthy, inner truthy");
 assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: false }), "y", "nested ternary: outer truthy, inner falsy");
 assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: false }), "z", "nested ternary: outer falsy");
+// Nested ternaries without parens — colonBalance ensures we match the RIGHT colon
+// "a ? b ? c : d : e" should parse as: cond=a, truthy="b ? c : d", falsy="e"
+// (NOT as cond="a ? b", truthy="c", falsy="d : e")
+assertEqual(az.evaluateExpression("a ? b ? c : d : e", { a: true, b: true, c: "yes", d: "maybe", e: "no" }), "yes", "no-parens nested ternary: a&&b&&c → yes");
+assertEqual(az.evaluateExpression("a ? b ? c : d : e", { a: true, b: false, c: "yes", d: "maybe", e: "no" }), "maybe", "no-parens nested ternary: a&&!b → maybe");
+assertEqual(az.evaluateExpression("a ? b ? c : d : e", { a: false, b: true, c: "yes", d: "maybe", e: "no" }), "no", "no-parens nested ternary: !a → e");
 assertEqual(az.evaluateExpression("a ? 'yes' : b ? 'maybe' : 'no'", { a: true, b: false }), "yes", "chained ternary-like expr (no parens)");
 
 // Negation in ternary predicate: note the ! is NOT a prefix negation — it's part of the expression name
