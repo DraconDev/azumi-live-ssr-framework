@@ -1918,7 +1918,7 @@ User clicks on:click={state.increment}
 5. VERIFY: If prediction was wrong, server wins
 ```
 
-**Note**: `#[azumi::live_impl]` auto-analyzes simple method mutations (toggle, increment, literal assignment) for validation, but `data-predict` attributes are **currently not auto-injected** into HTML. You must add them manually to enable optimistic UI. For complex mutations that can't be auto-detected, use `#[azumi::predict("...")]` on the method.
+**Note**: `#[azumi::live_impl]` auto-analyzes simple method mutations (toggle, increment, literal assignment) and stores them in `LiveStateMetadata`. The component macro automatically injects these predictions as `az-predictions` JSON on the scope div. The client JS reads this attribute and auto-executes predictions when buttons are clicked. You can still add manual `data-predict` attributes to buttons for custom predictions or when auto-detection isn't sufficient. For complex mutations that can't be auto-detected, use `#[azumi::predict("...")]` on the method.
 
 ### Supported Prediction Patterns
 
