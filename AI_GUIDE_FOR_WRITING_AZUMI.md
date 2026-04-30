@@ -1525,6 +1525,22 @@ html! {
 | `set field = field + 1` | Increment |
 | `set field = field - 1` | Decrement |
 
+### Supported `az-bind` Expression Syntax
+
+| Expression | Example | `:class` | `:text` |
+| :--------- | :------ | :------- | :----- |
+| Field lookup | `field_name` | truthy check | field value |
+| Equality | `field == 'val'` | ✓ | ✓ |
+| Inequality | `field != 'val'` | ✓ | ✓ |
+| Numeric comparison | `count > 5` | ✓ | ✓ |
+| Negation | `!field` | ✓ | ✓ |
+| AND / OR | `a && b` / `a \|\| b` | ✓ | ✓ |
+| Ternary | `field ? 'a' : 'b'` | ✓ | ✓ |
+| String literal | `'hello'` / `"hello"` | — | ✓ |
+| Number literal | `42` / `3.14` | — | ✓ |
+| Boolean / null | `true` / `false` / `null` | — | ✓ |
+| Arithmetic | `field + 1` / `field - 1` | — | ✓ |
+
 ### `az-bind:class` with `az-ui`
 
 ```rust
@@ -1535,7 +1551,18 @@ html! {
 <div az-bind:class:open="is_expanded">
 ```
 
-**v1 Limitations**: The expression evaluator supports field lookup, equality (`== 'val'`), inequality (`!= 'val'`), negation (`!field`), truthy checks, ternary expressions (`field ? 'a' : 'b'`), and compound operators (`&&`, `||`).
+### `az-bind:text` with `az-ui`
+
+```rust
+// Updates text content with a ternary
+<span az-bind:text="section1_open ? '−' : '+'">"+"</span>
+
+// Displays a field value directly
+<span az-bind:text="count">{state.count}</span>
+
+// Toggles between two string values
+<span az-bind:text="liked ? 'Unlike' : 'Like'">"Like"</span>
+```
 
 ---
 

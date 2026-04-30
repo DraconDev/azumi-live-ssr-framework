@@ -1,8 +1,2 @@
 # Project State
-
-## Current Focus
-Specific description of the current issue.
-
-## Completed
-- [Specific change]
-- [Another specific change]
+This commit modifies the Azure UI markdown for AI guidance to support enhanced expression syntax, including ternary operations and improved field lookup capabilities. The update ensures more expressive comments and clearer documentation on expression types, making maintenance and reader understanding more robust. A test-based feature has also been introduced for enhanced compatibility checks. The Cargo.lock file was updated to reflect new dependency versions (29.0.0), aligning project metadata with the latest project state.
