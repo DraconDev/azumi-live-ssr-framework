@@ -1,9 +1,10 @@
 # Project State
 
 ## Current Focus
-Add debug logging for SEO global state and OG type rendering
+Remove debug logging statements from the SEO module's `generate_head` function.
 
 ## Completed
-- [x] Added `eprintln` debug statements to log `global.is_some()` and `global_for_title.is_some()` in `generate_head`
-- [x] Added `eprintln` debug statement to log `effective_type` when writing the `og:type` meta tag
-- [x] Updated `Cargo.lock` (dependency lock file changes)
+- [x] Deleted debug `eprintln!("DEBUG global after clone: {:?}", global.is_some());`
+- [x] Deleted debug `eprintln!("DEBUG global_for_title: {:?}", global_for_title.is_some());`
+- [x] Deleted debug `eprintln!("DEBUG Writing og:type with effective_type={}", effective_type);`
+- [x] Updated `Cargo.lock` with new dependency versions (binary change)

@@ -135,8 +135,6 @@ pub fn generate_head(
 ) -> crate::Raw<String> {
     let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
     let global_for_title = global.clone();
-    eprintln!("DEBUG global after clone: {:?}", global.is_some());
-    eprintln!("DEBUG global_for_title: {:?}", global_for_title.is_some());
 
     let context_meta = crate::context::get_page_meta();
 
@@ -242,7 +240,6 @@ pub fn generate_head(
             }
 
             let safe_type = html_attr_escape(effective_type);
-            eprintln!("DEBUG Writing og:type with effective_type={}", effective_type);
             let _ = write!(html, r#"<meta property="og:type" content="{}">"#, safe_type);
         }
     }
