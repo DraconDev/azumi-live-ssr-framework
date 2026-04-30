@@ -133,7 +133,8 @@ pub fn generate_head(
     url: Option<&str>,
     type_: Option<&str>,
 ) -> crate::Raw<String> {
-    let global = SITE_CONFIG.get();
+    let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
+    let global_for_title = global.clone();
 
     let context_meta = crate::context::get_page_meta();
 
@@ -146,16 +147,16 @@ pub fn generate_head(
     let effective_desc = description
         .map(|s| s.to_string())
         .or(context_meta.description)
-        .or(global.and_then(|g| g.description.clone()));
+        .or(global.as_ref().and_then(|g| g.description.clone()));
 
     let effective_image = image
         .map(|s| s.to_string())
         .or(context_meta.image)
-        .or(global.and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
+        .or(global.as_ref().and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
 
-    let full_title = if let Some(g) = global {
-        if let Some(og) = &g.open_graph {
-            if let Some(site_name) = &og.site_name {
+    let full_title = if let Some(ref g) = global_for_title {
+        if let Some(ref og) = g.open_graph {
+            if let Some(ref site_name) = og.site_name {
                 if !effective_title.is_empty() {
                     format!("{} | {}", effective_title, site_name)
                 } else {
@@ -172,7 +173,7 @@ pub fn generate_head(
     };
 
     let current_path = crate::context::get_current_path();
-    let base_url = global.and_then(|g| g.base_url.as_deref());
+    let base_url = global.as_ref().and_then(|g| g.base_url.clone());
 
     let full_url = if let Some(u) = url {
         Some(u.to_string())
@@ -209,8 +210,8 @@ pub fn generate_head(
         let _ = write!(html, r#"<link rel="canonical" href="{}">"#, url);
     }
 
-    if let Some(g) = global {
-        if let Some(og) = &g.open_graph {
+    if let Some(ref g) = global {
+        if let Some(ref og) = g.open_graph {
             let _ = write!(
                 html,
                 r#"<meta property="og:title" content="{}">"#,
@@ -243,8 +244,8 @@ pub fn generate_head(
         }
     }
 
-    if let Some(g) = global {
-        if let Some(tw) = &g.twitter {
+    if let Some(ref g) = global {
+        if let Some(ref tw) = g.twitter {
             let safe_card = html_attr_escape(&tw.card);
             let _ = write!(
                 html,
