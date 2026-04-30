@@ -1,10 +1,9 @@
 # Project State
 
 ## Current Focus
-Add debug logging to test_generate_head_with_type to inspect SEO state and generated HTML
+Add debug logging to inspect SEO global and OG states in `generate_head`
 
 ## Completed
-- [x] Added debug eprintln before `reset_seo()` showing `SITE_CONFIG` state
-- [x] Added debug eprintln after `reset_seo()` showing `SITE_CONFIG` state
-- [x] Added debug eprintln of generated HTML before assertion
-- [x] Removed the `drop_seo()` call from the test
+- [x] Add debug eprintln! reporting `global.is_some()` in `generate_head`
+- [x] Add debug eprintln! reporting `global.open_graph.is_some()` status
+- [x] Add debug eprintln! indicating entry into OG block processing
