@@ -122,7 +122,7 @@ When the connection is lost (server restart), it polls the current page via `HEA
 While declarative attributes cover 90% of use cases, you can access the runtime via `window.azumi`.
 
 ```javascript
-// Manually refresh an element
+// Manually execute an action and morph response into target
 window.azumi.execute(
     {
         type: "call",

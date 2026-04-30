@@ -327,7 +327,6 @@ For advanced use cases, you can write `az-on` directly:
 ```rust
 // Direct az-on syntax for complex scenarios
 <button az-on="click call increment -> #counter">"Increment"</button>
-<button az-on="click set is_open = !is_open">"Toggle"</button>
 ```
 
 ### 10. Text Content Must Be Quoted

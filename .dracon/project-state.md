@@ -1,10 +1,6 @@
-# Project State
+# Project State## Current Focus
+Remove deprecated toggle button example and clarify manual execute usage in README
 
-## Current Focus
-refactor(design): simplify asset pipeline to use standard HTML `srcset` instead of custom macros
-
-## Completed
-- [x] removed `image!` macro proposal in favor of standard HTML `srcset` for responsive images
-- [x] updated documentation to reference `/static` directory instead of `/assets`
-- [x] simplified developer experience description around automatic path rewriting
-- [x] removed "Safety" benefit (macro typo prevention) from summary as macros were deemphasized
+## Completed- [x] Remove the `click set is_open = !is_open` button example from the AI guide
+- [x] Update the client README comment to describe manual execution of an action and response morphing
+- [x] Insert a new `window.azumi.execute` example snippet in client/README.md
