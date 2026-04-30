@@ -502,6 +502,7 @@ class Azumi {
         let stringChar = '';
         let depth = 0;
         let isEscaped = false;
+        let colonBalance = 0;
 
         for (let i = 0; i < expr.length; i++) {
             const ch = expr[i];
@@ -534,10 +535,18 @@ class Azumi {
             } else if (ch === ')' || ch === ']' || ch === '}') {
                 depth--;
             } else if (ch === '?' && depth === 0) {
-                questionIdx = i;
+                if (questionIdx === -1) {
+                    questionIdx = i;
+                } else {
+                    colonBalance++;
+                }
             } else if (ch === ':' && depth === 0) {
-                colonIdx = i;
-                break;
+                if (colonBalance > 0) {
+                    colonBalance--;
+                } else if (colonIdx === -1) {
+                    colonIdx = i;
+                    break;
+                }
             }
         }
 
