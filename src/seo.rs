@@ -50,7 +50,7 @@ fn html_text_escape(s: &str) -> String {
     out
 }
 
-static SITE_CONFIG: OnceLock<SeoConfig> = OnceLock::new();
+static SITE_CONFIG: Mutex<Option<SeoConfig>> = Mutex::new(None);
 
 #[derive(Clone, Default, Debug)]
 pub struct OpenGraph {
@@ -110,14 +110,20 @@ impl SeoConfig {
 }
 
 pub fn init_seo(config: SeoConfig) {
-    if SITE_CONFIG.set(config).is_err() {
-        eprintln!("WARNING: init_seo() called multiple times - first initialization preserved");
+    if let Ok(mut guard) = SITE_CONFIG.lock() {
+        if guard.is_none() {
+            *guard = Some(config);
+        } else {
+            eprintln!("WARNING: init_seo() called multiple times - first initialization preserved");
+        }
     }
 }
 
 #[cfg(test)]
 pub fn reset_seo() {
-    let _ = SITE_CONFIG.take();
+    if let Ok(mut guard) = SITE_CONFIG.lock() {
+        *guard = None;
+    }
 }
 
 pub fn generate_head(
@@ -127,7 +133,7 @@ pub fn generate_head(
     url: Option<&str>,
     type_: Option<&str>,
 ) -> crate::Raw<String> {
-    let global = SITE_CONFIG.get();
+    let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
 
     let context_meta = crate::context::get_page_meta();
 
@@ -147,9 +153,9 @@ pub fn generate_head(
         .or(context_meta.image)
         .or(global.and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
 
-    let full_title = if let Some(g) = global {
-        if let Some(og) = &g.open_graph {
-            if let Some(site_name) = &og.site_name {
+    if let Some(ref g) = global {
+        if let Some(ref og) = g.open_graph {
+            if let Some(ref site_name) = og.site_name {
                 if !effective_title.is_empty() {
                     format!("{} | {}", effective_title, site_name)
                 } else {
@@ -166,7 +172,7 @@ pub fn generate_head(
     };
 
     let current_path = crate::context::get_current_path();
-    let base_url = global.and_then(|g| g.base_url.as_deref());
+    let base_url = global.as_ref().and_then(|g| g.base_url.clone());
 
     let full_url = if let Some(u) = url {
         Some(u.to_string())
@@ -203,8 +209,8 @@ pub fn generate_head(
         let _ = write!(html, r#"<link rel="canonical" href="{}">"#, url);
     }
 
-    if let Some(g) = global {
-        if let Some(og) = &g.open_graph {
+    if let Some(ref g) = global {
+        if let Some(ref og) = g.open_graph {
             let _ = write!(
                 html,
                 r#"<meta property="og:title" content="{}">"#,
@@ -237,8 +243,8 @@ pub fn generate_head(
         }
     }
 
-    if let Some(g) = global {
-        if let Some(tw) = &g.twitter {
+    if let Some(ref g) = global {
+        if let Some(ref tw) = g.twitter {
             let safe_card = html_attr_escape(&tw.card);
             let _ = write!(
                 html,
