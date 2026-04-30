@@ -1303,10 +1303,11 @@ fn test_az_ui_state_preserved_in_nested_structure() {
         </div>
     };
     let html = test::render(&component);
-    assert!(html.contains("az-ui="{\"inner\": false}"));
-    assert!(html.contains("az-ui="{\"outer\": true}"));
+    assert!(html.contains(r#"az-ui={"inner": false}"#));
+    assert!(html.contains(r#"az-ui={"outer": true}"#));
 }
 
+#[test]
 fn test_az_bind_text_string_literal() {
     let component = html! {
         <div az-ui="{}">
