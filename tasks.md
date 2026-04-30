@@ -5,7 +5,7 @@
 - [x] **Concurrency Fix**: Add request locking (`_azumi_pending`) to prevent state desync on double-clicks.
 - [x] **Robustness**: Ensure `az-scope` attributes are generated consistently (fixed simple/double quote issues).
 - [x] **HTML Macro**: Fix `html!` macro to correctly transform `on:event` to `az-on` DSL.
-- [x] **JS Bundle**: Update `src/client.min.js` with latest `client/azumi.js` fixes.
+- [x] **JS Bundle**: `client/azumi.js` is the canonical source; no separate `client.min.js` — use a bundler for production minification.
 - [x] **Verification**: Force clean build (`rm -rf target`) to apply macro changes and verify Lesson 9.g
 - [x] **Escaped\<T\> Stack Overflow**: Fixed `Escaped<T>` Display impl that was causing infinite recursion.
 - [x] **#[local]/#[computed] Attribute Stripping**: `#[azumi::live]` macro now strips `#[local]` and `#[computed]` attributes before deriving serde traits, fixing compilation of test structs using these attributes.

@@ -5,6 +5,29 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [30.3.1] - 2026-04-30
+
+### Added
+- **`az-ui` attribute**: Ephemeral client-side state container — unsigned, no server round-trip, lost on refresh, survives DOM morphing. Lives only in the DOM, no Rust state struct.
+- **`az-bind:class`**: Expression-driven CSS class toggling (`az-bind:class:active="is_active"`, `az-bind:class.liked="liked"`)
+- **`az-bind:text`**: Expression-driven text content updates (`az-bind:text="count"`, `az-bind:text="liked ? 'Unlike' : 'Like'"`)
+- **`set` command restored** (client JS): `az-on="click set field = value"` mutates `az-ui` state — no HMAC, no round-trip, ephemeral
+- **`evaluatePredicate()`**: Full predicate evaluator — field lookup, equality, inequality, numeric comparison, negation (`!`), AND/OR, ternary
+- **`evaluateExpression()`**: Full expression evaluator — field lookup, string/number/boolean/null literals, arithmetic (`+`, `-`), ternary
+- **`readState()`**: Priority resolution — WeakMap → `az-ui` → `az-scope`
+
+### Changed
+- **`az-ui` vs `az-scope`**: Clear separation — `az-scope` = server-signed HMAC state (round-trip), `az-ui` = client ephemeral state (no round-trip)
+
+### Fixed
+- **Documentation updated**: `client/README.md`, `AI_GUIDE_FOR_WRITING_AZUMI.md` now reflect full expression evaluator capabilities
+
+### Migration
+- For ephemeral UI state (toggles, counters, accordion), use `az-ui` + `set` — no server involvement
+- For persistent server state, continue using `az-scope` + predictions + server actions
+
+---
+
 ## [29.0.0] - 2026-04-30
 
 ### Added

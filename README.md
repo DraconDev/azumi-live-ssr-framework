@@ -19,9 +19,9 @@ No runtime errors. No "works on my machine". No surprises.
 
 ---
 
-## 🚀 v29.0.0 Release Notes
+## 🚀 v30.3.1 Release Notes
 
-**Azumi v29.0.0** — Component macro refactor, full documentation sweep, auto-detected predictions as primary feature.
+**Azumi v30.3.1** — Client-side micro-state management via `az-ui`, expression-based binding with `az-bind:class` and `az-bind:text`, and restored `set` command for ephemeral UI state.
 
 ### What's New
 - **TrustedHtml Component**: User-facing escape hatch for pre-sanitized HTML from trusted sources
@@ -340,12 +340,10 @@ pub fn RootLayout(children: impl Component) -> impl Component {
 
 Production builds (no devtools):
 ```toml
-azumi = { version = "29.0.0" }
+azumi = { version = "30.3.1" }
 ```
-
-With devtools in development:
-```toml
-azumi = { version = "29.0.0", features = ["devtools"] }
+...
+azumi = { version = "30.3.1", features = ["devtools"] }
 ```
 
 ---

@@ -9,8 +9,21 @@
 class Azumi {
     constructor() {
         this.scopes = new WeakMap(); // Element -> state cache
+        this.debug = false; // Enable with window.azumi.debug = true
         this.delegate();
         this.connectHotReload();
+    }
+
+    log(...args) {
+        if (this.debug) console.log("[Azumi]", ...args);
+    }
+
+    warn(...args) {
+        if (this.debug) console.warn("[Azumi]", ...args);
+    }
+
+    error(...args) {
+        if (this.debug) console.error("[Azumi]", ...args);
     }
 
     // Hot Reload Logic
@@ -24,7 +37,7 @@ class Azumi {
 
             ws.onopen = () => {
                 connected = true;
-                console.log("🔥 Hot Reload: Connected");
+                this.log("Hot Reload: Connected");
             };
 
             ws.onmessage = (event) => {
@@ -33,7 +46,7 @@ class Azumi {
                     if (msg.type === "style-update") {
                         this.handleStyleUpdate(msg);
                     } else if (msg.type === "reload") {
-                        console.log("🔥 Hot Reload: Template updated, refreshing...");
+                        this.log("Hot Reload: Template updated, refreshing...");
                         window.location.reload();
                     }
                 } catch (e) {
@@ -43,9 +56,7 @@ class Azumi {
 
             ws.onclose = () => {
                 if (connected) {
-                    console.log(
-                        "🔥 Hot Reload: Connection lost, polling for restart..."
-                    );
+                    this.log("Hot Reload: Connection lost, polling for restart...");
                     this.pollForReload();
                 }
             };
@@ -76,9 +87,9 @@ class Azumi {
         );
         if (styleTag) {
             styleTag.textContent = css;
-            console.log(`✅ Style updated for scope: ${scopeId}`);
+            this.log(`Style updated for scope: ${scopeId}`);
         } else {
-            console.warn(`⚠️ Style tag not found for scope: ${scopeId}`);
+            this.warn(`Style tag not found for scope: ${scopeId}`);
         }
     }
 
@@ -184,7 +195,7 @@ class Azumi {
                     rawValue: rawValue,
                 };
             }
-            console.warn("Azumi: Invalid 'set' command format:", cmd);
+            this.warn("Invalid 'set' command format:", cmd);
             return null;
         }
 
@@ -244,14 +255,14 @@ class Azumi {
             this.scopes.set(scopeElement, state);
             this.updateBindings(scopeElement);
 
-            console.log("🚀 Prediction executed:", prediction, state);
+            this.log("Prediction executed:", prediction, state);
 
             return {
                 originalState,
                 newState: state,
             };
         } catch (err) {
-            console.warn("Prediction execution failed:", err);
+            this.warn("Prediction execution failed:", err);
             return null;
         }
     }
@@ -272,7 +283,7 @@ class Azumi {
         // Guard against prototype pollution: reject dangerous path segments
         const dangerous = ["__proto__", "constructor", "prototype", "prototype__", "__defineGetter__", "__defineSetter__", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "toString", "valueOf", "__lookupGetter__", "__lookupSetter__"];
         if (pathParts.some(p => dangerous.includes(p))) {
-            console.warn("Azumi:Blocked prototype-polluting path:", fieldPath);
+            this.warn("Blocked prototype-polluting path:", fieldPath);
             return;
         }
 
@@ -336,14 +347,14 @@ class Azumi {
         // Find the closest az-ui element
         const uiElement = element.closest("[az-ui]");
         if (!uiElement) {
-            console.warn("Azumi: 'set' command requires a parent [az-ui] element");
+            this.warn("'set' command requires a parent [az-ui] element");
             return;
         }
 
         // Parse az-ui JSON
         const uiAttr = uiElement.getAttribute("az-ui");
         if (!uiAttr) {
-            console.warn("Azumi: az-ui attribute is empty");
+            this.warn("az-ui attribute is empty");
             return;
         }
 
@@ -351,7 +362,7 @@ class Azumi {
         try {
             state = JSON.parse(uiAttr);
         } catch (err) {
-            console.warn("Azumi: Failed to parse az-ui JSON:", err);
+            this.warn("Failed to parse az-ui JSON:", err);
             return;
         }
 
@@ -364,7 +375,7 @@ class Azumi {
         // Write back to az-ui attribute
         uiElement.setAttribute("az-ui", JSON.stringify(state));
 
-        console.log("🎯 az-ui state updated:", action.field, "=", action.rawValue, "->", state);
+        this.log("az-ui state updated:", action.field, "=", action.rawValue, "->", state);
 
         // Update all bindings within this az-ui scope
         this.updateBindings(uiElement);
