@@ -1,10 +1,12 @@
-# ProjectState
+# Project State
+This commit updates the AI-guide documentation for writing Rust projects, refining its guidance on client-side UI state management with `az-ui` and `set` commands.
 
-## Current Focus
-Add client-side UI state management via `az-ui` attribute with `set` command support for ephemeral state.
+## What changed
+- Analyzed and summarized key code modifications involving the introduction of `az-ui` and `az-ui-set` for managing ephemeral UI state without server round-trips or persistent storage.
+- Documented best practices and examples for using the `set` command in `az-on` events, ensuring accurate field updates, conditional class binding, and text styling.
+- Highlighted integration patterns, such as handling `az-bind` classes and text based on runtime conditions.
+- Updated changelog notes and project documentation to reflect version changes and new features.
 
-## Completed
-- [x] Introduced `az-ui` attribute for client-side UI chrome (tabs, toggles) that stores JSON state locally without server round-trips
-- [x] Implemented `set` command in `az-on` syntax for mutating `az-ui` state (e.g., `<button az-on="click set active_tab = 'rust'">`)
-- [x] Added documentation comparing `az-scope` (persistent server data) vs `az-ui` (ephemeral UI chrome) with usage examples
-- [x] Enhanced `az-bind` syntax to work with `az-ui` values for dynamic UI updates
+## Goals achieved
+- Provided clear, actionable instructions for utilizing the recommended pattern to avoid regressions and improve reliability in client-side interactions.
+- Clarified differences and priorities in the files under review to streamline learning and implementation.

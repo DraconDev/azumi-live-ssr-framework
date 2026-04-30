@@ -151,7 +151,7 @@ If you are using `azumi.js` without `azumi-rs`, your server must implement the f
     -   **Success (200)**: HTML fragment to morph into the target.
     -   **Error (4xx/5xx)**: Client rolls back optimistic updates.
 
-### 5. Hot Reload
+### 6. Hot Reload
 
 The client automatically attempts to connect to `ws://{host}/_azumi/live_reload`.
 When the connection is lost (server restart), it polls the current page via `HEAD` requests and refreshes when the server is back up.

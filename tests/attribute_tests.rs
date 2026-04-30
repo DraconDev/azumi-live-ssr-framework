@@ -591,3 +591,77 @@ fn test_select_size() {
     let html = test::render(&component);
     assert!(html.contains("size=\"5\""));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: Azumi UI State (az-ui) Tests
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_ui_basic() {
+    let component = html! { <div az-ui="{\"count\": 0}">"Counter"</div> };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui=\""), "az-ui attribute missing");
+}
+
+#[test]
+fn test_az_ui_with_set_command() {
+    let component = html! {
+        <div az-ui="{\"active_tab\": \"rust\"}">
+            <button az-on="click set active_tab = 'rust'">"Rust"</button>
+            <button az-on="click set active_tab = 'python'">"Python"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui=\""));
+    assert!(html.contains("click set active_tab"));
+}
+
+#[test]
+fn test_az_ui_with_bind_class() {
+    let component = html! {
+        <div az-ui="{\"is_open\": false}">
+            <div az-bind:class:open="is_open">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui=\""));
+    assert!(html.contains("az-bind:class:open=\"is_open\""));
+}
+
+#[test]
+fn test_az_ui_with_bind_text() {
+    let component = html! {
+        <div az-ui="{\"count\": 0}">
+            <span az-bind:text="count">"0"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui=\""));
+    assert!(html.contains("az-bind:text=\"count\""));
+}
+
+#[test]
+fn test_az_ui_toggle_boolean() {
+    let component = html! {
+        <details>
+            <summary az-on="click set is_open = !is_open">"Toggle"</summary>
+            <div az-bind:class:open="is_open">"Content"</div>
+        </details>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set is_open = !is_open"));
+}
+
+#[test]
+fn test_az_ui_multiple_fields() {
+    let component = html! {
+        <div az-ui="{\"tab1\": true, \"tab2\": false, \"count\": 42}">
+            <button az-on="click set tab1 = !tab1">"Tab 1"</button>
+            <button az-on="click set count = count + 1">"+1"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui=\""));
+    assert!(html.contains("click set tab1"));
+    assert!(html.contains("click set count"));
+}

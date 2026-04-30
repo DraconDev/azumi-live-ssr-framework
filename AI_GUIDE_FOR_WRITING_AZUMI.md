@@ -1468,6 +1468,75 @@ pub fn auto_detected_view<'a>(state: &'a MyState) -> impl Component + 'a {
 
 ---
 
+## 🎯 Client-Side UI State (`az-ui` + `set`)
+
+For ephemeral UI state that doesn't need server round-trips or persistence, Azumi provides `az-ui` with the `set` command.
+
+### When to Use `az-ui` vs `az-scope`
+
+| Attribute | Use Case | Server Round-Trip? | Survives Refresh? |
+| :-------- | :------- | :----------------- | :--------------- |
+| `az-scope` + `call` | Data that must persist (forms, carts, profiles) | ✅ Yes | ✅ Yes |
+| `az-ui` + `set` | UI chrome (tabs, accordions, toggles) | ❌ No | ❌ No |
+
+### Example: Tabs with `az-ui`
+
+```rust
+html! {
+    <div az-ui='{"active_tab": "rust"}'>
+        <button az-on="click set active_tab = 'rust'">"Rust"</button>
+        <button az-on="click set active_tab = 'python'">"Python"</button>
+        <div az-bind:class:active="active_tab == 'rust'">"Rust content"</div>
+        <div az-bind:class:active="active_tab == 'python'">"Python content"</div>
+    </div>
+}
+```
+
+### Example: Accordion with `az-ui`
+
+```rust
+html! {
+    <div az-ui='{"section1_open": false, "section2_open": false}'>
+        <div az-on="click set section1_open = !section1_open">
+            "Section 1"
+            <span az-bind:text="section1_open ? '−' : '+'">"+"</span>
+        </div>
+        <div az-bind:class:open="section1_open">"Content"</div>
+    </div>
+}
+```
+
+### How It Works
+
+1. User clicks button with `az-on="click set field = value"`
+2. Client finds parent `[az-ui]` element
+3. Parses JSON state, applies mutation
+4. Writes updated JSON back to `az-ui` attribute
+5. Updates bound elements (`az-bind:class`, `az-bind:text`)
+
+### Supported `set` Syntax
+
+| Syntax | Effect |
+| :----- | :----- |
+| `set field = 'literal'` | Set to string |
+| `set field = true` / `false` | Set to boolean |
+| `set field = 42` | Set to number |
+| `set field = !field` | Toggle boolean |
+| `set field = field + 1` | Increment |
+| `set field = field - 1` | Decrement |
+
+### `az-bind:class` with `az-ui`
+
+```rust
+// Adds 'active' class when expression is truthy
+<div az-bind:class:active="active_tab == 'rust'">
+
+// Removes 'open' class when expression is falsy
+<div az-bind:class:open="is_expanded">
+```
+
+---
+
 ## 🎯 Event Binding Systems
 
 ### Modern: on:event Syntax (Recommended)
