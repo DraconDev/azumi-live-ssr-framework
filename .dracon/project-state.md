@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-Add reset_seo() call in test_generate_head_basic to reset global SEO state before test execution
+Replace `std::sync::OnceLock` with `std::sync::RwLock` in the SEO module to enable mutable global SEO state and support the `reset_seo` functionality.
 
 ## Completed
-- [x] Insert reset_seo() invocation at start of test_generate_head_basic to isolate test state
+- [x] Changed the import from `std::sync::OnceLock` to `std::sync::RwLock` in `src/seo.rs`

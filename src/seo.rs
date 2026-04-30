@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use std::sync::OnceLock;
+use std::sync::RwLock;
 
 /// Escape a string for safe inclusion in an HTML attribute value (double-quoted).
 /// Prevents XSS by escaping `"`, `<`, `>`, `&`, and `'`.
