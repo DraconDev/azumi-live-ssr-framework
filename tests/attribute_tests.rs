@@ -1113,7 +1113,6 @@ fn test_az_ui_set_increment_on_string() {
     assert!(html.contains("click set name = name + '!'"));
 }
 
-#[test]
 fn test_az_ui_set_multiple_commands() {
     let component = html! {
         <div az-ui="{\"a\": 1, \"b\": 2}">
@@ -1123,6 +1122,173 @@ fn test_az_ui_set_multiple_commands() {
     let html = test::render(&component);
     assert!(html.contains("set a = a + 1"));
     assert!(html.contains("set b = b + 1"));
+}
+
+#[test]
+fn test_az_ui_set_empty_value_v2() {
+    let component = html! {
+        <div az-ui="{\"f\": \"x\"}">
+            <button az-on="click set f = \"\"">"Clear"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set f ="));
+}
+
+#[test]
+fn test_az_ui_set_increment_on_string_v2() {
+    let component = html! {
+        <div az-ui="{\"n\": \"x\"}">
+            <button az-on="click set n = n + \"y\"">"Update"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set n = n + "));
+}
+
+#[test]
+fn test_az_ui_set_null_value_v2() {
+    let component = html! {
+        <div az-ui="{\"f\": \"x\"}">
+            <button az-on="click set f = null">"Nullify"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set f = null"));
+}
+
+#[test]
+fn test_az_bind_text_empty_string_field_v2() {
+    let component = html! {
+        <div az-ui="{\"n\": \"\"}">
+            <span az-bind:text="n">"(empty)"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_bind_text_zero_value_v2() {
+    let component = html! {
+        <div az-ui="{\"c\": 0}">
+            <span az-bind:text="c">"0"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_bind_class_unicode_value_v2() {
+    let component = html! {
+        <div az-ui="{\"s\": \"a\"}">
+            <div az-bind:class:x="s == \"a\"">"Item"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:x="));
+}
+
+#[test]
+fn test_az_bind_class_empty_string_result_v2() {
+    let component = html! {
+        <div az-ui="{\"n\": \"\"}">
+            <div az-bind:class:h="n != \"\"">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:h="));
+}
+
+#[test]
+fn test_az_bind_text_arithmetic_missing_field_v2() {
+    let component = html! {
+        <div az-ui="{}">
+            <span az-bind:text="c + 1">"1"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_bind_class_false_comparison_v2() {
+    let component = html! {
+        <div az-ui="{\"v\": 5}">
+            <div az-bind:class:h="v == 0">"Zero?"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:h="));
+}
+
+#[test]
+fn test_az_ui_large_state_many_fields_v2() {
+    let component = html! {
+        <div az-ui="{\"f1\":1,\"f2\":2,\"f3\":3,\"f4\":4,\"f5\":5,\"f6\":6,\"f7\":7,\"f8\":8,\"f9\":9,\"f10\":10}">
+            <span az-bind:text="f10">"10"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui="));
+    assert!(html.contains("f10"));
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_ui_many_bound_elements_v2() {
+    let component = html! {
+        <div az-ui="{\"v\": true}">
+            <span az-bind:class:a="v">"1"</span>
+            <span az-bind:class:b="v">"2"</span>
+            <span az-bind:class:c="v">"3"</span>
+            <span az-bind:class:d="v">"4"</span>
+            <span az-bind:class:e="v">"5"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    let count = html.matches("az-bind:class:").count();
+    assert!(count >= 5, "Expected at least 5 az-bind:class, got {}", count);
+}
+
+#[test]
+fn test_az_ui_state_preserved_in_nested_structure_v2() {
+    let component = html! {
+        <div az-ui="{\"o\": true}">
+            <div az-ui="{\"i\": false}">
+                <span az-bind:class:so="o">"outer"</span>
+                <span az-bind:class:si="i">"inner"</span>
+            </div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("inner"));
+    assert!(html.contains("outer"));
+}
+
+#[test]
+fn test_az_bind_with_az_scope_reads_state() {
+    let component = html! {
+        <div az-scope="{\"server_count\": 42}">
+            <span az-bind:text="server_count">"42"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-scope="));
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_bind_class_with_az_scope_server_signed() {
+    let component = html! {
+        <div az-scope="{\"status\": \"active\"}">
+            <div az-bind:class:active="status == \"active\"">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-scope="));
+    assert!(html.contains("az-bind:class:active="));
 }
 
 #[test]

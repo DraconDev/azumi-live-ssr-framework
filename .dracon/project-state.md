@@ -1,12 +1,18 @@
 # Project State
 
 ## Current Focus
-Synchronize project dependencies with latest versions and prepare for Azumi 2 release
+Adds 12 comprehensive test cases for edge cases in az-ui attribute handling including null/empty value assignment, string concatenation, zero values, missing fields, nested UI state preservation, and az-scope integration.
 
 ## Completed
-- [x] Update Cargo.lock with latest dependency versions to ensure compatibility with Azumi 2 features and security fixes
-- [x] Synchronize operator index expectations in Azumi client tests to handle right-to-left operator precedence changes
-- [x] Refactor UI state preservation tests by renaming conflicting variables to resolve nested state assertion failures
-- [x] Streamline JSON string matching test assertions using raw string literals to avoid escape character interpretation issues
-- [x] Add comprehensive edge-case tests for JavaScript expression evaluator handling nested ternary conditions and complex attribute bindings
-- [x] Remove obsolete prototype pollution assertions from test suite to maintain security testing focus
+- [x] Add test for setting field to empty string value (`set f = ""`)
+- [x] Add test for string concatenation in az-on handlers (`n + "y"`)
+- [x] Add test for setting field to null value (`set f = null`)
+- [x] Add test for az-bind:text with empty string initial field value
+- [x] Add test for az-bind:text with zero numeric initial value
+- [x] Add test for az-bind:class with unicode/escaped string comparison
+- [x] Add test for az-bind:class with empty string conditional result
+- [x] Add test for arithmetic expression with missing field (`c + 1` when `c` undefined)
+- [x] Add test for az-bind:class with false comparison result
+- [x] Add test for large state object with 10 fields
+- [x] Add test for multiple bound elements (5+) on single component
+- [x] Add test for state preservation in nested az-ui structures
