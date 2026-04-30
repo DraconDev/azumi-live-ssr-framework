@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use std::sync::OnceLock;
+use std::sync::Mutex;
 
 /// Escape a string for safe inclusion in an HTML attribute value (double-quoted).
 /// Prevents XSS by escaping `"`, `<`, `>`, `&`, and `'`.
@@ -506,6 +506,7 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_type() {
+        reset_seo();
         let result = generate_head("Title", None, None, None, Some("article"));
         let html = crate::render_to_string(&result);
         assert!(html.contains("og:type"));
