@@ -167,9 +167,14 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
                     let scope_json = <_ as azumi::LiveState>::to_scope(#state_ident);
                     let struct_name = <#live_state_type as azumi::LiveStateMetadata>::struct_name();
                     let local_json = azumi::LiveState::to_local_scope(#state_ident);
+                    let predictions = <#live_state_type as azumi::LiveStateMetadata>::predictions();
+                    let predictions_json = serde_json::to_string(predictions).unwrap_or_default();
                     write!(f, "<div az-scope=\"{}\" az-struct=\"{}\"", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
                     if !local_json.is_empty() {
                         write!(f, " az-local-state=\"{}\"", azumi::Escaped(&local_json))?;
+                    }
+                    if !predictions_json.is_empty() && predictions_json != "[]" {
+                        write!(f, " az-predictions=\"{}\"", azumi::Escaped(&predictions_json))?;
                     }
                     write!(f, " style=\"display: contents\">")?;
                     let inner = #fn_block;

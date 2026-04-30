@@ -1,9 +1,9 @@
 # Project State
 
 ## Current Focus
-Adds az‑predictions attribute to component HTML when predictions metadata is available
+Adds an `az-predictions` attribute to the generated HTML component when prediction metadata is present and non‑empty.
 
 ## Completed
-- [x] Retrieves predictions metadata via `LiveStateMetadata::predictions`
-- [x] Serializes predictions to JSON string safely with fallback empty string
-- [x] Appends `az-predictions` attribute only if predictions are non‑empty and not the default array
+- [x] Extract predictions via `LiveStateMetadata::predictions()` in component rendering
+- [x] Serialize predictions to a JSON string for attribute value
+- [x] Conditionally render `az-predictions` attribute only when the JSON is non‑empty and not `"[]"`
