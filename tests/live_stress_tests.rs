@@ -233,6 +233,8 @@ fn test_no_az_predictions_when_empty() {
     let state = NestedState::default();
     let comp = html! { @nested_view(state = &state) };
     let output = test::render(&comp);
+    
+    eprintln!("DEBUG OUTPUT: {}", output);
 
     // NestedState has no predictions, so az-predictions should not be present
     assert!(
