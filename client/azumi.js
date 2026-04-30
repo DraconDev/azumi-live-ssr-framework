@@ -603,12 +603,22 @@ class Azumi {
         let inString = false;
         let stringChar = '';
         let depth = 0;
+        let isEscaped = false;
 
         for (let i = expr.length - 1; i >= 0; i--) {
             const ch = expr[i];
 
+            if (isEscaped) {
+                isEscaped = false;
+                continue;
+            }
+            if (ch === '\\') {
+                isEscaped = true;
+                continue;
+            }
+
             if (inString) {
-                if (ch === stringChar && expr[i - 1] !== '\\') {
+                if (ch === stringChar) {
                     inString = false;
                 }
                 continue;
@@ -624,7 +634,6 @@ class Azumi {
             if (ch === ')' || ch === ']' || ch === '}') depth++;
 
             if (depth === 0 && ch === op[0]) {
-                // Check if rest of operator matches
                 if (op.length === 1 || expr.slice(i, i + op.length) === op) {
                     return i;
                 }
@@ -755,8 +764,7 @@ class Azumi {
         });
 
         // Generic: handle all az-bind:class:* attributes dynamically
-        const allAttrs = scopeElement.getAttributeNames ? [] : null;
-        if (allAttrs === null) return; // Old browser
+        if (!scopeElement.getAttributeNames) return;
 
         // Query all elements with az-bind:class:* pattern
         const allClassBindings = scopeElement.querySelectorAll("[az-bind\\:class]");
