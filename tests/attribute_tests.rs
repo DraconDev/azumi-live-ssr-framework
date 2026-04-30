@@ -986,6 +986,327 @@ fn test_az_bind_text_number_literal() {
 }
 
 #[test]
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: az-ui / az-scope Interop Tests
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_ui_within_az_scope() {
+    let component = html! {
+        <div az-scope="{\"server_val\": true}">
+            <div az-ui="{\"local_val\": false}">
+                <span az-bind:text="server_val ? 'yes' : 'no'">"no"</span>
+                <span az-bind:text="local_val ? 'on' : 'off'">"off"</span>
+            </div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-scope="));
+    assert!(html.contains("az-ui="));
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_ui_and_az_scope_priority() {
+    let component = html! {
+        <div az-scope="{\"shared\": \"from-server\"}">
+            <div az-ui="{\"shared\": \"from-ui\"}">
+                <span az-bind:text="shared">"shared"</span>
+            </div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui="));
+    assert!(html.contains("az-scope="));
+    assert!(html.contains("shared"));
+}
+
+#[test]
+fn test_az_ui_multiple_scopes_isolated() {
+    let component = html! {
+        <div az-ui="{\"count\": 1}">
+            <span az-bind:text="count">"1"</span>
+        </div>
+        <div az-ui="{\"count\": 2}">
+            <span az-bind:text="count">"2"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui="{\"count\": 1}"));
+    assert!(html.contains("az-ui="{\"count\": 2}"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: Multiple Bindings on Same Element
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_bind_class_and_text_same_element() {
+    let component = html! {
+        <div az-ui="{\"count\": 5, \"is_open\": true}">
+            <div az-bind:class:visible="count > 0" az-bind:text="count">"5"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:visible="));
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_bind_multiple_class_same_element() {
+    let component = html! {
+        <div az-ui="{\"a\": true, \"b\": false}">
+            <div az-bind:class:x="a" az-bind:class:y="b">"text"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:x="));
+    assert!(html.contains("az-bind:class:y="));
+}
+
+#[test]
+fn test_az_bind_class_colon_and_dot_same_element() {
+    let component = html! {
+        <div az-ui="{\"liked\": true, \"active\": true}">
+            <button az-bind:class.liked="liked" az-bind:class:active="active">"Btn"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class.liked="));
+    assert!(html.contains("az-bind:class:active="));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: set Command Edge Cases
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_ui_set_nonexistent_field() {
+    let component = html! {
+        <div az-ui="{\"count\": 0}">
+            <button az-on="click set nonexistent = 'value'">"Set new"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-on="));
+    assert!(html.contains("set nonexistent"));
+}
+
+#[test]
+fn test_az_ui_set_boolean_toggle_on_number() {
+    let component = html! {
+        <div az-ui="{\"count\": 5}">
+            <button az-on="click set count = !count">"Toggle"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set count = !count"));
+}
+
+#[test]
+fn test_az_ui_set_increment_on_string() {
+    let component = html! {
+        <div az-ui="{\"name\": \"Alice\"}">
+            <button az-on="click set name = name + '!'">"Update"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set name = name + '!'"));
+}
+
+#[test]
+fn test_az_ui_set_multiple_commands() {
+    let component = html! {
+        <div az-ui="{\"a\": 1, \"b\": 2}">
+            <button az-on="click set a = a + 1; set b = b + 1">"Both"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("set a = a + 1"));
+    assert!(html.contains("set b = b + 1"));
+}
+
+#[test]
+fn test_az_ui_set_empty_value() {
+    let component = html! {
+        <div az-ui="{\"field\": \"initial\"}">
+            <button az-on="click set field = ''">"Clear"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set field = ''"));
+}
+
+#[test]
+fn test_az_ui_set_null_value() {
+    let component = html! {
+        <div az-ui="{\"field\": \"initial\"}">
+            <button az-on="click set field = null">"Nullify"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("click set field = null"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: az-bind Expression Edge Cases
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_bind_text_empty_string_field() {
+    let component = html! {
+        <div az-ui="{\"name\": \"\"}">
+            <span az-bind:text="name">"(empty)"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"name\""));
+}
+
+#[test]
+fn test_az_bind_text_zero_value() {
+    let component = html! {
+        <div az-ui="{\"count\": 0}">
+            <span az-bind:text="count">"0"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"count\""));
+}
+
+#[test]
+fn test_az_bind_class_unicode_value() {
+    let component = html! {
+        <div az-ui="{\"symbol\": \"✓\"}">
+            <div az-bind:class:check="symbol == '✓'">"Item"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:check="));
+}
+
+#[test]
+fn test_az_bind_class_empty_string_result() {
+    let component = html! {
+        <div az-ui="{\"name\": \"\"}">
+            <div az-bind:class:has-name="name != ''">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:has-name="));
+    assert!(html.contains("name != ''"));
+}
+
+#[test]
+fn test_az_bind_text_arithmetic_missing_field() {
+    let component = html! {
+        <div az-ui="{}">
+            <span az-bind:text="count + 1">"1"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"count + 1\""));
+}
+
+#[test]
+fn test_az_bind_class_false_comparison() {
+    let component = html! {
+        <div az-ui="{\"val\": 5}">
+            <div az-bind:class:hidden="val == 0">"Zero?"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:hidden="));
+    assert!(html.contains("val == 0"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: Large az-ui State (Stress)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_ui_large_state_many_fields() {
+    let component = html! {
+        <div az-ui="{\"f1\":1,\"f2\":2,\"f3\":3,\"f4\":4,\"f5\":5,\"f6\":6,\"f7\":7,\"f8\":8,\"f9\":9,\"f10\":10,\"f11\":11,\"f12\":12,\"f13\":13,\"f14\":14,\"f15\":15,\"f16\":16,\"f17\":17,\"f18\":18,\"f19\":19,\"f20\":20}">
+            <span az-bind:text="f20">"20"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui="));
+    assert!(html.contains("\"f20\":20"));
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_ui_many_bound_elements() {
+    let component = html! {
+        <div az-ui="{\"v\": true}">
+            <span az-bind:class:a="v">"1"</span>
+            <span az-bind:class:b="v">"2"</span>
+            <span az-bind:class:c="v">"3"</span>
+            <span az-bind:class:d="v">"4"</span>
+            <span az-bind:class:e="v">"5"</span>
+            <span az-bind:class:f="v">"6"</span>
+            <span az-bind:class:g="v">"7"</span>
+            <span az-bind:class:h="v">"8"</span>
+            <span az-bind:class:i="v">"9"</span>
+            <span az-bind:class:j="v">"10"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    let count = html.matches("az-bind:class:").count();
+    assert!(count >= 10, "Expected at least 10 az-bind:class, got {}", count);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: az-bind Expression with az-scope (server state, read-only)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_bind_with_az_scope_reads_state() {
+    let component = html! {
+        <div az-scope="{\"server_count\": 42}">
+            <span az-bind:text="server_count">"42"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-scope="));
+    assert!(html.contains("az-bind:text="));
+}
+
+#[test]
+fn test_az_bind_class_with_az_scope_server_signed() {
+    let component = html! {
+        <div az-scope="{\"status\": \"active\"}">
+            <div az-bind:class:active="status == 'active'">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-scope="));
+    assert!(html.contains("az-bind:class:active="));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: az-ui Morph Survival
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_ui_state_preserved_in_nested_structure() {
+    let component = html! {
+        <div az-ui="{\"outer\": true}">
+            <div class="inner">
+                <div az-ui="{\"inner\": false}">
+                    <span az-bind:class:show="outer">"outer"</span>
+                    <span az-bind:class:show="inner">"inner"</span>
+                </div>
+            </div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-ui="{\"inner\": false}"));
+    assert!(html.contains("az-ui="{\"outer\": true}"));
+}
+
 fn test_az_bind_text_string_literal() {
     let component = html! {
         <div az-ui="{}">

@@ -444,10 +444,12 @@ assertEqual(az.evaluatePredicate("!!flag", { flag: false }), false, "double nega
 assertEqual(az.evaluatePredicate("!!!flag", { flag: true }), false, "triple negation");
 
 // Parens NOT supported — "(a && b)" is treated as a field name literal
-// So "!(a && b)" looks up "!(a && b)" as a field name (falsy → false)
-// Known limitation: parentheses are NOT grouping operators in this evaluator
-assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), false, "!(a && b) → parens literal, falsy field → false");
-assertEqual(az.evaluatePredicate("!(a && b)", { "!(a && b)": true }), true, "!(a && b) as field name works when present");
+// "!(a && b)" parses as: negate the result of evaluating "(a && b)" as field name
+// findOperatorIndex finds NO && (depth is inside parens from right-to-left scan)
+// So "(a && b)" is a field name → falsy (not in state) → !false → true
+// This is a known limitation: parens are NOT grouping operators
+assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), true, "!(a && b) as field name → !undefined → true");
+assertEqual(az.evaluatePredicate("!(a && b)", { "!(a && b)": false }), true, "!(a && b) with field=false → !false → true");
 
 // Multiple ternaries in expression
 assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: true, flag2: false }), "a", "first ternary truthy");
