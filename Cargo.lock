@@ -157,7 +157,7 @@ dependencies = [
 
 [[package]]
 name = "azumi"
-version = "25.2.2"
+version = "25.2.4"
 dependencies = [
  "axum",
  "azumi",
