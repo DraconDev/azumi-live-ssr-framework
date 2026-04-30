@@ -110,8 +110,19 @@ impl SeoConfig {
 }
 
 pub fn init_seo(config: SeoConfig) {
-    if SITE_CONFIG.set(config).is_err() {
-        eprintln!("WARNING: init_seo() called multiple times - first initialization preserved");
+    if let Ok(mut guard) = SITE_CONFIG.lock() {
+        if guard.is_none() {
+            *guard = Some(config);
+        } else {
+            eprintln!("WARNING: init_seo() called multiple times - first initialization preserved");
+        }
+    }
+}
+
+#[cfg(test)]
+pub fn reset_seo() {
+    if let Ok(mut guard) = SITE_CONFIG.lock() {
+        *guard = None;
     }
 }
 

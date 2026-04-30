@@ -1,8 +1,9 @@
 # Project State
 
 ## Current Focus
-Migrate the SEO global singleton from OnceLock to a Mutex‑protected Option to enable safe mutable access and resetting.
+Switched SEO global state from OnceLock to a Mutex‑protected guard and added a reset helper for tests
 
 ## Completed
-- [x] Replace `std::sync::OnceLock` import with `std::sync::Mutex`
-- [x] Change `static SITE_CONFIG` from `OnceLock<SeoConfig>` to `Mutex<Option<SeoConfig>>` initialized with `None`
+- [x] Refactored `init_seo` to use `SITE_CONFIG.lock()` and guard.is_none() to preserve first initialization
+- [x] Added `reset_seo()` test function that clears the global SEO configuration
+- [x] Updated concurrency handling to use Mutex instead of OnceLock.set
