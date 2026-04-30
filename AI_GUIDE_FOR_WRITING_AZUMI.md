@@ -542,10 +542,43 @@ pub fn counter_view<'a>(state: &'a Counter) -> impl Component + 'a {
 ### 4. How It Works
 
 1. **Compiler Analysis**: `#[azumi::live_impl]` analyzes method bodies and stores **predictions** in `LiveStateMetadata`.
-2. **Manual Prediction**: Add `data-predict` attributes to buttons for optimistic UI updates.
-3. **Optimistic Update**: When you click, the client updates the UI _immediately_ based on the prediction.
-4. **Server Reconciliation**: The server runs the actual method and sends back the real HTML.
-5. **Morphing**: The client morphs the DOM to match the server response (usually identical).
+2. **Auto-Detection**: The component macro injects predictions as `az-predictions` JSON on the scope div. The client JS auto-detects and executes them when buttons are clicked.
+3. **Manual Override**: Add `data-predict` attributes to buttons for custom predictions or when auto-detection isn't sufficient.
+4. **Optimistic Update**: When you click, the client updates the UI _immediately_ based on the prediction.
+5. **Server Reconciliation**: The server runs the actual method and sends back the real HTML.
+6. **Morphing**: The client morphs the DOM to match the server response (usually identical).
+
+### Prediction Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SERVER (Render Time)                                       │
+│  1. #[azumi::live_impl] analyzes methods                  │
+│  2. Generates __AZUMI_PREDICTIONS const                   │
+│  3. Component macro injects az-predictions="[[...]]"      │
+│                                                             │
+│  HTML Output:                                               │
+│  <div az-scope="..." az-predictions='[["increment",       │
+│    "count = count + 1"],["toggle","active = !active"]]'>  │
+│    <button az-on="click call increment">+1</button>       │
+│  </div>                                                     │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  CLIENT (Click Time)                                        │
+│  1. User clicks button with az-on="click call increment"  │
+│  2. Client JS finds az-predictions on parent scope        │
+│  3. Looks up "increment" → "count = count + 1"            │
+│  4. Executes prediction optimistically (0ms)              │
+│  5. Sends request to server with ORIGINAL signed state    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+> [!NOTE]
+> **Auto-detection requires both macros**: `#[azumi::live]` on the struct AND `#[azumi::live_impl]` on the impl block. If you only use `#[azumi::live]`, predictions will be empty.
+>
+> **Manual override**: If a button has both `data-predict` and auto-detected predictions, the manual `data-predict` takes precedence.
 
 ### 5. `data-bind` for Optimistic Updates
 
