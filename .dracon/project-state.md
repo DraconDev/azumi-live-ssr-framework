@@ -1,8 +1,13 @@
 # Project State
 
-## Current Focus
-Document v1 expression evaluator limitations for `az-bind` syntax and add comprehensive test coverage for the new `az-bind` attribute
+## Current FocusImplemented full predicate expression evaluator for `az-bind` attributes, adding logical operators (AND/OR), numeric comparisons, ternary expressions, and arithmetic operations.
 
 ## Completed
-- [x] **v1 Limitations**: Documented expression evaluator capabilities (field lookup, equality, inequality, negation, truthy checks) and unsupported features (ternary expressions, compound operators)
-- [x] **Event Binding Systems**: Added documentation section outlining new client-side binding capabilities
+- [x] Renamed `evaluateBinding` to `evaluatePredicate` with updated signature and doc comment
+- [x] Added support for logical AND (`&&`) and OR (`||`) operators in predicate expressions- [x] Added support for numeric comparison operators (`<`, `>`, `<=`, `>=`) against values
+- [x] Implemented ternary expression handling (`field ? 'a' : 'b'`) within predicates
+- [x] Added `findOperatorIndex` utility to locate logical operators outside string literals
+- [x] Added `evaluateExpression` method to evaluate arbitrary expressions returning any type
+- [x] Updated text binding processing to use `evaluateExpression` instead of direct property lookup
+- [x] Integrated new expression evaluation logic throughout predicate and binding handling
+- [x] Added comprehensive handling of literals, arithmetic (`+ N`, `- N`), and boolean literals
