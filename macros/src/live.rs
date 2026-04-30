@@ -612,19 +612,10 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     let handler_mod_name =
         format_ident!("__azumi_live_handlers_{}", struct_name_str.to_lowercase());
 
-    let predictions_const: Vec<_> = predictions_entries
-        .iter()
-        .collect::<Vec<_>>();
-
     let expanded = quote! {
         impl #struct_name {
             #(#original_methods)*
             #(#all_validation_items)*
-
-            #[doc(hidden)]
-            const __AZUMI_PREDICTIONS: &'static [(&'static str, &'static str)] = &[
-                #(#predictions_const)*
-            ];
         }
 
         // NOTE: We do NOT implement LiveStateMetadata or LiveState here.

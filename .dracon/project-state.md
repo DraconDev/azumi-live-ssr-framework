@@ -1,9 +1,8 @@
 # Project State
 
 ## Current Focus
-Removed manual LiveStateMetadata and LiveState trait implementations, relying on #[azumi::live] macro for full implementation.
+Refactor Live macro to eliminate temporary predictions_entries collection and static __AZUMI_PREDICTIONS constant, simplifying code.
 
 ## Completed
-- [x] Deleted LiveStateMetadata implementation for the generated struct
-- [x] Deleted LiveState implementation for the generated struct
-- [x] Added explanatory comment about macro‑provided implementations
+- [x] Removed `predictions_entries.iter().collect::<Vec<_>>()` and associated variable
+- [x] Dropped the `#(#predictions_const)*` expansion for `__AZUMI_PREDICTIONS` static const
