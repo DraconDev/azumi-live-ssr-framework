@@ -395,16 +395,11 @@ assertEqual(az.readStateFromElement(badJsonEl), null, "returns null for malforme
 
 section("Evaluator edge cases: nested, chained, type coercion");
 
-// Nested ternaries — evaluator does NOT parse parens as grouping, so "a ? (b ? 'x' : 'y') : 'z'" is not parsed as nested
-// The ternary regex captures "(b ? 'x' : 'y'" as the truthy branch string (literal parens are not special)
-// This is a known limitation: nested ternaries with parens for grouping are not supported
-assertEqual(az.evaluateExpression("a ? 'x' : 'y'", { a: true }), "x", "simple ternary truthy branch");
-assertEqual(az.evaluateExpression("a ? 'x' : 'y'", { a: false }), "y", "simple ternary falsy branch");
-assertEqual(az.evaluatePredicate("a ? true : false", { a: true }), true, "ternary with boolean branches truthy");
-assertEqual(az.evaluatePredicate("a ? true : false", { a: false }), false, "ternary with boolean branches falsy");
-
-// Parens in ternary branches are returned as part of the string literal
-assertEqual(az.evaluateExpression("flag ? '(' : ')'", { flag: true }), "(", "ternary returning open paren as string");
+// Nested ternaries — depth-tracked scanner correctly handles parens for grouping
+// "a ? (b ? 'x' : 'y') : 'z'" parses as: a true → (b ? 'x' : 'y'), a false → 'z'
+assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: true }), "x", "nested ternary: outer truthy, inner truthy");
+assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: false }), "y", "nested ternary: outer truthy, inner falsy");
+assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: false }), "z", "nested ternary: outer falsy");
 assertEqual(az.evaluateExpression("a ? 'yes' : b ? 'maybe' : 'no'", { a: true, b: false }), "yes", "chained ternary-like expr (no parens)");
 
 // Negation in ternary predicate: note the ! is NOT a prefix negation — it's part of the expression name
@@ -443,24 +438,24 @@ assertEqual(az.evaluatePredicate("!a || !b", { a: true, b: true }), false, "!a |
 assertEqual(az.evaluatePredicate("!!flag", { flag: false }), false, "double negation cancels");
 assertEqual(az.evaluatePredicate("!!!flag", { flag: true }), false, "triple negation");
 
-// Parens NOT supported — "(a && b)" is treated as a field name literal
-// "!(a && b)" parses as: negate the result of evaluating "(a && b)" as field name
-// findOperatorIndex finds NO && (depth is inside parens from right-to-left scan)
-// So "(a && b)" is a field name → falsy (not in state) → !false → true
-// This is a known limitation: parens are NOT grouping operators
-assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), true, "!(a && b) as field name → !undefined → true");
-assertEqual(az.evaluatePredicate("!(a && b)", { "!(a && b)": false }), true, "!(a && b) with field=false → !false → true");
+// Parens ARE now supported — outer parens are stripped and content is recursed
+assertEqual(az.evaluatePredicate("(flag)", { flag: true }), true, "paren grouping: (field) truthy");
+assertEqual(az.evaluatePredicate("(flag)", { flag: false }), false, "paren grouping: (field) falsy");
+assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), false, "!(a && b) with parens → !true → false");
+assertEqual(az.evaluatePredicate("(a && b)", { a: true, b: true }), true, "(a && b) with parens → true");
+assertEqual(az.evaluatePredicate("(a && b)", { a: true, b: false }), false, "(a && b) with parens → false");
 
 // Multiple ternaries in expression
 assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: true, flag2: false }), "a", "first ternary truthy");
 assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: true }), "b", "second ternary when first falsy");
 assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: false }), "c", "neither ternary truthy");
 
-// Float comparisons — evaluator only supports integer literals, not floats
-// Known limitation: ^([\w.]+)\s*>\s*(\d+)$ only matches \d+ not \d+\.\d+
-assertEqual(az.evaluatePredicate("score > 3", { score: 4.2 }), true, "integer comparison: 4.2 > 3 (uses integer 3)");
-assertEqual(az.evaluatePredicate("score > 3", { score: 2.9 }), false, "integer comparison: 2.9 !> 3");
-assertEqual(az.evaluatePredicate("score >= 3", { score: 3 }), true, "integer comparison: 3 >= 3");
+// Float comparisons now supported — parseFloat handles decimal values
+assertEqual(az.evaluatePredicate("score > 3", { score: 4.2 }), true, "float comparison: 4.2 > 3");
+assertEqual(az.evaluatePredicate("score > 3", { score: 2.9 }), false, "float comparison: 2.9 !> 3");
+assertEqual(az.evaluatePredicate("score >= 3", { score: 3 }), true, "float comparison: 3 >= 3");
+assertEqual(az.evaluatePredicate("score > 3.5", { score: 4.2 }), true, "float comparison: 4.2 > 3.5");
+assertEqual(az.evaluatePredicate("price < 9.99", { price: 8.5 }), true, "float comparison: 8.5 < 9.99");
 assertEqual(az.evaluateExpression("price - 1", { price: 10.5 }), 9.5, "float subtraction (integer right operand)");
 assertEqual(az.evaluateExpression("price - 1", { price: 10 }), 9, "float subtraction with whole number");
 

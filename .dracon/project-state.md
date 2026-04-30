@@ -1,14 +1,9 @@
-#Project State
-
-## Current Focus
-Implemented parenthetical predicate evaluation, advanced ternary expression parsing, and expanded numeric comparison support (including >=, <= and floating‑point values) with dedicated parsing helpers.
+# Project State## Current Focus
+Added full support for parenthetical grouping in ternary and predicate expressions and enabled float literal comparisons.
 
 ## Completed
-- [x] Added parenthetical predicate handling (`( expr )`) that bypasses the negation shortcut and delegates to `evaluatePredicate`.
-- [x] Replaced the simple `!field` regex match with explicit parenthesis detection and predicate evaluation.
-- [x] Introduced `parseTernary` and `findTernaryIndex` methods to correctly locate outermost ternary operators while respecting nested ternaries, quotes, and brackets.
-- [x] Updated ternary evaluation to use the new parsing utilities, evaluating condition, true‑branch, and false‑branch separately and converting truthiness to a boolean.
-- [x] Upgraded numeric comparison operators (`<`, `>`, `<=`, `>=`) to use `parseFloat`/`Number` and handle decimal literals.
-- [x] Modified `<` comparison to parse both left and right operands as floats for more accurate evaluation.
-- [x] Added support for `<=`, `>`, and `>=` comparison patterns alongside the existing `<` pattern.
-- [x] Removed legacy ternary regex matching code and integrated the new robust parsing logic throughout the expression evaluator.
+- [x] Implemented proper handling of surrounding parentheses in predicate evaluation- [x] Fixed nested ternary parsing to correctly resolve grouped sub‑expressions
+- [x] Enabled evaluation of expressions wrapped in parentheses as grouping constructs
+- [x] Added support for floating‑point literals in comparison operators
+- [x] Updated test suite to reflect new parsing behavior and float comparison results
+- [x] Updated Cargo.lock to the latest dependency versions
