@@ -1,10 +1,10 @@
 # Project State
 
 ## Current Focus
-Add debug logging of SEO global state and OG availability in `generate_head`
+Remove debug logging and add instrumentation around SEO reset and HTML rendering in `test_generate_head_with_type`.
 
 ## Completed
-- [x] Add `eprintln!("DEBUG generate_head: global = {:?}", global.is_some());` after the canonical link write
-- [x] Add nested `eprintln!("DEBUG: global is Some, og = {:?}", g.open_graph.is_some());` inside the `global` guard
-- [x] Add `eprintln!("DEBUG: og block entered");` before writing the OG meta tag
-- [x] Leave `Cargo.lock` in an unmerged conflicted state (no resolved changes)
+- [x] Removed multiple `eprintln!` debug statements from `generate_head`.
+- [x] Removed the `drop_seo()` call from the test.
+- [x] Added debug prints before and after `reset_seo()`.
+- [x] Added logging of the rendered HTML for inspection.

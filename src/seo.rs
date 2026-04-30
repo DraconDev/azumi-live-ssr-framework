@@ -216,11 +216,8 @@ pub fn generate_head(
         let _ = write!(html, r#"<link rel="canonical" href="{}">"#, url);
     }
 
-    eprintln!("DEBUG generate_head: global = {:?}", global.is_some());
     if let Some(ref g) = global {
-        eprintln!("DEBUG: global is Some, og = {:?}", g.open_graph.is_some());
         if let Some(ref og) = g.open_graph {
-            eprintln!("DEBUG: og block entered");
             let _ = write!(
                 html,
                 r#"<meta property="og:title" content="{}">"#,
@@ -527,10 +524,12 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_type() {
-        drop_seo();
+        eprintln!("DEBUG: before reset, SITE_CONFIG = {:?}", SITE_CONFIG.lock().ok().and_then(|g| g.clone()));
         reset_seo();
+        eprintln!("DEBUG: after reset, SITE_CONFIG = {:?}", SITE_CONFIG.lock().ok().and_then(|g| g.clone()));
         let result = generate_head("Title", None, None, None, Some("article"));
         let html = crate::render_to_string(&result);
+        eprintln!("HTML: {:?}", html);
         assert!(html.contains("og:type"));
     }
 
