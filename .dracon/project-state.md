@@ -1,6 +1,7 @@
 # Project State
 
-## CurrentFocus
-Bump azumi dependency version to 29.0.0 in README.
+## Current Focus
+docs(asset-pipeline): simplify description of automatic AST rewriting approach
 
-## Completed - [x] Updated production build dependency version to 29.0.0 - [x] Updated development build dependency version to 29.0.0 while preserving devtools feature.
+## Completed
+- [x] Removed redundant phrase "Instead of forcing users to use a new syntax like `asset!(...)`" from asset pipeline design documentation

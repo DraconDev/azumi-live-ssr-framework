@@ -32,7 +32,7 @@ pub static ASSETS: phf::Map<&'static str, &'static str> = phf::phf_map! {
 
 #### B. **Automatic AST Rewriting** (The "Magic" Way)
 
-Instead of forcing users to use a new syntax like `asset!(...)`, we leverage the existing `html!` macro.
+Instead, we leverage the existing `html!` macro.
 
 **User Code remains standard HTML:**
 
