@@ -124,73 +124,47 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
     }
 
     // Generate the output
+    // Helper: generate scope div wrapper for live state components
+    let scope_body = if let Some(state_ident) = live_state_ident {
+        quote! {
+            azumi::from_fn(move |f| {
+                let scope_json = <_ as azumi::LiveState>::to_scope(#state_ident);
+                let struct_name = <#live_state_type as azumi::LiveStateMetadata>::struct_name();
+                let local_json = azumi::LiveState::to_local_scope(#state_ident);
+                let predictions = <#live_state_type as azumi::LiveStateMetadata>::predictions();
+                let predictions_json = serde_json::to_string(predictions).unwrap_or_default();
+                write!(f, "<div az-scope=\"{}\" az-struct=\"{}\"", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
+                if !local_json.is_empty() {
+                    write!(f, " az-local-state=\"{}\"", azumi::Escaped(&local_json))?;
+                }
+                if !predictions_json.is_empty() && predictions_json != "[]" {
+                    write!(f, " az-predictions=\"{}\"", azumi::Escaped(&predictions_json))?;
+                }
+                write!(f, " style=\"display: contents\">")?;
+                let inner = #fn_block;
+                inner.render(f)?;
+                write!(f, "</div>")?;
+                Ok(())
+            })
+        }
+    } else {
+        quote! { #fn_block }
+    };
+
     let render_fn = if has_children {
         let children_ty = children_type.as_ref().unwrap();
-
-        // Only wrap in az-scope for live state components
-        let body = if let Some(state_ident) = live_state_ident {
-            quote! {
-                azumi::from_fn(move |f| {
-                    let scope_json = <_ as azumi::LiveState>::to_scope(#state_ident);
-                    let struct_name = <#live_state_type as azumi::LiveStateMetadata>::struct_name();
-                    let local_json = azumi::LiveState::to_local_scope(#state_ident);
-                    let predictions = <#live_state_type as azumi::LiveStateMetadata>::predictions();
-                    let predictions_json = serde_json::to_string(predictions).unwrap_or_default();
-                    write!(f, "<div az-scope=\"{}\" az-struct=\"{}\"", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
-                    if !local_json.is_empty() {
-                        write!(f, " az-local-state=\"{}\"", azumi::Escaped(&local_json))?;
-                    }
-                    if !predictions_json.is_empty() && predictions_json != "[]" {
-                        write!(f, " az-predictions=\"{}\"", azumi::Escaped(&predictions_json))?;
-                    }
-                    write!(f, " style=\"display: contents\">")?;
-                    let inner = #fn_block;
-                    inner.render(f)?;
-                    write!(f, "</div>")?;
-                    Ok(())
-                })
-            }
-        } else {
-            quote! { #fn_block }
-        };
 
         quote! {
             pub fn render #impl_generics (props: Props #ty_generics, children: #children_ty) #fn_output #where_clause {
                 #(#props_init)*
-                #body
+                #scope_body
             }
         }
     } else {
-        let body = if let Some(state_ident) = live_state_ident {
-            quote! {
-                azumi::from_fn(move |f| {
-                    let scope_json = <_ as azumi::LiveState>::to_scope(#state_ident);
-                    let struct_name = <#live_state_type as azumi::LiveStateMetadata>::struct_name();
-                    let local_json = azumi::LiveState::to_local_scope(#state_ident);
-                    let predictions = <#live_state_type as azumi::LiveStateMetadata>::predictions();
-                    let predictions_json = serde_json::to_string(predictions).unwrap_or_default();
-                    write!(f, "<div az-scope=\"{}\" az-struct=\"{}\"", azumi::Escaped(&scope_json), azumi::Escaped(struct_name))?;
-                    if !local_json.is_empty() {
-                        write!(f, " az-local-state=\"{}\"", azumi::Escaped(&local_json))?;
-                    }
-                    if !predictions_json.is_empty() && predictions_json != "[]" {
-                        write!(f, " az-predictions=\"{}\"", azumi::Escaped(&predictions_json))?;
-                    }
-                    write!(f, " style=\"display: contents\">")?;
-                    let inner = #fn_block;
-                    inner.render(f)?;
-                    write!(f, "</div>")?;
-                    Ok(())
-                })
-            }
-        } else {
-            quote! { #fn_block }
-        };
-
         quote! {
             pub fn render #impl_generics (props: Props #ty_generics) #fn_output #where_clause {
                 #(#props_init)*
-                #body
+                #scope_body
             }
         }
     };
