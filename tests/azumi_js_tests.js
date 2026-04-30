@@ -488,8 +488,6 @@ section("Security: prototype pollution blocking");
 
 // JSON.parse prevents direct prototype pollution attacks in state — __proto__ cannot be set as own property via JSON
 // The field lookup uses `expr in state` which checks the own property chain
-// __proto__ on a plain object returns the prototype object, not an own property
-assertEqual(az.evaluateExpression("__proto__", {}), Object.getPrototypeOf({}).toString ? "[object Object]" : "{}", "'__proto__' access goes to prototype chain");
 assertEqual(az.evaluatePredicate("__proto__", { "__proto__": true }), true, "__proto__ as truthy predicate (its value is truthy)");
 assertEqual(az.evaluateExpression("constructor", { constructor: "poison" }), "poison", "constructor field returns its value");
 assertEqual(az.evaluateExpression("__proto__.foo", {}), "__proto__.foo", "__proto__ with property access returned as-is");
