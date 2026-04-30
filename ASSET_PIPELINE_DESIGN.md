@@ -127,21 +127,19 @@ When `build.rs` scans `/assets`:
 3.  It encodes it as `WebP` (and/or `AVIF` if we want to be fancy).
 4.  It saves the optimized version alongside the original in the build folder.
 
-#### B. The `image!` Macro (Optional Helper)
+#### B. Responsive Images
 
-We could provide a helper that generates the `<picture>` tag automatically.
+Use standard HTML `srcset` for responsive sizing. The compiler still adds lazy/async if omitted, and rewrites static asset paths.
 
 ```rust
 html! {
-    {azumi::image!("/img/hero.jpg")}
+    <img
+        src="/static/hero.jpg"
+        srcset="/static/hero-400.jpg 400w, /static/hero-800.jpg 800w"
+        sizes="(max-width: 600px) 100vw, 800px"
+        alt="Hero image"
+    />
 }
-
-// Expands to:
-<picture>
-    <source srcset="/static/hero.a8b9.avif" type="image/avif" />
-    <source srcset="/static/hero.c7d2.webp" type="image/webp" />
-    <img src="/static/hero.8f3a.jpg" />
-</picture>
 ```
 
 ---
@@ -169,7 +167,6 @@ Because the filename contains the hash (`logo.a8b9.png`), we can tell the browse
 
 ## 5. Summary of Benefits
 
-1.  **Safety**: `asset!` macro prevents typos in file paths.
-2.  **Speed**: Minified CSS and optimized Images load faster.
-3.  **Caching**: Hashed filenames allow aggressive browser caching (instant subsequent loads).
-4.  **Developer Experience**: You just drop files in `/assets` and use `asset!()`. The system handles the complex stuff.
+1.  **Speed**: Minified CSS and optimized Images load faster.
+2.  **Caching**: Hashed filenames allow aggressive browser caching (instant subsequent loads).
+3.  **Developer Experience**: You just drop files in `/static` and write standard HTML paths. The macro handles rewriting automatically.

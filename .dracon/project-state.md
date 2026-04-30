@@ -1,3 +1,10 @@
 # Project State
-This commit refactors the AZUMI_DESCRIPTION.md file to adopt and showcase a new optimistic UI pattern driven by living docs & live state analysis. The implementation leverages `#[azumi::live_impl]` and `data-predict` attributes to auto-generate predictions, reducing boilerplate while keeping performance and type safety intact. Comments now explicitly bridge Rust struct changes to live view logic, ensuring clear audit and future maintainability.
-The changes centralize prediction logic into Rust code, with server-side confirmation when necessary, while preserving the original structure and minimizing manual markup. This shift simplifies UI behavior and aligns the framework with modern optimistic prediction patterns.
+
+## Current Focus
+refactor(design): simplify asset pipeline to use standard HTML `srcset` instead of custom macros
+
+## Completed
+- [x] removed `image!` macro proposal in favor of standard HTML `srcset` for responsive images
+- [x] updated documentation to reference `/static` directory instead of `/assets`
+- [x] simplified developer experience description around automatic path rewriting
+- [x] removed "Safety" benefit (macro typo prevention) from summary as macros were deemphasized
