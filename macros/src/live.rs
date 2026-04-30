@@ -427,28 +427,6 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
             #[doc(hidden)]
             const __AZUMI_COMPUTED_FIELDS: &'static [&'static str] = &[#(#computed_const_entries),*];
         }
-
-        impl azumi::LiveStateMetadata for #struct_name {
-            fn predictions() -> &'static [(&'static str, &'static str)] {
-                &[]
-            }
-            fn struct_name() -> &'static str {
-                #struct_name_str
-            }
-            fn local_fields() -> &'static [&'static str] {
-                &[#(#local_field_names_static),*]
-            }
-            fn computed_fields() -> &'static [&'static str] {
-                &[#(#computed_field_names_static),*]
-            }
-        }
-
-        impl azumi::LiveState for #struct_name {
-            fn to_scope(&self) -> String {
-                let json = serde_json::to_string(self).unwrap_or_default();
-                azumi::security::sign_state(&json)
-            }
-        }
     };
 
     TokenStream::from(expanded)

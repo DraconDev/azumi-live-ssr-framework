@@ -1,7 +1,8 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to latest dependency versions
+Removed manual LiveStateMetadata and LiveState trait implementations from the macro‑expanded struct.
 
 ## Completed
-- [x] Update Cargo.lock with latest dependency versions
+- [x] Deleted the block that implemented predictions(), struct_name(), local_fields(), computed_fields(), and to_scope() for the generated struct.
+- [x] Eliminated redundant static metadata lookups that were previously generated inline.
