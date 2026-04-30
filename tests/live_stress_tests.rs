@@ -215,6 +215,32 @@ fn test_predictions_metadata_empty_for_no_methods() {
     );
 }
 
+#[test]
+fn test_az_predictions_attribute_on_scope() {
+    let state = CounterState::default();
+    let comp = html! { @counter_view(state = &state) };
+    let output = test::render(&comp);
+
+    // The scope div should have az-predictions with the prediction data
+    assert!(
+        output.contains("az-predictions="),
+        "az-predictions attribute should be present on scope div"
+    );
+}
+
+#[test]
+fn test_no_az_predictions_when_empty() {
+    let state = NestedState::default();
+    let comp = html! { @nested_view(state = &state) };
+    let output = test::render(&comp);
+
+    // NestedState has no predictions, so az-predictions should not be present
+    assert!(
+        !output.contains("az-predictions="),
+        "az-predictions should NOT be present when there are no predictions"
+    );
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // Complex Live State (Nested/Multiple)
 // ════════════════════════════════════════════════════════════════════════════
