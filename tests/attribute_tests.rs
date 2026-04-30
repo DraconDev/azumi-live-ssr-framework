@@ -1293,7 +1293,7 @@ fn test_az_bind_class_with_az_scope_server_signed() {
 fn test_az_ui_state_preserved_in_nested_structure() {
     let component = html! {
         <div az-ui="{\"outer\": true}">
-            <div class="inner">
+            <div inner_class="inner">
                 <div az-ui="{\"inner\": false}">
                     <span az-bind:class:show="outer">"outer"</span>
                     <span az-bind:class:show="inner">"inner"</span>

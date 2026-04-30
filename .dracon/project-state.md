@@ -1,9 +1,8 @@
 # Project State
 
 ## Current Focus
-Fix test assertions for JSON string matching by using raw string literals and removing obsolete test metadata.
+Fix test assertion for nested UI state preservation by renaming conflicting attribute
 
 ## Completed
-- [x] Updated Cargo.lock to newer dependency versions
-- [x] Removed #[test] annotation and SECTION comment from the test function
-- [x] Updated assertions to use raw string literals for proper JSON string matching
+- [x] Fix test attribute name from `class="inner"` to `inner_class="inner"` to avoid conflict with az-bind:class directive in nested structure test
+- [x] Update Cargo.lock to reflect current dependency versions
