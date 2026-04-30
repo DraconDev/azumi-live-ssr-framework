@@ -303,16 +303,16 @@ class Azumi {
         }
 
         // Increment: "field + value"
-        const addMatch = trimmedExpr.match(/^([\w.]+)\s*\+\s*(\d+)$/);
+        const addMatch = trimmedExpr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
         if (addMatch && addMatch[1] === fieldPath) {
-            setNested(state, pathParts, (currentVal || 0) + parseInt(addMatch[2], 10));
+            setNested(state, pathParts, (parseFloat(currentVal) || 0) + parseFloat(addMatch[2]));
             return;
         }
 
         // Decrement: "field - value"
-        const subMatch = trimmedExpr.match(/^([\w.]+)\s*-\s*(\d+)$/);
+        const subMatch = trimmedExpr.match(/^([\w.]+)\s*-\s*(\d+(?:\.\d+)?)$/);
         if (subMatch && subMatch[1] === fieldPath) {
-            setNested(state, pathParts, (currentVal || 0) - parseInt(subMatch[2], 10));
+            setNested(state, pathParts, (parseFloat(currentVal) || 0) - parseFloat(subMatch[2]));
             return;
         }
 
