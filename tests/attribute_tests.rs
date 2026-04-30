@@ -665,3 +665,64 @@ fn test_az_ui_multiple_fields() {
     assert!(html.contains("click set tab1"));
     assert!(html.contains("click set count"));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: az-bind Rendering Tests
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_bind_text_field() {
+    let component = html! {
+        <div az-ui="{\"count\": 0}">
+            <span az-bind:text="count">"0"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"count\""));
+}
+
+#[test]
+fn test_az_bind_class_colon_field() {
+    let component = html! {
+        <div az-ui="{\"active\": true}">
+            <div az-bind:class:active="active">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:active=\"active\""));
+}
+
+#[test]
+fn test_az_bind_class_colon_equality() {
+    let component = html! {
+        <div az-ui="{\"active_tab\": \"rust\"}">
+            <button az-bind:class:active="active_tab == 'rust'">"Rust"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    // HTML escapes single quotes to &#x27; — check for the attribute presence instead
+    assert!(html.contains("az-bind:class:active="));
+    assert!(html.contains("active_tab == "));
+}
+
+#[test]
+fn test_az_bind_class_colon_negation() {
+    let component = html! {
+        <div az-ui="{\"is_open\": false}">
+            <div az-bind:class:open="!is_open">"Hidden"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:open=\"!is_open\""));
+}
+
+#[test]
+fn test_az_bind_class_dot_syntax() {
+    let component = html! {
+        <div az-ui="{\"liked\": true}">
+            <button az-bind:class.liked="liked">"Like"</button>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class.liked=\"liked\""));
+}
