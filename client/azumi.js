@@ -182,13 +182,7 @@ class Azumi {
             if (setMatch) {
                 const field = setMatch[1].trim();
                 const rawValue = setMatch[2].trim();
-                // Normalize: convert "field + N" back to "field + N" (no spaces added by tokenization)
-                // TokenStream split on spaces, so "count + 1" became ["count", "+", "1"]
-                // We need to find if the value starts with a field name and has +/- operator
-                let normalizedValue = rawValue;
-                // Handle expressions like "count + 1" or "!flag" or "'string'" or "123"
-                // The tokenizer has already split these, so we reconstruct
-                // Check if rawValue is a simple field reference, boolean, number, or string
+                // Return the set action
                 return {
                     type: "set",
                     field: field,
@@ -452,25 +446,25 @@ class Azumi {
         }
 
 // Less than: field < N
-        const ltMatch = expr.match(/^([\w.]+)\s*<\s*([\d.]+)$/);
+        const ltMatch = expr.match(/^([\w.]+)\s*<\s*(\d+(?:\.\d+)?)$/);
         if (ltMatch) {
             return (parseFloat(state[ltMatch[1]]) || 0) < parseFloat(ltMatch[2]);
         }
 
         // Greater than: field > N
-        const gtMatch = expr.match(/^([\w.]+)\s*>\s*([\d.]+)$/);
+        const gtMatch = expr.match(/^([\w.]+)\s*>\s*(\d+(?:\.\d+)?)$/);
         if (gtMatch) {
             return (parseFloat(state[gtMatch[1]]) || 0) > parseFloat(gtMatch[2]);
         }
 
         // Less than or equal: field <= N
-        const lteMatch = expr.match(/^([\w.]+)\s*<=\s*([\d.]+)$/);
+        const lteMatch = expr.match(/^([\w.]+)\s*<=\s*(\d+(?:\.\d+)?)$/);
         if (lteMatch) {
             return (parseFloat(state[lteMatch[1]]) || 0) <= parseFloat(lteMatch[2]);
         }
 
         // Greater than or equal: field >= N
-        const gteMatch = expr.match(/^([\w.]+)\s*>=\s*([\d.]+)$/);
+        const gteMatch = expr.match(/^([\w.]+)\s*>=\s*(\d+(?:\.\d+)?)$/);
         if (gteMatch) {
             return (parseFloat(state[gteMatch[1]]) || 0) >= parseFloat(gteMatch[2]);
         }
@@ -660,7 +654,7 @@ class Azumi {
         // String literal: '...' or "..."
         if ((expr.startsWith("'") && expr.endsWith("'")) ||
             (expr.startsWith('"') && expr.endsWith('"'))) {
-            return expr.slice(1, -1).replace(/\\(['")\\])/g, '$1');
+            return expr.slice(1, -1).replace(/\\(['"\\])/g, '$1');
         }
 
         // Ternary: field ? 'a' : 'b'
@@ -687,13 +681,13 @@ class Azumi {
         }
 
         // Increment: field + N
-        const incMatch = expr.match(/^([\w.]+)\s*\+\s*([\d.]+)$/);
+        const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
         if (incMatch) {
             return (parseFloat(state[incMatch[1]]) || 0) + parseFloat(incMatch[2]);
         }
 
         // Decrement: field - N
-        const decMatch = expr.match(/^([\w.]+)\s*-\s*([\d.]+)$/);
+        const decMatch = expr.match(/^([\w.]+)\s*-\s*(\d+(?:\.\d+)?)$/);
         if (decMatch) {
             return (parseFloat(state[decMatch[1]]) || 0) - parseFloat(decMatch[2]);
         }
