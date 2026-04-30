@@ -340,12 +340,12 @@ pub fn RootLayout(children: impl Component) -> impl Component {
 
 Production builds (no devtools):
 ```toml
-azumi = { version = "28.0.2" }
+azumi = { version = "29.0.0" }
 ```
 
 With devtools in development:
 ```toml
-azumi = { version = "28.0.2", features = ["devtools"] }
+azumi = { version = "29.0.0", features = ["devtools"] }
 ```
 
 ---
