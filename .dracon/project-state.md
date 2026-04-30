@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Focus
-Add comprehensive test coverage for the new `az-bind` attribute rendering functionality.
+Document v1 expression evaluator limitations for az‑bind syntax
 
 ## Completed
-- [x] Implemented a suite of unit tests verifying `az-bind` rendering for text, class bindings (colon syntax with field, equality, and negation), and dot‑syntax class bindings.
-- [x] Updated `Cargo.lock` to reflect the latest dependency versions after recent changes.
+- [x] Add v1 Limitations section to client/README.md describing supported operators (field lookup, equality, inequality, negation, truthy checks)
+- [x] Note unsupported operators (ternary expressions, compound operators) in the same section- [x] Clarify that expressions survive DOM morphing while adhering to v1 constraints

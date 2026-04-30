@@ -137,6 +137,8 @@ For ephemeral UI state that doesn't need to persist or round-trip to the server 
 
 **Binding syntax**: `az-bind:class:{classname}="expression"` works with `az-ui` values.
 
+**v1 Limitations**: The expression evaluator supports field lookup (`active_tab`), equality (`== 'rust'`), inequality (`!= 'val'`), negation (`!is_open`), and truthy checks. Ternary expressions (`? :`) and compound operators (`&&`, `||`) are not yet supported.
+
 **Preserved across morphs**: `az-ui` state survives Idiomorph DOM morphing (e.g., when a sibling server action completes).
 
 ### 5. Server Protocol
