@@ -69,16 +69,24 @@ fn test_automatic_predictions() {
     let comp = html! { @counter_view(state = &state) };
     let output = test::render(&comp);
 
-    // increment() -> self.count += 1
+    // az-predictions should be present on the scope div
     assert!(
-        output.contains("data-predict=\"count = count + 1\""),
-        "Automatic prediction for increment missing"
+        output.contains("az-predictions="),
+        "az-predictions attribute missing from scope div"
     );
 
-    // toggle() -> self.active = !self.active
+    // Should contain the prediction data as JSON
     assert!(
-        output.contains("data-predict=\"active = !active\""),
-        "Automatic prediction for toggle missing"
+        output.contains("count = count + 1"),
+        "increment prediction missing from az-predictions"
+    );
+    assert!(
+        output.contains("active = !active"),
+        "toggle prediction missing from az-predictions"
+    );
+    assert!(
+        output.contains("count = 0"),
+        "reset prediction missing from az-predictions"
     );
 }
 
@@ -89,6 +97,7 @@ fn test_manual_predictions() {
     let output = test::render(&comp);
 
     // reset() has #[azumi::predict("count = 0")]
+    // Manual data-predict still works alongside auto-detected ones
     assert!(
         output.contains("data-predict=\"count = 0\""),
         "Manual prediction for reset missing"

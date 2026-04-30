@@ -1,9 +1,10 @@
 # Project State
 
 ## Current Focus
-Added runtime auto‑detection of prediction values from the `az-predictions` attribute when `data-predict` is not set, with console logging and error handling.
+Enhance live stress test to verify runtime auto‑detection of prediction values via the `az-predictions` attribute.
 
 ## Completed
-- [x] Added logic to parse `az-predictions` JSON and extract a prediction based on the `az-on` attribute in `client/azumi.js`
-- [x] Added identical auto‑detection logic to the minified `src/client.min.js`
-- [x] Updated `Cargo.lock` to reflect the latest dependency versions introduced by recent commits
+- [x] Replace old `data-predict="count = count + 1"` check with an assertion that the generated HTML contains `az-predictions=`.
+- [x] Add separate assertions ensuring the increment, toggle, and reset prediction expressions appear within the `az-predictions` attribute.
+- [x] Confirm that manual `data-predict="count = 0"` still functions alongside the new auto‑detected predictions.
+- [x] Expand test coverage to validate all prediction scenarios for the CounterState component.
