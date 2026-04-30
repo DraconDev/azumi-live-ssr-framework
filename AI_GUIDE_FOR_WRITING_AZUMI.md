@@ -257,7 +257,7 @@ html! {
 }
 ```
 
-### 5. IDs (`id={...}`)
+### 6. IDs (`id={...}`)
 
 - Same rules as classes: **Snake Case** and **Bracket Syntax ONLY**.
 - `id="..."` is **BANNED**.
@@ -271,7 +271,7 @@ html! {
 }
 ```
 
-### 6. Inline Styles (`style={...}`)
+### 7. Inline Styles (`style={...}`)
 
 - Use the **Style DSL** with brackets.
 - `style="..."` string syntax is **BANNED**.
@@ -284,7 +284,7 @@ html! {
 // <div style="--color: red">...</div>
 ```
 
-### 7. Live State Requires Component Link
+### 8. Live State Requires Component Link
 
 ```rust
 // State definition
@@ -304,7 +304,7 @@ pub fn counter_view<'a>(state: &'a Counter) -> impl Component + 'a {
 }
 ```
 
-### 8. Event Binding Syntax
+### 9. Event Binding Syntax
 
 **Recommended: Use `on:event={state.method}`** - the macro generates the underlying `az-on` attribute automatically.
 
@@ -330,7 +330,7 @@ For advanced use cases, you can write `az-on` directly:
 <button az-on="click set is_open = !is_open">"Toggle"</button>
 ```
 
-### 9. Text Content Must Be Quoted
+### 10. Text Content Must Be Quoted
 
 ```rust
 // ✅ CORRECT - all text in quotes
@@ -341,7 +341,7 @@ For advanced use cases, you can write `az-on` directly:
 <p>Hello world</p>
 ```
 
-### 10. Style Order: HTML First, Style Last
+### 11. Style Order: HTML First, Style Last
 
 For readability and consistency, always place your `<style>` block **after** your HTML content.
 

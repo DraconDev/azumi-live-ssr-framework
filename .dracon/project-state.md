@@ -1,7 +1,12 @@
 # Project State
 
 ## Current Focus
-docs(azumi-guide): remove obsolete local state (set) example
+docs(azumi-guide): Renumber sections 5-10 to 6-11 in AI_GUIDE_FOR_WRITING_AZUMI.md
 
 ## Completed
-- [x] docs: remove Local State (Client-Only `set`) section from AI_GUIDE_FOR_WRITING_AZUMI.md to reflect updated state‑management best practices
+- [x] Renumbered "IDs (`id={...}`)" section from 5 to 6
+- [x] Renumbered "Inline Styles (`style={...}`)" section from 6 to 7
+- [x] Renumbered "Live State Requires Component Link" section from 7 to 8
+- [x] Renumbered "Event Binding Syntax" section from 8 to 9
+- [x] Renumbered "Text Content Must Be Quoted" section from 9 to 10
+- [x] Renumbered "Style Order: HTML First, Style Last" section from 10 to 11
