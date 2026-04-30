@@ -590,15 +590,42 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     let handler_mod_name =
         format_ident!("__azumi_live_handlers_{}", struct_name_str.to_lowercase());
 
+    let predictions_const: Vec<_> = predictions_entries
+        .iter()
+        .collect::<Vec<_>>();
+
     let expanded = quote! {
         impl #struct_name {
             #(#original_methods)*
             #(#all_validation_items)*
+
+            #[doc(hidden)]
+            const __AZUMI_PREDICTIONS: &'static [(&'static str, &'static str)] = &[
+                #(#predictions_const)*
+            ];
         }
 
-        // NOTE: We do NOT implement LiveStateMetadata or LiveState here.
-        // #[azumi::live] already provides the full implementation including predictions.
-        // #[azumi::live_impl] only adds action handlers.
+        impl azumi::LiveStateMetadata for #struct_name {
+            fn predictions() -> &'static [(&'static str, &'static str)] {
+                Self::__AZUMI_PREDICTIONS
+            }
+            fn struct_name() -> &'static str {
+                #struct_name_str
+            }
+            fn local_fields() -> &'static [&'static str] {
+                Self::__AZUMI_LOCAL_FIELDS
+            }
+            fn computed_fields() -> &'static [&'static str] {
+                Self::__AZUMI_COMPUTED_FIELDS
+            }
+        }
+
+        impl azumi::LiveState for #struct_name {
+            fn to_scope(&self) -> String {
+                let json = serde_json::to_string(self).unwrap_or_default();
+                azumi::security::sign_state(&json)
+            }
+        }
 
         #[allow(non_snake_case)]
         mod #handler_mod_name {

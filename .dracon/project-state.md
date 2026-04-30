@@ -1,8 +1,11 @@
 # Project State
 
 ## Current Focus
-Removed manual LiveStateMetadata and LiveState trait implementations from the macro‑expanded struct.
+Add static prediction and field constant lookups and implement LiveStateMetadata/LiveState traits for structs
 
 ## Completed
-- [x] Deleted the block that implemented predictions(), struct_name(), local_fields(), computed_fields(), and to_scope() for the generated struct.
-- [x] Eliminated redundant static metadata lookups that were previously generated inline.
+- [x] Added `__AZUMI_PREDICTIONS` constant populated from `predictions_entries`
+- [x] Implemented `azumi::LiveStateMetadata` for the generated struct with `predictions()`, `struct_name()`, `local_fields()`, `computed_fields()`
+- [x] Implemented `azumi::LiveState` for the generated struct with `to_scope()` returning signed JSON
+- [x] Removed stale comment referencing manual LiveStateMetadata/LiveState implementations
+- [x] Refactored macro to inline generate prediction and field arrays using static lookups
