@@ -29,12 +29,22 @@ class AzumiTest {
         let inString = false;
         let stringChar = '';
         let depth = 0;
+        let isEscaped = false;
 
         for (let i = expr.length - 1; i >= 0; i--) {
             const ch = expr[i];
 
+            if (isEscaped) {
+                isEscaped = false;
+                continue;
+            }
+            if (ch === '\\') {
+                isEscaped = true;
+                continue;
+            }
+
             if (inString) {
-                if (ch === stringChar && expr[i - 1] !== '\\') {
+                if (ch === stringChar) {
                     inString = false;
                 }
                 continue;
