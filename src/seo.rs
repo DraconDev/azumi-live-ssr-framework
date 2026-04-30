@@ -524,6 +524,7 @@ mod tests {
         reset_seo();
         let result = generate_head("Title", None, None, None, Some("article"));
         let html = crate::render_to_string(&result);
+        eprintln!("DEBUG HTML: {:?}", html);
         assert!(html.contains("og:type"));
     }
 
