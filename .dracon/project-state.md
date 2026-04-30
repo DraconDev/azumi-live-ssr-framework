@@ -1,8 +1,11 @@
 # Project State
 
 ## Current Focus
-Implement logical OR (`||`) operator in expression evaluation to provide default value semantics.
+Enhanced JavaScript test suite with improved ternary expression parsing, decimal number support in comparisons, and OR operator implementation
 
 ## Completed
-- [x] feat(expression): added support for `||` operator, returning the right‑hand side when the left value is null, undefined, or empty string, while preserving falsy values like `false` and `0`.
-- [x] test(expression): updated JavaScript tests to verify correct defaulting behavior and edge cases for the new `||` operator.
+- [x] Add `parseTernary()` method with proper handling of nested structures, strings, and escape characters
+- [x] Add `findTernaryIndex()` method to locate ternary operators at depth 0
+- [x] Refactor `evaluatePredicate()` to support parenthetical expressions and use `parseFloat` for decimal comparisons
+- [x] Implement `||` (OR) operator support in expression evaluation
+- [x] Replace regex-based ternary parsing with robust parsing methods

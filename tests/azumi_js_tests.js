@@ -58,9 +58,110 @@ class AzumiTest {
         return -1;
     }
 
+    parseTernary(expr) {
+        let questionIdx = -1;
+        let colonIdx = -1;
+        let inString = false;
+        let stringChar = '';
+        let depth = 0;
+        let isEscaped = false;
+
+        for (let i = 0; i < expr.length; i++) {
+            const ch = expr[i];
+
+            if (isEscaped) {
+                isEscaped = false;
+                continue;
+            }
+
+            if (ch === '\\') {
+                isEscaped = true;
+                continue;
+            }
+
+            if (inString) {
+                if (ch === stringChar) {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (ch === '"' || ch === "'") {
+                inString = true;
+                stringChar = ch;
+                continue;
+            }
+
+            if (ch === '(' || ch === '[' || ch === '{') {
+                depth++;
+            } else if (ch === ')' || ch === ']' || ch === '}') {
+                depth--;
+            } else if (ch === '?' && depth === 0) {
+                questionIdx = i;
+            } else if (ch === ':' && depth === 0) {
+                colonIdx = i;
+                break;
+            }
+        }
+
+        if (questionIdx === -1 || colonIdx === -1) return null;
+
+        return {
+            cond: expr.slice(0, questionIdx).trim(),
+            truthy: expr.slice(questionIdx + 1, colonIdx).trim(),
+            falsy: expr.slice(colonIdx + 1).trim()
+        };
+    }
+
+    findTernaryIndex(expr) {
+        let inString = false;
+        let stringChar = '';
+        let depth = 0;
+        let isEscaped = false;
+
+        for (let i = expr.length - 1; i >= 0; i--) {
+            const ch = expr[i];
+
+            if (isEscaped) {
+                isEscaped = false;
+                continue;
+            }
+
+            if (ch === '\\') {
+                isEscaped = true;
+                continue;
+            }
+
+            if (inString) {
+                if (ch === stringChar) {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (ch === '"' || ch === "'") {
+                inString = true;
+                stringChar = ch;
+                continue;
+            }
+
+            if (ch === '(' || ch === '[' || ch === '{') depth--;
+            if (ch === ')' || ch === ']' || ch === '}') depth++;
+
+            if (depth === 0 && ch === '?') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     evaluatePredicate(expr, state) {
         if (!expr || !state) return false;
         expr = expr.trim();
+
+        if (expr.startsWith("(") && expr.endsWith(")")) {
+            return this.evaluatePredicate(expr.slice(1, -1), state);
+        }
 
         if (expr.startsWith("!")) {
             const field = expr.slice(1).trim();
@@ -81,33 +182,34 @@ class AzumiTest {
             return this.evaluatePredicate(left, state) || this.evaluatePredicate(right, state);
         }
 
-        const ternaryMatch = expr.match(/^(.+?)\s*\?\s*(.+?)\s*:\s*(.+)$/);
-        if (ternaryMatch) {
-            const cond = this.evaluatePredicate(ternaryMatch[1].trim(), state);
-            const truthyResult = ternaryMatch[2].trim();
-            const falsyResult = ternaryMatch[3].trim();
-            const result = cond ? truthyResult : falsyResult;
-            return !!this.evaluateExpression(result, state);
+        const ternaryIdx = this.findTernaryIndex(expr);
+        if (ternaryIdx !== -1) {
+            const ternary = this.parseTernary(expr);
+            if (ternary) {
+                const cond = this.evaluatePredicate(ternary.cond, state);
+                const result = cond ? ternary.truthy : ternary.falsy;
+                return !!this.evaluateExpression(result, state);
+            }
         }
 
-        const ltMatch = expr.match(/^([\w.]+)\s*<\s*(\d+)$/);
+        const ltMatch = expr.match(/^([\w.]+)\s*<\s*([\d.]+)$/);
         if (ltMatch) {
-            return (state[ltMatch[1]] || 0) < parseInt(ltMatch[2], 10);
+            return (parseFloat(state[ltMatch[1]]) || 0) < parseFloat(ltMatch[2]);
         }
 
-        const gtMatch = expr.match(/^([\w.]+)\s*>\s*(\d+)$/);
+        const gtMatch = expr.match(/^([\w.]+)\s*>\s*([\d.]+)$/);
         if (gtMatch) {
-            return (state[gtMatch[1]] || 0) > parseInt(gtMatch[2], 10);
+            return (parseFloat(state[gtMatch[1]]) || 0) > parseFloat(gtMatch[2]);
         }
 
-        const lteMatch = expr.match(/^([\w.]+)\s*<=\s*(\d+)$/);
+        const lteMatch = expr.match(/^([\w.]+)\s*<=\s*([\d.]+)$/);
         if (lteMatch) {
-            return (state[lteMatch[1]] || 0) <= parseInt(lteMatch[2], 10);
+            return (parseFloat(state[lteMatch[1]]) || 0) <= parseFloat(lteMatch[2]);
         }
 
-        const gteMatch = expr.match(/^([\w.]+)\s*>=\s*(\d+)$/);
+        const gteMatch = expr.match(/^([\w.]+)\s*>=\s*([\d.]+)$/);
         if (gteMatch) {
-            return (state[gteMatch[1]] || 0) >= parseInt(gteMatch[2], 10);
+            return (parseFloat(state[gteMatch[1]]) || 0) >= parseFloat(gteMatch[2]);
         }
 
         const eqMatch = expr.match(/^([\w.]+)\s*==\s*['"]([^'"]*)['"]$/);
@@ -134,28 +236,38 @@ class AzumiTest {
             return expr.slice(1, -1).replace(/\\(['")\\])/g, '$1');
         }
 
-        const ternaryMatch = expr.match(/^(.+?)\s*\?\s*(.+?)\s*:\s*(.+)$/);
-        if (ternaryMatch) {
-            const condVal = this.evaluatePredicate(ternaryMatch[1].trim(), state);
-            const truthyResult = ternaryMatch[2].trim();
-            const falsyResult = ternaryMatch[3].trim();
-            return condVal
-                ? this.evaluateExpression(truthyResult, state)
-                : this.evaluateExpression(falsyResult, state);
+        const ternaryIdx = this.findTernaryIndex(expr);
+        if (ternaryIdx !== -1) {
+            const ternary = this.parseTernary(expr);
+            if (ternary) {
+                const condVal = this.evaluatePredicate(ternary.cond, state);
+                return condVal
+                    ? this.evaluateExpression(ternary.truthy, state)
+                    : this.evaluateExpression(ternary.falsy, state);
+            }
         }
 
-        const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+)$/);
+        const orIdx = this.findOperatorIndex(expr, "||");
+        if (orIdx !== -1) {
+            const field = expr.slice(0, orIdx).trim();
+            const defaultVal = expr.slice(orIdx + 2).trim();
+            const fieldVal = this.evaluateExpression(field, state);
+            return fieldVal !== null && fieldVal !== undefined && fieldVal !== ''
+                ? fieldVal
+                : this.evaluateExpression(defaultVal, state);
+        }
+
+        const incMatch = expr.match(/^([\w.]+)\s*\+\s*([\d.]+)$/);
         if (incMatch) {
-            return (state[incMatch[1]] || 0) + parseInt(incMatch[2], 10);
+            return (parseFloat(state[incMatch[1]]) || 0) + parseFloat(incMatch[2]);
         }
 
-        const decMatch = expr.match(/^([\w.]+)\s*-\s*(\d+)$/);
+        const decMatch = expr.match(/^([\w.]+)\s*-\s*([\d.]+)$/);
         if (decMatch) {
-            return (state[decMatch[1]] || 0) - parseInt(decMatch[2], 10);
+            return (parseFloat(state[decMatch[1]]) || 0) - parseFloat(decMatch[2]);
         }
 
-        // No hasOwnProperty check — matches azumi.js exactly
-        if (expr in state) {
+        if (state.hasOwnProperty(expr)) {
             return state[expr];
         }
 
