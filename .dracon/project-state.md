@@ -1,10 +1,18 @@
 # Project State
 
 ## Current Focus
-Remove extensive UI attribute test cases and update dependencies.
+Update test case content for az-ui attribute binding and adjust test assertions for string matching.
 
 ## Completed
-- [x] Remove 15 test cases from `tests/attribute_tests.rs` for UI attribute bindings (set, bind, etc.)
-- [x] Update `Cargo.lock` to reflect the latest dependency versions from the latest commit
-- [x] Streamline the test suite by removing redundant or outdated tests
-- [x] Refactor `attribute_tests.rs` to focus on core functionality, excluding edge cases and string related tests
+- [x] Update test case content in `tests/attribute_tests.rs` to match new az-ui attribute binding syntax.
+- [x] Fix test assertions for string matching in `tests/attribute_tests.rs` to correctly detect the updated az-ui syntax.
+- [x] Synchronize project dependencies with latest versions and update Cargo.lock to reflect new dependency versions.
+
+## In Progress
+None
+
+## Bug Fixes
+- [ ] Fix test assertions for JSON string matching by using raw string literals (if needed).
+
+## Future Work
+- [ ] Explore adding more comprehensive test cases for az-ui attribute binding to ensure full coverage.

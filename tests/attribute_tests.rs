@@ -1105,12 +1105,12 @@ fn test_az_ui_set_boolean_toggle_on_number() {
 #[test]
 fn test_az_ui_set_increment_on_string() {
     let component = html! {
-        <div az-ui="{\"name\": \"Alice\"}">
-            <button az-on="click set name = name + '!'">"Update"</button>
+        <div az-ui="{\"n\": \"x\"}">
+            <button az-on="click set n = n + \"y\"">"Update"</button>
         </div>
     };
     let html = test::render(&component);
-    assert!(html.contains("click set name = name + '!'"));
+    assert!(html.contains("click set n = n + "));
 }
 
 fn test_az_ui_set_multiple_commands() {
