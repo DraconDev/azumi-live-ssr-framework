@@ -123,7 +123,9 @@ pub fn init_seo(config: SeoConfig) {
 #[cfg(test)]
 pub fn reset_seo() {
     if let Ok(mut guard) = SITE_CONFIG.lock() {
+        eprintln!("DEBUG reset_seo: before = {:?}", guard.is_some());
         *guard = None;
+        eprintln!("DEBUG reset_seo: after = {:?}", guard.is_some());
     }
 }
 

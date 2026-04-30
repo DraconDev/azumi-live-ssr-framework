@@ -1,7 +1,8 @@
 # Project State
 
 ## Current Focus
-Update dependency lock file to reflect new versions
+Add debug logging to reset_seo to report guard state before and after clearing
 
 ## Completed
-- [x] Update Cargo.lock to reflect updated dependency versions
+- [x] Added `eprintln!("DEBUG reset_seo: before = {:?}", guard.is_some());` before clearing the guard
+- [x] Added `eprintln!("DEBUG reset_seo: after = {:?}", guard.is_some());` after clearing the guard
