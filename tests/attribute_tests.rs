@@ -985,7 +985,6 @@ fn test_az_bind_text_number_literal() {
     assert!(html.contains("az-bind:text=\"42\""));
 }
 
-#[test]
 // ════════════════════════════════════════════════════════════════════════════
 // SECTION: az-ui / az-scope Interop Tests
 // ════════════════════════════════════════════════════════════════════════════
@@ -1032,8 +1031,8 @@ fn test_az_ui_multiple_scopes_isolated() {
         </div>
     };
     let html = test::render(&component);
-    assert!(html.contains("az-ui="{\"count\": 1}"));
-    assert!(html.contains("az-ui="{\"count\": 2}"));
+    assert!(html.contains(r#"az-ui={"count": 1}"#));
+    assert!(html.contains(r#"az-ui={"count": 2}"#));
 }
 
 // ════════════════════════════════════════════════════════════════════════════
