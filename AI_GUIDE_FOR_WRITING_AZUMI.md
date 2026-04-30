@@ -2400,8 +2400,6 @@ cargo run
 
 ### Client Runtime Integration
 
-### Client Runtime Integration
-
 The client runtime **must be manually included** if you want interactive features.
 
 ```rust
