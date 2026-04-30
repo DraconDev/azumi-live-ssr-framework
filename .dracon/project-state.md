@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-Replace `std::sync::OnceLock` with `std::sync::RwLock` in the SEO module to enable mutable global SEO state and support the `reset_seo` functionality.
+Replace `std::sync::RwLock` with `std::sync::Mutex` in the SEO module.
 
 ## Completed
-- [x] Changed the import from `std::sync::OnceLock` to `std::sync::RwLock` in `src/seo.rs`
+- [x] Switched `std::sync::RwLock` to `std::sync::Mutex` in `src/seo.rs`
