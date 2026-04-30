@@ -1,10 +1,14 @@
 # Project State
 
 ## Current Focus
-Add parenthetical grouping support to expression evaluation in Azumi client and tests.
+- Updated project dependencies and Cargo.lock file to reflect latest versions.
 
 ## Completed
-- [x] Enable `(...)` grouping in expression evaluation by stripping outer parentheses and recursively evaluating the inner expression.
-- [x] Extend Azumi client (`client/azumi.js` and minified `src/client.min.js`) with parenthetical handling before string-literal checks.
-- [x] Mirror parenthetical logic in `tests/azumi_js_tests.js` to keep test evaluation consistent with production behavior.
-- [x] Update `Cargo.lock` to reflect latest dependency versions.
+- [x] Updated Cargo.lock to latest dependency versions.
+- [x] Added JavaScript tests to CI workflow using Node.js.
+- [x] Relaxed UI attribute test assertions to verify presence of the attribute.
+- [x] Updated test case content for az-ui attribute binding and adjusted validation.
+- [x] Decommissioned extensive UI attribute test cases and updated dependencies.
+- [x] Added 12 new and updated test cases for edge cases in UI attribute handling.
+- [x] Synchronized project dependencies with latest versions and prepared for future development.
+- [x] Streamlined HTML attribute tests, reducing redundancy and simplifying the test suite.
