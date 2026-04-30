@@ -1,13 +1,10 @@
 # Project State
 
-## Current FocusImplemented full predicate expression evaluator for `az-bind` attributes, adding logical operators (AND/OR), numeric comparisons, ternary expressions, and arithmetic operations.
+## Current Focus
+Enhanced the `az-bind` expression evaluator to support complex predicates and expressions for client-side state binding.
 
 ## Completed
-- [x] Renamed `evaluateBinding` to `evaluatePredicate` with updated signature and doc comment
-- [x] Added support for logical AND (`&&`) and OR (`||`) operators in predicate expressions- [x] Added support for numeric comparison operators (`<`, `>`, `<=`, `>=`) against values
-- [x] Implemented ternary expression handling (`field ? 'a' : 'b'`) within predicates
-- [x] Added `findOperatorIndex` utility to locate logical operators outside string literals
-- [x] Added `evaluateExpression` method to evaluate arbitrary expressions returning any type
-- [x] Updated text binding processing to use `evaluateExpression` instead of direct property lookup
-- [x] Integrated new expression evaluation logic throughout predicate and binding handling
-- [x] Added comprehensive handling of literals, arithmetic (`+ N`, `- N`), and boolean literals
+- [x] Rename `evaluateBinding` to `evaluatePredicate` and expand boolean expression support with `&&`, `||`, `<`, `>`, `<=`, `>=`, and ternary operators
+- [x] Add `findOperatorIndex` helper to locate operators while respecting string literals and nesting depth
+- [x] Add `evaluateExpression` method for value-level expressions supporting string literals, arithmetic (`field + N`, `field - N`), and full ternary evaluation
+- [x] Update `az-bind:text` binding to use the new `evaluateExpression` for richer text content including literals and arithmetic
