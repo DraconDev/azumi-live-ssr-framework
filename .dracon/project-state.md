@@ -1,7 +1,5 @@
 # Project State
+##Current Focus
+Update Cargo.lock with latest dependency versions for the azumi 2 release
 
-## Current Focus
-az-bind_test_coverage_update
-
-## Completed
-- az-bind_test_coverage_review
+## Completed- [x] Update Cargo.lock with latest dependency versions
