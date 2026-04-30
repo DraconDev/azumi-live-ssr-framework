@@ -365,7 +365,7 @@ impl Counter {
 
 ### Lesson 10: Live Components with Auto-Detection
 
-**Goal:** Let the `#[azumi::component]` macro detect live state
+**Goal:** Let the `#[azumi::component]` macro detect live state and auto-inject predictions
 
 ```rust
 // When first parameter is `state: &T`, component auto-detects live mode
@@ -377,14 +377,14 @@ pub fn counter_view<'a>(state: &'a Counter) -> impl Component + 'a {
             .value { font-size: "3rem"; font-weight: "bold"; color: "#2196f3"; }
         </style>
 
-        // Auto-wrapped in az-scope div!
+        // Auto-wrapped in az-scope div with az-predictions JSON!
         <div class={counter_box}>
             <div class={value}>{state.count}</div>
             <p>"Active: " {state.active}</p>
 
-            // Manual az-on syntax (explicit)
-            <button az-on="click call increment -> this"
-                    data-predict="count += 1">
+            // Predictions are auto-detected from #[azumi::live_impl]!
+            // No data-predict needed for simple mutations
+            <button on:click={state.increment}>
                 "Increment"
             </button>
         </div>
@@ -395,8 +395,9 @@ pub fn counter_view<'a>(state: &'a Counter) -> impl Component + 'a {
 **Key Concepts:**
 
 -   First parameter `state: &T` triggers live detection
--   Component auto-wraps in `<div az-scope="...">`
--   `data-predict` hints for optimistic UI
+-   Component auto-wraps in `<div az-scope="...">` with `az-predictions` JSON
+-   `#[azumi::live_impl]` analyzes methods and stores predictions automatically
+-   Manual `data-predict` only needed for complex mutations that can't be auto-detected
 
 ---
 
