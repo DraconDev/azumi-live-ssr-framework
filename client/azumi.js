@@ -372,18 +372,26 @@ class Azumi {
 
     /**
      * Update DOM elements that display state values
-     * Reads from WeakMap first (ephemeral predictions), falls back to az-scope (server state)
+     * Reads from: WeakMap (ephemeral predictions) -> az-ui (client state) -> az-scope (server state)
      */
     updateBindings(scopeElement) {
-        const state = this.scopes.get(scopeElement) || (() => {
-            const scopeAttr = scopeElement.getAttribute("az-scope");
-            if (!scopeAttr) return null;
-            let jsonStr = scopeAttr;
-            if (scopeAttr.includes("|")) {
-                jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
-            }
-            try { return JSON.parse(jsonStr); } catch { return null; }
-        })();
+        // Priority order: WeakMap (optimistic) -> az-ui (client state) -> az-scope (server state)
+        const state = this.scopes.get(scopeElement)
+            || (() => {
+                // Check az-ui first (client-side state from 'set' command)
+                const uiAttr = scopeElement.getAttribute("az-ui");
+                if (uiAttr) {
+                    try { return JSON.parse(uiAttr); } catch { /* fall through */ }
+                }
+                // Fall back to az-scope (server state)
+                const scopeAttr = scopeElement.getAttribute("az-scope");
+                if (!scopeAttr) return null;
+                let jsonStr = scopeAttr;
+                if (scopeAttr.includes("|")) {
+                    jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
+                }
+                try { return JSON.parse(jsonStr); } catch { return null; }
+            })();
 
         if (!state) return;
 
