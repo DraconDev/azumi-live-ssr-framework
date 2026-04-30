@@ -603,7 +603,6 @@ class Azumi {
         let inString = false;
         let stringChar = '';
         let depth = 0;
-        let parenDepth = 0;
 
         for (let i = expr.length - 1; i >= 0; i--) {
             const ch = expr[i];
