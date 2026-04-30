@@ -1479,15 +1479,6 @@ pub fn auto_detected_view<'a>(state: &'a MyState) -> impl Component + 'a {
 <form on:submit={state.submit_form}>"Submit"</form>
 ```
 
-### Local State (Client-Only `set`)
-
-For temporary UI state (like dropdowns, modals, tabs) that doesn't need to involve the server, use the `set` action directly in the template.
-
-```rust
-// Toggle value (Client-side only, 0ms latency, no network)
-<button az-on="click set is_open = !is_open">"Toggle"</button>
-```
-
 ### State Management: The Hybrid Optimistic Model
 
 Azumi uses a **Hybrid Optimistic Model** for state management. This is the "Gold Standard" pattern you should always use.
