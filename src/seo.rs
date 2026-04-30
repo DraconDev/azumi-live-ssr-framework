@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use std::sync::OnceLock;
+use std::sync::Mutex;
 
 /// Escape a string for safe inclusion in an HTML attribute value (double-quoted).
 /// Prevents XSS by escaping `"`, `<`, `>`, `&`, and `'`.
@@ -50,7 +50,7 @@ fn html_text_escape(s: &str) -> String {
     out
 }
 
-static SITE_CONFIG: OnceLock<SeoConfig> = OnceLock::new();
+static SITE_CONFIG: Mutex<Option<SeoConfig>> = Mutex::new(None);
 
 #[derive(Clone, Default, Debug)]
 pub struct OpenGraph {
