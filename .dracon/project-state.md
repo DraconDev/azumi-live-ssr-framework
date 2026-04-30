@@ -1,7 +1,10 @@
 # Project State
 
 ## Current Focus
-Implement logical OR (`||`) operator in expression evaluation with updated test documenting the behavior
+Add parenthetical grouping support to expression evaluation in Azumi client and tests.
 
 ## Completed
-- [x] Updated test assertion for `a || b` expression evaluation with `a: false, b: true` to expect `false` instead of the raw expression string, documenting that the OR operator now evaluates instead of returning the expression as-is
+- [x] Enable `(...)` grouping in expression evaluation by stripping outer parentheses and recursively evaluating the inner expression.
+- [x] Extend Azumi client (`client/azumi.js` and minified `src/client.min.js`) with parenthetical handling before string-literal checks.
+- [x] Mirror parenthetical logic in `tests/azumi_js_tests.js` to keep test evaluation consistent with production behavior.
+- [x] Update `Cargo.lock` to reflect latest dependency versions.

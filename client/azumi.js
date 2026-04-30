@@ -661,6 +661,11 @@ class Azumi {
         // Empty
         if (expr === '') return '';
 
+        // Paren grouping
+        if (expr.startsWith("(") && expr.endsWith(")")) {
+            return this.evaluateExpression(expr.slice(1, -1), state);
+        }
+
         // String literal: '...' or "..."
         if ((expr.startsWith("'") && expr.endsWith("'")) ||
             (expr.startsWith('"') && expr.endsWith('"'))) {

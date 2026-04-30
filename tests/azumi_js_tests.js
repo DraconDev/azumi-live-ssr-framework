@@ -231,6 +231,10 @@ class AzumiTest {
 
         if (expr === '') return '';
 
+        if (expr.startsWith("(") && expr.endsWith(")")) {
+            return this.evaluateExpression(expr.slice(1, -1), state);
+        }
+
         if ((expr.startsWith("'") && expr.endsWith("'")) ||
             (expr.startsWith('"') && expr.endsWith('"'))) {
             return expr.slice(1, -1).replace(/\\(['")\\])/g, '$1');
