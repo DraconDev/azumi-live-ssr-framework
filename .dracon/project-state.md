@@ -1,12 +1,9 @@
 # Project State
 
 ## Current Focus
-Add comprehensive prediction metadata tests for CounterState and NestedState
+Adds az‑predictions attribute to component HTML when predictions metadata is available
 
 ## Completed
-- [x] Add test_predictions_metadata_count for CounterState
-- [x] Add test_predictions_metadata_increment for CounterState
-- [x] Add test_predictions_metadata_toggle for CounterState
-- [x] Add test_predictions_metadata_reset for CounterState
-- [x] Add test_predictions_metadata_struct_name for CounterState
-- [x] Add test_predictions_metadata_empty_for_no_methods for NestedState
+- [x] Retrieves predictions metadata via `LiveStateMetadata::predictions`
+- [x] Serializes predictions to JSON string safely with fallback empty string
+- [x] Appends `az-predictions` attribute only if predictions are non‑empty and not the default array
