@@ -115,6 +115,11 @@ pub fn init_seo(config: SeoConfig) {
     }
 }
 
+#[cfg(test)]
+pub fn reset_seo() {
+    let _ = SITE_CONFIG.take();
+}
+
 pub fn generate_head(
     title: &str,
     description: Option<&str>,
@@ -443,6 +448,7 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_image() {
+        reset_seo();
         init_seo(SeoConfig {
             title: "Site".to_string(),
             open_graph: Some(OpenGraph {
@@ -470,6 +476,7 @@ mod tests {
 
     #[test]
     fn test_generate_head_open_graph() {
+        reset_seo();
         init_seo(SeoConfig {
             title: "Site".to_string(),
             open_graph: Some(OpenGraph {
