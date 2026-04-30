@@ -560,9 +560,10 @@ class Azumi {
             }
 
             if (target && window.Idiomorph) {
-                // Save local state before morphing
+                // Save local state before morphing (preserves both az-local-state and az-ui)
                 const localStateElement = target.querySelector("[az-local-state]");
                 const savedLocalState = localStateElement ? localStateElement.getAttribute("az-local-state") : null;
+                const savedUiState = target.getAttribute("az-ui") || null;
 
                 // Morph will reconcile prediction with server truth
                 // Use outerHTML to replace component wrapper
@@ -576,6 +577,10 @@ class Azumi {
                     if (newLocalStateEl) {
                         newLocalStateEl.setAttribute("az-local-state", savedLocalState);
                     }
+                }
+                // Restore az-ui state after morphing
+                if (savedUiState) {
+                    target.setAttribute("az-ui", savedUiState);
                 }
             } else if (target) {
                 console.warn(

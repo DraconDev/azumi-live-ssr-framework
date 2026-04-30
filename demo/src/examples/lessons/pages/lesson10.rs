@@ -1,29 +1,27 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
 use azumi::prelude::*;
 
-/// Lesson 10: Client-Side State with `set`
+/// Lesson 10: Client-Side UI State with `az-ui` and `set`
 ///
-/// Learn when to use client-side state vs server state.
+/// Learn when to use az-ui (client-side) vs az-scope (server-side) state.
 #[azumi::component]
 pub fn render_page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>
                 <header class={header}>
-                    <h1 class={modern_h1}>"Lesson 10: Client-Side State"</h1>
+                    <h1 class={modern_h1}>"Lesson 10: Client-Side UI State"</h1>
                     <p class={explanation}>
                         "Azumi is server-first, but sometimes you need pure client-side interactivity for "
                         "ephemeral UI state like tabs, accordions, and toggles. "
-                        "For this, we use the "<span class={code}>"set"</span>" command."
+                        "For this, we use the "<span class={code}>"az-ui"</span>" attribute with the "<span class={code}>"set"</span>" command."
                     </p>
                 </header>
 
                 // ==========================================
                 // Example 1: Tabs
                 // ==========================================
-                // JSON fix: Use single quotes for keys/values inside style/data attributes where possible or cleaner escaping
-                // az-scope expects JSON matching: { "key": "value" }
-                <div class={modern_card} az-scope="{ \"active_tab\": \"rust\" }">
+                <div class={modern_card} az-ui="{ \"active_tab\": \"rust\" }">
                     <h2 class={modern_h2}>"Example 1: Tabs"</h2>
                     <p class={text_dim_mb}>"State is local to the browser. Refreshing resets it."</p>
 
@@ -70,7 +68,7 @@ pub fn render_page() -> impl Component {
                 // ==========================================
                 // Example 2: Accordion
                 // ==========================================
-                <div class={modern_card} az-scope="{ \"acc1\": false, \"acc2\": false }">
+                <div class={modern_card} az-ui="{ \"acc1\": false, \"acc2\": false }">
                     <h2 class={modern_h2}>"Example 2: Accordion"</h2>
 
                     <div class={accordion_item}>
@@ -104,8 +102,8 @@ pub fn render_page() -> impl Component {
                 <div class={modern_card}>
                     <h2 class={modern_h2}>"When to use what?"</h2>
                     <ul class={info_list}>
-                        <li class={info_item}><strong class={strong}>"Client 'set':"</strong>" UI state (tabs, modals, toggles). Data that can be lost on refresh."</li>
-                        <li class={info_item}><strong class={strong}>"Server Actions:"</strong>" Business data (user profile, shopping cart, database records). Data that must persist."</li>
+                        <li class={info_item}><strong class={strong}>"az-ui + set:"</strong>" UI state (tabs, modals, toggles). Ephemeral — lost on refresh."</li>
+                        <li class={info_item}><strong class={strong}>"az-scope + call:"</strong>" Business data (user profile, shopping cart, database records). Persisted on server."</li>
                     </ul>
                 </div>
             </div>

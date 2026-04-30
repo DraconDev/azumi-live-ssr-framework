@@ -8,8 +8,8 @@ pub fn azumi_plus_demo() -> impl Component {
         <div class={demo_container}>
             <h1>"Azumi+ Demo"</h1>
 
-            // Local State (Client-side only)
-            <div az-scope="{ \"count\": 0 }">
+            // Client-Side UI State (az-ui)
+            <div class={demo_container} az-ui="{ \"count\": 0 }">
                 <h2>"Client-Side Counter"</h2>
                 <p>
                     "Count: " <span az-bind:text="count">"0"</span>
