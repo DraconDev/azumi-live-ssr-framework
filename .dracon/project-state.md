@@ -1,10 +1,10 @@
-# Project State
+# ProjectState
 
 ## Current Focus
-Enhanced the `az-bind` expression evaluator to support complex predicates and expressions for client-side state binding.
+Add comprehensive tests for the az‑bind expression evaluator and update Cargo.lock dependencies.
 
 ## Completed
-- [x] Rename `evaluateBinding` to `evaluatePredicate` and expand boolean expression support with `&&`, `||`, `<`, `>`, `<=`, `>=`, and ternary operators
-- [x] Add `findOperatorIndex` helper to locate operators while respecting string literals and nesting depth
-- [x] Add `evaluateExpression` method for value-level expressions supporting string literals, arithmetic (`field + N`, `field - N`), and full ternary evaluation
-- [x] Update `az-bind:text` binding to use the new `evaluateExpression` for richer text content including literals and arithmetic
+- [x] Added test cases for az‑bind class binding using relational operators (<, >, <=, >=) and logical operators (&&, ||).
+- [x] Added test cases for az‑bind class binding with compound logical expressions (&&, ||) and ternary operators.
+- [x] Added test case for az‑bind text binding ternary expression.
+- [x] Updated Cargo.lock to the latest dependency versions.

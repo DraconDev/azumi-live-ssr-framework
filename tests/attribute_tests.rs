@@ -726,3 +726,105 @@ fn test_az_bind_class_dot_syntax() {
     let html = test::render(&component);
     assert!(html.contains("az-bind:class.liked=\"liked\""));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: az-bind Expression Evaluator Tests (v2)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_az_bind_class_less_than() {
+    let component = html! {
+        <div az-ui="{\"count\": 5}">
+            <div az-bind:class:visible="count < 10">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    // HTML escapes < to &lt;
+    assert!(html.contains("az-bind:class:visible="));
+    assert!(html.contains("count &lt; 10"));
+}
+
+#[test]
+fn test_az_bind_class_greater_than() {
+    let component = html! {
+        <div az-ui="{\"count\": 5}">
+            <div az-bind:class:active="count > 0">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    // HTML escapes > to &gt;
+    assert!(html.contains("az-bind:class:active="));
+    assert!(html.contains("count &gt; 0"));
+}
+
+#[test]
+fn test_az_bind_class_less_than_or_equal() {
+    let component = html! {
+        <div az-ui="{\"count\": 5}">
+            <div az-bind:class:ready="count <= 10">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:ready="));
+    assert!(html.contains("count &lt;="));
+}
+
+#[test]
+fn test_az_bind_class_greater_than_or_equal() {
+    let component = html! {
+        <div az-ui="{\"count\": 5}">
+            <div az-bind:class:ready="count >= 5">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:ready="));
+    assert!(html.contains("count &gt;="));
+}
+
+#[test]
+fn test_az_bind_class_compound_and() {
+    let component = html! {
+        <div az-ui="{\"a\": true, \"b\": true}">
+            <div az-bind:class:ready="a && b">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:ready=\"a && b\""));
+}
+
+#[test]
+fn test_az_bind_class_compound_or() {
+    let component = html! {
+        <div az-ui="{\"a\": false, \"b\": true}">
+            <div az-bind:class:visible="a || b">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:visible=\"a || b\""));
+}
+
+#[test]
+fn test_az_bind_class_ternary() {
+    let component = html! {
+        <div az-ui="{\"flag\": true}">
+            <div az-bind:class:active="flag ? 'yes' : 'no'">"Content"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    // HTML escapes single quotes
+    assert!(html.contains("az-bind:class:active="));
+    assert!(html.contains("flag ?"));
+}
+
+#[test]
+fn test_az_bind_text_ternary() {
+    let component = html! {
+        <div az-ui="{\"acc1\": true}">
+            <span az-bind:text="acc1 ? '−' : '+'">"+"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    // HTML escapes single quotes
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("acc1 ?"));
+}
