@@ -614,8 +614,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let predictions_const: Vec<_> = predictions_entries
         .iter()
-        .map(|(method, dsl)| quote! { (#method, #dsl) })
-        .collect();
+        .collect::<Vec<_>>();
 
     let expanded = quote! {
         impl #struct_name {
@@ -624,7 +623,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             #[doc(hidden)]
             const __AZUMI_PREDICTIONS: &'static [(&'static str, &'static str)] = &[
-                #(#predictions_const),*
+                #(#predictions_const)*
             ];
         }
 
@@ -636,10 +635,10 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
                 #struct_name_str
             }
             fn local_fields() -> &'static [&'static str] {
-                &[#(#local_field_names_static),*]
+                Self::__AZUMI_LOCAL_FIELDS
             }
             fn computed_fields() -> &'static [&'static str] {
-                &[#(#computed_field_names_static),*]
+                Self::__AZUMI_COMPUTED_FIELDS
             }
         }
 
