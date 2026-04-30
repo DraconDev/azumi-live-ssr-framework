@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-chore: update Cargo.lock to latest dependency versions
+Add SEO reset before generating head in test_generate_head_basic
 
 ## Completed
-- [x] Update Cargo.lock to reflect latest dependency versions
+- [x] add reset_seo() call in test_generate_head_basic

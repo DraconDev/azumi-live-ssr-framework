@@ -386,6 +386,7 @@ mod tests {
 
     #[test]
     fn test_generate_head_basic() {
+        reset_seo();
         let result = generate_head("Test Title", Some("Test desc"), None, None, None);
         let html = crate::render_to_string(&result);
         assert!(html.contains("<title>Test Title</title>"));
