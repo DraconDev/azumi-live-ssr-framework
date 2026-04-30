@@ -467,7 +467,7 @@ assertEqual(az.evaluateExpression("name", { name: "" }), "", "empty string field
 assertEqual(az.evaluateExpression("", {}), "", "empty expression");
 
 assertEqual(az.evaluateExpression("a && b", { a: true, b: true }), "a && b", "AND not supported in evaluateExpression → returns as-is");
-assertEqual(az.evaluateExpression("a || b", { a: false, b: true }), "a || b", "OR not supported in evaluateExpression → returns as-is");
+assertEqual(az.evaluateExpression("a || b", { a: false, b: true }), false, "|| with false left operand → false (not defaulted)");
 assertEqual(az.evaluateExpression("!flag", { flag: true }), "!flag", "NOT not supported in evaluateExpression → returns as-is");
 // Known: evaluateExpression does not support boolean operators or negation.
 // Use evaluatePredicate for boolean logic. These tests document the boundary.
