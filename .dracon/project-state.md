@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Focus
-Auto‑detects predictions from `#[azumi::live_impl]` and injects `az-predictions` JSON, eliminating manual `data-predict` attributes.
+Update project dependencies to latest versions via Cargo.lock
 
 ## Completed
-- [x] Updated **AZUMI_DESCRIPTION.md** to explain macro‑generated prediction metadata and client‑side execution.
-- [x] Updated **README.md** to rename the section, describe auto‑detection, provide revised code snippets, and detail manual override and supported prediction patterns.
+- [x] Refresh Cargo.toml (binary) – no size change
+- [x] Update Cargo.lock to latest dependency versions
