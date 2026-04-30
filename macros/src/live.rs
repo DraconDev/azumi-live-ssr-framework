@@ -601,7 +601,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             #[doc(hidden)]
             const __AZUMI_PREDICTIONS: &'static [(&'static str, &'static str)] = &[
-                #(#predictions_const)*
+                #(#predictions_const),*
             ];
         }
 

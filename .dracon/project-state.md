@@ -1,7 +1,7 @@
 # Project State
 
 ## Current Focus
-Update project dependencies to latest versions via Cargo.lock modification
+feat(live): add trailing commas to macro expansion of predictions_const for correct const array syntax
 
 ## Completed
-- [x] Updated Cargo.lock to reflect latest dependencies
+- [x] add comma after #predictions_const expansion in `__AZUMI_PREDICTIONS` constant
