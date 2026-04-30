@@ -1,9 +1,8 @@
 # Project State
-
-## Current Focus
-Update Cargo.lock to latest dependency versions following the azumi 29.0.0 upgrade
+This commit modifies the Azumi client component to centralize state management, enabling smoother transitions between client-side and server-side predictions.
 
 ## Completed
-- [x] Refresh Cargo.lock with updated dependency versions (no functional changes)
-- [x] Align lock file with the azumi dependency bump to version 29.0.0
-- [x] Ensure consistency after recent documentation and version updates
+- Implemented state resolution logic using a WeakMap, az-ui, and az-scope attributes
+- Added integration and fallback mechanisms for reading from multiple scales
+- Enhanced data binding support with improved syntax handling
+- Refactored the `readState` and `updateBindings` methods for cleaner logic and priority ordering

@@ -371,35 +371,73 @@ class Azumi {
     }
 
     /**
+     * Read state from az-ui (client state) or az-scope (server state)
+     * Priority: WeakMap (ephemeral predictions) -> az-ui -> az-scope
+     */
+    readState(scopeElement) {
+        // Priority 1: WeakMap (optimistic predictions)
+        const weakState = this.scopes.get(scopeElement);
+        if (weakState) return weakState;
+
+        // Priority 2: az-ui (client-side state from 'set' command)
+        const uiAttr = scopeElement.getAttribute("az-ui");
+        if (uiAttr) {
+            try { return JSON.parse(uiAttr); } catch { /* fall through */ }
+        }
+
+        // Priority 3: az-scope (server state)
+        const scopeAttr = scopeElement.getAttribute("az-scope");
+        if (!scopeAttr) return null;
+        let jsonStr = scopeAttr;
+        if (scopeAttr.includes("|")) {
+            jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
+        }
+        try { return JSON.parse(jsonStr); } catch { return null; }
+    }
+
+    /**
+     * Safely evaluate a binding expression against state
+     * Supports: field lookup, !field, field == 'val', field != 'val'
+     */
+    evaluateBinding(expr, state) {
+        if (!expr || !state) return false;
+        expr = expr.trim();
+
+        // Toggle: !field
+        if (expr.startsWith("!")) {
+            const field = expr.slice(1).trim();
+            return !state[field];
+        }
+
+        // Equality: field == 'value' or field == "value"
+        const eqMatch = expr.match(/^([\w.]+)\s*==\s*['"]([^'"]*)['"]$/);
+        if (eqMatch) {
+            return state[eqMatch[1]] === eqMatch[2];
+        }
+
+        // Inequality: field != 'value' or field != "value"
+        const neqMatch = expr.match(/^([\w.]+)\s*!=\s*['"]([^'"]*)['"]$/);
+        if (neqMatch) {
+            return state[neqMatch[1]] !== neqMatch[2];
+        }
+
+        // Simple field name: truthy check
+        return !!state[expr];
+    }
+
+    /**
      * Update DOM elements that display state values
-     * Reads from: WeakMap (ephemeral predictions) -> az-ui (client state) -> az-scope (server state)
+     * Handles: data-bind, az-bind:text, az-bind:class:*, az-bind:class.*
      */
     updateBindings(scopeElement) {
-        // Priority order: WeakMap (optimistic) -> az-ui (client state) -> az-scope (server state)
-        const state = this.scopes.get(scopeElement)
-            || (() => {
-                // Check az-ui first (client-side state from 'set' command)
-                const uiAttr = scopeElement.getAttribute("az-ui");
-                if (uiAttr) {
-                    try { return JSON.parse(uiAttr); } catch { /* fall through */ }
-                }
-                // Fall back to az-scope (server state)
-                const scopeAttr = scopeElement.getAttribute("az-scope");
-                if (!scopeAttr) return null;
-                let jsonStr = scopeAttr;
-                if (scopeAttr.includes("|")) {
-                    jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
-                }
-                try { return JSON.parse(jsonStr); } catch { return null; }
-            })();
-
+        const state = this.readState(scopeElement);
         if (!state) return;
 
+        // 1. Legacy data-bind support (textContent only)
         const bindings = scopeElement.querySelectorAll("[data-bind]");
         bindings.forEach((el) => {
             const field = el.getAttribute("data-bind");
             if (!field) return;
-
             if (field.includes(".")) {
                 const parts = field.split(".");
                 const val = parts.reduce(
@@ -410,6 +448,64 @@ class Azumi {
             } else if (state.hasOwnProperty(field)) {
                 el.textContent = state[field];
             }
+        });
+
+        // 2. az-bind:text support (textContent with expression evaluation)
+        const textBindings = scopeElement.querySelectorAll("[az-bind\\:text]");
+        textBindings.forEach((el) => {
+            const expr = el.getAttribute("az-bind:text");
+            if (!expr) return;
+            // Simple field: "count" -> textContent = state.count
+            // Expression: "count + 1" -> not supported in v1, fallback to field value
+            if (state.hasOwnProperty(expr)) {
+                el.textContent = state[expr];
+            }
+        });
+
+        // 3. az-bind:class:* support (colon syntax, e.g. az-bind:class:active="expr")
+        const classColonBindings = scopeElement.querySelectorAll("[az-bind\\:class\\:active]");
+        classColonBindings.forEach((el) => {
+            const expr = el.getAttribute("az-bind:class:active");
+            const shouldAdd = this.evaluateBinding(expr, state);
+            el.classList.toggle("active", shouldAdd);
+        });
+
+        // Generic: handle all az-bind:class:* attributes dynamically
+        const allAttrs = scopeElement.getAttributeNames ? [] : null;
+        if (allAttrs === null) return; // Old browser
+
+        // Query all elements with az-bind:class:* pattern
+        const allClassBindings = scopeElement.querySelectorAll("[az-bind\\:class]");
+        allClassBindings.forEach((el) => {
+            el.getAttributeNames().forEach((attrName) => {
+                if (attrName.startsWith("az-bind:class:")) {
+                    const className = attrName.slice("az-bind:class:".length);
+                    const expr = el.getAttribute(attrName);
+                    const shouldAdd = this.evaluateBinding(expr, state);
+                    el.classList.toggle(className, shouldAdd);
+                }
+            });
+        });
+
+        // 4. az-bind:class.* support (dot syntax, e.g. az-bind:class.liked="liked")
+        const dotClassBindings = scopeElement.querySelectorAll("[az-bind\\.class\\.liked]");
+        dotClassBindings.forEach((el) => {
+            const expr = el.getAttribute("az-bind.class.liked");
+            const shouldAdd = this.evaluateBinding(expr, state);
+            el.classList.toggle("liked", shouldAdd);
+        });
+
+        // Generic: handle all az-bind:class.* attributes dynamically
+        const allDotBindings = scopeElement.querySelectorAll("[az-bind\\.class]");
+        allDotBindings.forEach((el) => {
+            el.getAttributeNames().forEach((attrName) => {
+                if (attrName.startsWith("az-bind.class.")) {
+                    const className = attrName.slice("az-bind.class.".length);
+                    const expr = el.getAttribute(attrName);
+                    const shouldAdd = this.evaluateBinding(expr, state);
+                    el.classList.toggle(className, shouldAdd);
+                }
+            });
         });
     }
 
