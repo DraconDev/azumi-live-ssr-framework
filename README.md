@@ -19,9 +19,9 @@ No runtime errors. No "works on my machine". No surprises.
 
 ---
 
-## 🚀 v15.18.6 Release Notes
+## 🚀 v28.0.2 Release Notes
 
-**Azumi v15.18.6** — Clean release with consolidated documentation and removed magic transformations.
+**Azumi v28.0.2** — Auto-detected optimistic predictions, SEO test isolation fixes, and macro architecture separation.
 
 ### What's New
 - **TrustedHtml Component**: User-facing escape hatch for pre-sanitized HTML from trusted sources
@@ -29,12 +29,15 @@ No runtime errors. No "works on my machine". No surprises.
 - **Stricter Raw() validation**: JS/CSS patterns blocked at compile time
 - **azumi_script()**: Returns Component (not String), properly renders without escaping
 
-### Migration from v14.x
+### Migration from v26.x → v28
+- `#[azumi::live]` + `#[azumi::live_impl]` now required together for predictions
+- Predictions auto-detected from `#[azumi::live_impl]` — manual `data-predict` is optional
+- See [MIGRATION.md](MIGRATION.md) for full v26 → v27+ upgrade guide
+
+### Migration from v14.x–v25
 - `Raw("window.location.hash...")` → Use `{session_cleanup_script()}`
 - `Raw(trusted_html)` → Use `{TrustedHtml::new(html)}`
 - All framework Components use `{}` syntax, not `@{Raw(...)}`
-
-### Migration from v6-v13
 - `#[azumi::page]` replaces manual SEO setup
 - `<script src="azumi.js" />` → Use `{azumi_script()}` (macro transformation removed)
 - `AZUMI_SECRET` still required in production
@@ -331,13 +334,18 @@ pub fn RootLayout(children: impl Component) -> impl Component {
 
 | Feature | Flag | Description |
 |---------|------|-------------|
-| `devtools` | Default | Hot reload, file watcher, CSS patching |
+| `devtools` | Optional | Hot reload, file watcher, CSS patching |
 | `schema` | Optional | Schema.org JSON-LD derive macro |
 | `test-utils` | Optional | `azumi::test` module for testing |
 
-Production builds without devtools:
+Production builds (no devtools):
 ```toml
-azumi = { version = "15.18.6", default-features = false }
+azumi = { version = "28.0.2" }
+```
+
+With devtools in development:
+```toml
+azumi = { version = "28.0.2", features = ["devtools"] }
 ```
 
 ---
@@ -742,10 +750,11 @@ When a user clicks a button, here's what happens:
 ┌─────────────────────────────────────────────────────────────────┐
 │ 2. USER CLICKS BUTTON                                          │
 ├─────────────────────────────────────────────────────────────────┤
-│ Client: Apply data-predict="count = count + 1" instantly        │
-│         (Optimistic UI — zero latency)                          │
+│ Client: Auto-detect prediction from az-predictions JSON       │
+│         (or use manual data-predict override)                   │
+│         Apply "count = count + 1" instantly (0ms latency)       │
 │ Client: POST /_azumi/action/Counter/increment                  │
-│         Body: {signed_state_json}                              │
+│         Body: {signed_state_json} (original, pre-prediction)   │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
