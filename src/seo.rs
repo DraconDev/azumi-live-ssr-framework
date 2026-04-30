@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use std::sync::Mutex;
+use std::sync::OnceLock;
 
 /// Escape a string for safe inclusion in an HTML attribute value (double-quoted).
 /// Prevents XSS by escaping `"`, `<`, `>`, `&`, and `'`.
@@ -50,7 +50,7 @@ fn html_text_escape(s: &str) -> String {
     out
 }
 
-static SITE_CONFIG: Mutex<Option<SeoConfig>> = Mutex::new(None);
+static SITE_CONFIG: OnceLock<SeoConfig> = OnceLock::new();
 
 #[derive(Clone, Default, Debug)]
 pub struct OpenGraph {
@@ -110,21 +110,8 @@ impl SeoConfig {
 }
 
 pub fn init_seo(config: SeoConfig) {
-    if let Ok(mut guard) = SITE_CONFIG.lock() {
-        if guard.is_none() {
-            *guard = Some(config);
-        } else {
-            eprintln!("WARNING: init_seo() called multiple times - first initialization preserved");
-        }
-    }
-}
-
-#[cfg(test)]
-pub fn reset_seo() {
-    if let Ok(mut guard) = SITE_CONFIG.lock() {
-        eprintln!("DEBUG reset_seo: before = {:?}", guard.is_some());
-        *guard = None;
-        eprintln!("DEBUG reset_seo: after = {:?}", guard.is_some());
+    if SITE_CONFIG.set(config).is_err() {
+        eprintln!("WARNING: init_seo() called multiple times - first initialization preserved");
     }
 }
 
@@ -135,8 +122,7 @@ pub fn generate_head(
     url: Option<&str>,
     type_: Option<&str>,
 ) -> crate::Raw<String> {
-    let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
-    let global_for_title = global.clone();
+    let global = SITE_CONFIG.get();
 
     let context_meta = crate::context::get_page_meta();
 
@@ -149,16 +135,16 @@ pub fn generate_head(
     let effective_desc = description
         .map(|s| s.to_string())
         .or(context_meta.description)
-        .or(global.as_ref().and_then(|g| g.description.clone()));
+        .or(global.and_then(|g| g.description.clone()));
 
     let effective_image = image
         .map(|s| s.to_string())
         .or(context_meta.image)
-        .or(global.as_ref().and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
+        .or(global.and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
 
-    let full_title = if let Some(ref g) = global_for_title {
-        if let Some(ref og) = g.open_graph {
-            if let Some(ref site_name) = og.site_name {
+    let full_title = if let Some(g) = global {
+        if let Some(og) = &g.open_graph {
+            if let Some(site_name) = &og.site_name {
                 if !effective_title.is_empty() {
                     format!("{} | {}", effective_title, site_name)
                 } else {
@@ -175,7 +161,7 @@ pub fn generate_head(
     };
 
     let current_path = crate::context::get_current_path();
-    let base_url = global.as_ref().and_then(|g| g.base_url.clone());
+    let base_url = global.and_then(|g| g.base_url.as_deref());
 
     let full_url = if let Some(u) = url {
         Some(u.to_string())
@@ -212,10 +198,8 @@ pub fn generate_head(
         let _ = write!(html, r#"<link rel="canonical" href="{}">"#, url);
     }
 
-    if let Some(ref g) = global {
-        eprintln!("DEBUG: global is Some, og = {:?}", g.open_graph.is_some());
-        if let Some(ref og) = g.open_graph {
-            eprintln!("DEBUG: og block entered");
+    if let Some(g) = global {
+        if let Some(og) = &g.open_graph {
             let _ = write!(
                 html,
                 r#"<meta property="og:title" content="{}">"#,
@@ -248,8 +232,8 @@ pub fn generate_head(
         }
     }
 
-    if let Some(ref g) = global {
-        if let Some(ref tw) = g.twitter {
+    if let Some(g) = global {
+        if let Some(tw) = &g.twitter {
             let safe_card = html_attr_escape(&tw.card);
             let _ = write!(
                 html,
@@ -402,7 +386,6 @@ mod tests {
 
     #[test]
     fn test_generate_head_basic() {
-        reset_seo();
         let result = generate_head("Test Title", Some("Test desc"), None, None, None);
         let html = crate::render_to_string(&result);
         assert!(html.contains("<title>Test Title</title>"));
@@ -460,7 +443,6 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_image() {
-        reset_seo();
         init_seo(SeoConfig {
             title: "Site".to_string(),
             open_graph: Some(OpenGraph {
@@ -488,7 +470,6 @@ mod tests {
 
     #[test]
     fn test_generate_head_open_graph() {
-        reset_seo();
         init_seo(SeoConfig {
             title: "Site".to_string(),
             open_graph: Some(OpenGraph {
@@ -525,10 +506,8 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_type() {
-        reset_seo();
         let result = generate_head("Title", None, None, None, Some("article"));
         let html = crate::render_to_string(&result);
-        eprintln!("DEBUG HTML: {:?}", html);
         assert!(html.contains("og:type"));
     }
 
