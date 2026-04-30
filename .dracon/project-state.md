@@ -1,11 +1,7 @@
 # Project State
 
 ## Current Focus
-Auto‑injection of prediction metadata into generated HTML via `az-predictions` JSON
+gen: auto-detect predictions from #[azumi::live_impl] and restrict manual data-predict to overrides
 
 ## Completed
-- [x] Simple mutations are auto‑analyzed and stored in `LiveStateMetadata`
-- [x] Component macro injects predictions as `az-predictions` JSON on the scope div
-- [x] Client JS reads this attribute and auto‑executes predictions on button clicks
-- [x] Documentation updated to reflect auto‑injection and manual `data-predict` usage
-- [x] Retained guidance for complex cases using `#[azumi::predict("...")]`
+- [x] Refine checklist to auto-detect predictions from #[azumi::live_impl] and only add data-predict for manual overrides

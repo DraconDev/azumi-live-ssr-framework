@@ -2772,7 +2772,7 @@ Before generating Azumi code, verify:
 - [ ] `class={...}` uses variables from `<style>`, not `@let`
 - [ ] `<style>` block comes AFTER the HTML structure
 - [ ] Event handlers use method references: `on:click={state.method}`
-- [ ] Add `data-predict="..."` to buttons for optimistic UI
+- [ ] Predictions are auto-detected from `#[azumi::live_impl]`. Add `data-predict="..."` only for manual overrides
 - [ ] No `class="..."`, `style="..."`, or `id="..."` static attributes
 - [ ] Components with state use `#[azumi::live_impl(component = "Name")]`
 - [ ] `AZUMI_SECRET` is set for production builds
