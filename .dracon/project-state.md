@@ -1,8 +1,9 @@
 # Project State
 
 ## Current Focus
-Relax az‑ui attribute test assertions to verify presence of the attribute and key rather than exact JSON formatting.
+Added JavaScript tests to the CI workflow using Node.js.
 
 ## Completed
-- [x] Simplified test expectations in `tests/attribute_tests.rs` to check for the `az-ui=` attribute and the `"count"` key instead of exact JSON strings.
-- [x] Updated `Cargo.lock` to reflect the latest dependency versions after test adjustments.
+- [x] Added JavaScript tests to CI workflow using Node.js version 20.
+- [x] Integrated Node.js setup step in CI workflow.
+- [x] Configured CI to run JavaScript evaluator tests.

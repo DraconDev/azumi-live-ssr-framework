@@ -76,6 +76,18 @@ jobs:
       - name: Test release
         run: cargo test --release
 
+  test-js:
+    name: JavaScript Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run JS evaluator tests
+        run: node tests/azumi_js_tests.js
+
   build-demo:
     name: Build Demo
     runs-on: ubuntu-latest
