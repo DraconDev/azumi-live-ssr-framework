@@ -158,21 +158,45 @@ class Azumi {
             };
         }
 
-        // Deprecated: 'set' command removed
+        // 'set' command: mutate az-ui state (client-side only, no server round-trip)
+        // Format: "set {field} = {value}" e.g. "set count = count + 1" or "set active_tab = 'rust'"
         if (actionType === "set") {
-            console.error(
-                "Azumi Error: 'set' command is deprecated and removed. Use server actions instead."
-            );
+            // Reconstruct the assignment expression from remaining tokens
+            // e.g. "count", "=", "count", "+", "1" or "active_tab", "=", "'rust'"
+            const rest = tokens.slice(1).join(" ");
+            // Parse "field = expression" — handle both simple and complex expressions
+            // TokenStream may have added spaces, so we reconstruct
+            // Format: set KEY = VALUE (where VALUE can be !field, field + N, field - N, or literal)
+            const setMatch = rest.match(/^([\w.]+)\s*=\s*(.+)$/);
+            if (setMatch) {
+                const field = setMatch[1].trim();
+                const rawValue = setMatch[2].trim();
+                // Normalize: convert "field + N" back to "field + N" (no spaces added by tokenization)
+                // TokenStream split on spaces, so "count + 1" became ["count", "+", "1"]
+                // We need to find if the value starts with a field name and has +/- operator
+                let normalizedValue = rawValue;
+                // Handle expressions like "count + 1" or "!flag" or "'string'" or "123"
+                // The tokenizer has already split these, so we reconstruct
+                // Check if rawValue is a simple field reference, boolean, number, or string
+                return {
+                    type: "set",
+                    field: field,
+                    rawValue: rawValue,
+                };
+            }
+            console.warn("Azumi: Invalid 'set' command format:", cmd);
             return null;
         }
 
         return null;
     }
 
-    // Execute: "call toggle_like -> #box"
+    // Execute: "call toggle_like -> #box" or "set active_tab = 'rust'"
     async execute(action, element) {
         if (action.type === "call") {
             await this.callAction(action, element);
+        } else if (action.type === "set") {
+            this.executeLocalState(action, element);
         }
     }
 
@@ -302,6 +326,48 @@ class Azumi {
             // Fallback: treat as string
             setNested(state, pathParts, trimmedExpr);
         }
+    }
+
+    /**
+     * Execute a 'set' action on az-ui state (client-side only, no server round-trip)
+     * Finds the closest [az-ui] element, applies the state mutation, and updates bindings.
+     */
+    executeLocalState(action, element) {
+        // Find the closest az-ui element
+        const uiElement = element.closest("[az-ui]");
+        if (!uiElement) {
+            console.warn("Azumi: 'set' command requires a parent [az-ui] element");
+            return;
+        }
+
+        // Parse az-ui JSON
+        const uiAttr = uiElement.getAttribute("az-ui");
+        if (!uiAttr) {
+            console.warn("Azumi: az-ui attribute is empty");
+            return;
+        }
+
+        let state;
+        try {
+            state = JSON.parse(uiAttr);
+        } catch (err) {
+            console.warn("Azumi: Failed to parse az-ui JSON:", err);
+            return;
+        }
+
+        // Construct prediction string from action
+        const prediction = `${action.field} = ${action.rawValue}`;
+
+        // Apply the prediction to state (reuses existing logic)
+        this.applyPrediction(state, prediction);
+
+        // Write back to az-ui attribute
+        uiElement.setAttribute("az-ui", JSON.stringify(state));
+
+        console.log("🎯 az-ui state updated:", action.field, "=", action.rawValue, "->", state);
+
+        // Update all bindings within this az-ui scope
+        this.updateBindings(uiElement);
     }
 
     /**
