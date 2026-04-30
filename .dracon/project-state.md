@@ -1,8 +1,9 @@
 # Project State
 
 ## Current Focus
-Adjust the attribute test to validate only the presence of the `az-bind:class:ready=` attribute after rendering, removing the exact expression assertion.
+Update attribute tests to validate HTML presence without debug output
 
 ## Completed
-- [x] Updated `tests/attribute_tests.rs` to replace the strict expression check with a generic attribute presence assertion.
-- [x] Added a debug `println!` to output the rendered HTML during the test run.
+- [x] Adjust test_az_bind_class_compound_and to check escaped ampersands instead of printing HTML output
+- [x] Modify test_az_bind_class_compound_or to verify attribute validity while preserving logical OR operator presence
+- [x] Update Cargo.lock to latest dependencies including azumi 29.0.0
