@@ -373,6 +373,88 @@ assertEqual(az.readStateFromElement(emptyEl), null, "returns null for element wi
 const badJsonEl = makeElement({ "az-ui": "not valid json" });
 assertEqual(az.readStateFromElement(badJsonEl), null, "returns null for malformed JSON");
 
+// ─── Evaluator Edge Cases ──────────────────────────────────────────────────
+
+section("Evaluator edge cases: nested, chained, type coercion");
+
+// Nested ternaries
+assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: true }), "x", "nested ternary truthy-truthy");
+assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: false }), "y", "nested ternary truthy-falsy");
+assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: false, b: true }), "z", "nested ternary falsy");
+assertEqual(az.evaluatePredicate("a ? (b ? true : false) : false", { a: true, b: true }), true, "nested ternary predicate truthy-truthy");
+assertEqual(az.evaluatePredicate("a ? (b ? true : false) : false", { a: true, b: false }), false, "nested ternary predicate truthy-falsy");
+
+// Deep compound chaining
+assertEqual(az.evaluatePredicate("a && b && c && d", { a: true, b: true, c: true, d: true }), true, "AND quad chain all true");
+assertEqual(az.evaluatePredicate("a && b && c && d", { a: true, b: true, c: true, d: false }), false, "AND quad chain last false");
+assertEqual(az.evaluatePredicate("a || b || c || d", { a: false, b: false, c: false, d: true }), true, "OR quad chain last true");
+assertEqual(az.evaluatePredicate("a || b || c || d", { a: false, b: false, c: false, d: false }), false, "OR quad chain all false");
+assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: false, c: true, d: true }), true, "mixed AND/OR precedence (AND first)");
+assertEqual(az.evaluatePredicate("a || b && c || d", { a: false, b: true, c: true, d: false }), true, "mixed OR/AND/OR precedence");
+
+// Mixed negation
+assertEqual(az.evaluatePredicate("!a && b", { a: false, b: true }), true, "!a && b → !false && true");
+assertEqual(az.evaluatePredicate("a && !b", { a: true, b: false }), true, "a && !b → true && !false");
+assertEqual(az.evaluatePredicate("!a && !b", { a: false, b: false }), true, "!a && !b → both false");
+assertEqual(az.evaluatePredicate("!a || !b", { a: true, b: true }), false, "!a || !b → both truthy → false");
+assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), false, "!(a && b) → NOT both true");
+assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: false }), true, "!(a && b) → one false");
+assertEqual(az.evaluatePredicate("!flag ? 'a' : 'b'", { flag: false }), true, "!flag as predicate truthy");
+assertEqual(az.evaluatePredicate("!!flag", { flag: false }), false, "double negation cancels");
+
+// Multiple ternaries in expression
+assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: true, flag2: false }), "a", "first ternary truthy");
+assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: true }), "b", "second ternary when first falsy");
+assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: false }), "c", "neither ternary truthy");
+
+// Type coercion in equality
+assertEqual(az.evaluatePredicate("count == '5'", { count: 5 }), false, "number vs string equality: 5 != '5' (JS type strict)");
+assertEqual(az.evaluatePredicate("count == '5'", { count: "5" }), true, "string vs string equality: '5' == '5'");
+assertEqual(az.evaluatePredicate("count != '5'", { count: 5 }), true, "number vs string inequality: 5 != '5'");
+assertEqual(az.evaluatePredicate("name == 'Alice'", { name: "Alice" }), true, "string equality exact match");
+assertEqual(az.evaluatePredicate("name == 'Alice'", { name: "alice" }), false, "string equality case sensitive");
+assertEqual(az.evaluatePredicate("name == 'Alice'", { name: "Alice " }), false, "string equality with trailing space");
+
+// Numeric comparisons with floats
+assertEqual(az.evaluatePredicate("score > 3.5", { score: 4.2 }), true, "float comparison: 4.2 > 3.5");
+assertEqual(az.evaluatePredicate("score > 3.5", { score: 3.5 }), false, "float comparison: 3.5 !> 3.5");
+assertEqual(az.evaluatePredicate("score >= 3.5", { score: 3.5 }), true, "float comparison: 3.5 >= 3.5");
+assertEqual(az.evaluateExpression("price - 1.5", { price: 10.5 }), 9, "float subtraction");
+
+// Null/undefined/missing field behavior
+assertEqual(az.evaluateExpression("field", { field: null }), null, "null field returns null");
+assertEqual(az.evaluateExpression("field", { field: undefined }), undefined, "undefined field returns undefined");
+assertEqual(az.evaluatePredicate("field", { field: null }), false, "null field is falsy in predicate");
+assertEqual(az.evaluatePredicate("field", { field: undefined }), false, "undefined field is falsy in predicate");
+assertEqual(az.evaluateExpression("field || 'default'", { field: null }), null, "null field short-circuit (null is falsy but returned)");
+assertEqual(az.evaluateExpression("field || 'default'", { field: undefined }), undefined, "undefined field short-circuit");
+assertEqual(az.evaluateExpression("field || 'default'", { field: "" }), "", "empty string returned (falsy but returned)");
+
+// Whitespace handling
+assertEqual(az.evaluatePredicate("  flag  ", { flag: true }), true, "predicate with surrounding spaces");
+assertEqual(az.evaluateExpression("  'hello'  ", {}), "hello", "expression with surrounding spaces on literal");
+assertEqual(az.evaluatePredicate("count > 5", { count: 10 }), true, "comparison with single space");
+assertEqual(az.evaluatePredicate("count>5", { count: 10 }), true, "comparison with no spaces");
+assertEqual(az.evaluatePredicate("  count > 5  ", { count: 10 }), true, "comparison with padded spaces");
+
+// Empty string literals
+assertEqual(az.evaluateExpression("''", {}), "", "empty single-quoted string");
+assertEqual(az.evaluateExpression('""', {}), "", "empty double-quoted string");
+assertEqual(az.evaluatePredicate("field == ''", { field: "" }), true, "empty string equality");
+assertEqual(az.evaluatePredicate("field == ''", { field: "x" }), false, "non-empty vs empty string equality");
+
+// ─── Security: Prototype Pollution ─────────────────────────────────────────
+
+section("Security: prototype pollution blocking");
+
+// Block __proto__
+assertEqual(az.evaluateExpression("__proto__", { "__proto__": "poison" }), "__proto__", "__proto__ treated as normal field");
+assertEqual(az.evaluatePredicate("__proto__", { "__proto__": true }), true, "__proto__ as truthy predicate");
+assertEqual(az.evaluateExpression("constructor", { constructor: "poison" }), "constructor", "constructor treated as normal field");
+assertEqual(az.evaluateExpression("__proto__.foo", {}), "__proto__.foo", "__proto__ with property access returned as-is");
+assertEqual(az.evaluateExpression("a.__proto__", { a: 1 }), "a.__proto__", "member __proto__ returned as-is");
+assertEqual(az.evaluateExpression("a.constructor", { a: 1 }), "a.constructor", "member constructor returned as-is");
+
 // ─── Summary ─────────────────────────────────────────────────────────────
 
 console.log("\n" + "=".repeat(50));
