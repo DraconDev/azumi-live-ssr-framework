@@ -832,3 +832,167 @@ fn test_az_bind_text_ternary() {
     assert!(html.contains("az-bind:text="));
     assert!(html.contains("acc1 ?"));
 }
+
+#[test]
+fn test_az_bind_class_inequality() {
+    let component = html! {
+        <div az-ui="{\"status\": \"pending\"}">
+            <div az-bind:class:error="status != 'ok'">"Alert"</div>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:class:error="));
+    assert!(html.contains("status !="));
+}
+
+#[test]
+fn test_az_bind_text_field_value() {
+    let component = html! {
+        <div az-ui="{\"count\": 42}">
+            <span az-bind:text="count">"0"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"count\""));
+}
+
+#[test]
+fn test_az_bind_text_equality() {
+    let component = html! {
+        <div az-ui="{\"mode\": \"dark\"}">
+            <span az-bind:text="mode == 'dark' ? '🌙' : '☀️'">"☀️"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("mode =="));
+}
+
+#[test]
+fn test_az_bind_text_inequality() {
+    let component = html! {
+        <div az-ui="{\"mode\": \"light\"}">
+            <span az-bind:text="mode != 'dark' ? 'light' : 'dark'">"light"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("mode !="));
+}
+
+#[test]
+fn test_az_bind_text_numeric_comparison() {
+    let component = html! {
+        <div az-ui="{\"score\": 8}">
+            <span az-bind:text="score > 5 ? 'high' : 'low'">"low"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("score &gt;"));
+}
+
+#[test]
+fn test_az_bind_text_negation() {
+    let component = html! {
+        <div az-ui="{\"enabled\": false}">
+            <span az-bind:text="!enabled ? 'OFF' : 'ON'">"OFF"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("!enabled"));
+}
+
+#[test]
+fn test_az_bind_text_compound_and() {
+    let component = html! {
+        <div az-ui="{\"a\": true, \"b\": true}">
+            <span az-bind:text="a && b ? 'ready' : 'waiting'">"waiting"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("&amp;&amp;"));
+}
+
+#[test]
+fn test_az_bind_text_compound_or() {
+    let component = html! {
+        <div az-ui="{\"x\": false, \"y\": true}">
+            <span az-bind:text="x || y ? 'yes' : 'no'">"yes"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("||"));
+}
+
+#[test]
+fn test_az_bind_text_arithmetic_add() {
+    let component = html! {
+        <div az-ui="{\"count\": 5}">
+            <span az-bind:text="count + 1">"6"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"count + 1\""));
+}
+
+#[test]
+fn test_az_bind_text_arithmetic_sub() {
+    let component = html! {
+        <div az-ui="{\"count\": 5}">
+            <span az-bind:text="count - 1">"4"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"count - 1\""));
+}
+
+#[test]
+fn test_az_bind_text_boolean_literals() {
+    let component = html! {
+        <div az-ui="{}">
+            <span az-bind:text="true">"truthy"</span>
+            <span az-bind:text="false">"falsy"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"true\""));
+    assert!(html.contains("az-bind:text=\"false\""));
+}
+
+#[test]
+fn test_az_bind_text_null() {
+    let component = html! {
+        <div az-ui="{}">
+            <span az-bind:text="null">"empty"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"null\""));
+}
+
+#[test]
+fn test_az_bind_text_number_literal() {
+    let component = html! {
+        <div az-ui="{}">
+            <span az-bind:text="42">"answer"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text=\"42\""));
+}
+
+#[test]
+fn test_az_bind_text_string_literal() {
+    let component = html! {
+        <div az-ui="{}">
+            <span az-bind:text="'hello'">"greeting"</span>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-bind:text="));
+    assert!(html.contains("hello"));
+}
