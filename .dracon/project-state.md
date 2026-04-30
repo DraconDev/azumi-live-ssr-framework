@@ -1,8 +1,8 @@
 # Project State
 
 ## Current Focus
-Document v1 expression evaluator limitations for az‑bind syntax
+Document v1 expression evaluator limitations for `az-bind` syntax and add comprehensive test coverage for the new `az-bind` attribute
 
 ## Completed
-- [x] Add v1 Limitations section to client/README.md describing supported operators (field lookup, equality, inequality, negation, truthy checks)
-- [x] Note unsupported operators (ternary expressions, compound operators) in the same section- [x] Clarify that expressions survive DOM morphing while adhering to v1 constraints
+- [x] **v1 Limitations**: Documented expression evaluator capabilities (field lookup, equality, inequality, negation, truthy checks) and unsupported features (ternary expressions, compound operators)
+- [x] **Event Binding Systems**: Added documentation section outlining new client-side binding capabilities
