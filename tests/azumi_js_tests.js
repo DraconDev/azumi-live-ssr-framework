@@ -472,10 +472,13 @@ assertEqual(az.evaluateExpression("field", { field: null }), null, "null field r
 assertEqual(az.evaluateExpression("field", { field: undefined }), undefined, "undefined field returns undefined");
 assertEqual(az.evaluatePredicate("field", { field: null }), false, "null field is falsy in predicate");
 assertEqual(az.evaluatePredicate("field", { field: undefined }), false, "undefined field is falsy in predicate");
-// Note: `||` operator in expressions is NOT the JS || short-circuit — it's treated as field name literal
-// So "field || 'default'" looks up a field literally named "field || 'default'" which doesn't exist → returns as-is
-assertEqual(az.evaluateExpression("field || 'default'", { field: null }), "field || 'default'", "|| in expr is field name, not JS ||");
-assertEqual(az.evaluateExpression("field || 'default'", { field: "hello" }), "field || 'default'", "|| in expr is field name, not JS ||");
+// `||` operator now supported in expressions for default values
+assertEqual(az.evaluateExpression("field || 'default'", { field: null }), "default", "|| with null → default");
+assertEqual(az.evaluateExpression("field || 'default'", { field: undefined }), "default", "|| with undefined → default");
+assertEqual(az.evaluateExpression("field || 'default'", { field: "" }), "default", "|| with empty string → default");
+assertEqual(az.evaluateExpression("field || 'default'", { field: "hello" }), "hello", "|| with truthy value → value");
+assertEqual(az.evaluateExpression("field || 'default'", { field: false }), false, "|| with false → false (not defaulted)");
+assertEqual(az.evaluateExpression("field || 'default'", { field: 0 }), 0, "|| with 0 → 0 (not defaulted)");
 
 // Whitespace handling
 assertEqual(az.evaluatePredicate("  flag  ", { flag: true }), true, "predicate with surrounding spaces");

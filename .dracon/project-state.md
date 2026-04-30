@@ -1,9 +1,8 @@
-# Project State## Current Focus
-Added full support for parenthetical grouping in ternary and predicate expressions and enabled float literal comparisons.
+# Project State
+
+## Current Focus
+Implement logical OR (`||`) operator in expression evaluation to provide default value semantics.
 
 ## Completed
-- [x] Implemented proper handling of surrounding parentheses in predicate evaluation- [x] Fixed nested ternary parsing to correctly resolve grouped sub‑expressions
-- [x] Enabled evaluation of expressions wrapped in parentheses as grouping constructs
-- [x] Added support for floating‑point literals in comparison operators
-- [x] Updated test suite to reflect new parsing behavior and float comparison results
-- [x] Updated Cargo.lock to the latest dependency versions
+- [x] feat(expression): added support for `||` operator, returning the right‑hand side when the left value is null, undefined, or empty string, while preserving falsy values like `false` and `0`.
+- [x] test(expression): updated JavaScript tests to verify correct defaulting behavior and edge cases for the new `||` operator.
