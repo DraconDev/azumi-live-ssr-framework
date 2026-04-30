@@ -233,10 +233,13 @@ assertEqual(az.findOperatorIndex("a <= b", "<="), 2, "finds <= at index 2");
 assertEqual(az.findOperatorIndex("a >= b", ">="), 2, "finds >= at index 2");
 assertEqual(az.findOperatorIndex("a == 'val'", "=="), 2, "finds == at index 2");
 assertEqual(az.findOperatorIndex("a != 'val'", "!="), 2, "finds != at index 2");
-assertEqual(az.findOperatorIndex("x && y && z", "&&"), 2, "finds first && in chain");
+// azumi.js scans RIGHT-TO-LEFT so 'a && b && c' returns 7 (position of rightmost &&)
+assertEqual(az.findOperatorIndex("a && b && c", "&&"), 7, "finds rightmost && in chain at index 7");
 assertEqual(az.findOperatorIndex("(a && b) || c", "||"), 9, "ignores && inside parens for ||");
-assertEqual(az.findOperatorIndex("a < b && c > d", "&&"), 6, "finds && avoiding < and > at index 6");
+assertEqual(az.findOperatorIndex("a < b && c > d", "&&"), 8, "finds && avoiding < and > at index 8");
 assertEqual(az.findOperatorIndex("no operator here", "&&"), -1, "returns -1 when not found");
+// Right-to-left scan finds the leftmost ! position
+assertEqual(az.findOperatorIndex("!flag ? 'a' : 'b'", "!"), 0, "finds ! at index 0 for negation in ternary");
 
 // ─── evaluatePredicate ─────────────────────────────────────────────────────
 
