@@ -126,6 +126,12 @@ pub fn reset_seo() {
     }
 }
 
+fn drop_seo() {
+    if let Ok(mut guard) = SITE_CONFIG.lock() {
+        *guard = None;
+    }
+}
+
 pub fn generate_head(
     title: &str,
     description: Option<&str>,
@@ -518,6 +524,7 @@ mod tests {
 
     #[test]
     fn test_generate_head_with_type() {
+        drop_seo();
         reset_seo();
         let result = generate_head("Title", None, None, None, Some("article"));
         let html = crate::render_to_string(&result);
