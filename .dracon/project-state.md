@@ -1,7 +1,8 @@
 # Project State
 
 ## Current Focus
-chore: update Cargo.lock to reflect updated dependency versions
+Add debug logging for global and OG state in `generate_head`
 
 ## Completed
-- [x] chore(docs): Update Cargo.lock to reflect updated dependency versions
+- [x] Add eprintln!("DEBUG: global is Some, og = {:?}", g.open_graph.is_some());
+- [x] Add eprintln!("DEBUG: og block entered");
