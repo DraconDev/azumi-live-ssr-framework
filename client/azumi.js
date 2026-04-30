@@ -685,7 +685,7 @@ class Azumi {
         } else {
             this.scopes.delete(scopeElement);
         }
-        console.log("⏪ Prediction rolled back");
+        this.log("Prediction rolled back");
     }
 
     // Server action with optimistic prediction
@@ -701,12 +701,10 @@ class Azumi {
             if (scopeElement._azumi_pending) {
                 // Clear stale locks after 30 seconds (server crash / network hang)
                 if (Date.now() - (scopeElement._azumi_pending_time || 0) > 30000) {
-                    console.warn("🔓 Clearing stale action lock (>30s timeout)");
+                    this.warn("Clearing stale action lock (>30s timeout)");
                     scopeElement._azumi_pending = false;
                 } else {
-                    console.warn(
-                        "🚫 Action ignored: Request already pending for this component."
-                    );
+                    this.warn("Action ignored: Request already pending for this component.");
                     return;
                 }
             }
@@ -759,35 +757,25 @@ class Azumi {
                             );
                             if (found) {
                                 prediction = found[1];
-                                console.log(
-                                    "[Azumi] Auto-detected prediction for",
-                                    methodName,
-                                    ":",
-                                    prediction
-                                );
+                                this.log("Auto-detected prediction for", methodName, ":", prediction);
                             }
                         }
                     }
                 } catch (e) {
-                    console.warn("[Azumi] Failed to parse az-predictions:", e);
+                    this.warn("Failed to parse az-predictions:", e);
                 }
             }
         }
 
         if (prediction && scopeElement) {
-            console.log("[Azumi] Executing Optimistic Prediction:", prediction);
+            this.log("Executing Optimistic Prediction:", prediction);
             // Execute prediction. This updates the DOM optimistically.
             // But we already captured 'body' (original state) above, so we are safe!
             predictionResult = this.executePrediction(scopeElement, prediction);
         }
 
         try {
-            console.log(
-                "[Azumi] Fetching Action:",
-                action.url,
-                "Payload:",
-                body
-            );
+            this.log("Fetching Action:", action.url, "Payload:", body);
             const res = await fetch(action.url, {
                 method: "POST",
                 headers: {
@@ -796,12 +784,12 @@ class Azumi {
                 body, // Sends the ORIGINAL, validly signed state
             });
 
-            console.log("[Azumi] Server Response Status:", res.status);
+            this.log("Server Response Status:", res.status);
 
             if (!res.ok) throw new Error(`Action failed: ${res.status}`);
 
             const html = await res.text();
-            console.log("[Azumi] Received HTML length:", html.length);
+            this.log("Received HTML length:", html.length);
 
             // OPTIMIZATION: Check if server state matches prediction
             // If prediction was correct, skip morphing to prevent flicker
@@ -842,13 +830,11 @@ class Azumi {
                     target.setAttribute("az-ui", savedUiState);
                 }
             } else if (target) {
-                console.warn(
-                    "Idiomorph not loaded, falling back to outerHTML replacement"
-                );
+                this.warn("Idiomorph not loaded, falling back to outerHTML replacement");
                 target.outerHTML = html;
             }
         } catch (err) {
-            console.error("Action Call Error:", err);
+            this.error("Action Call Error:", err);
             // Rollback optimistic update
             if (predictionResult && scopeElement) {
                 this.rollbackPrediction(
@@ -865,4 +851,4 @@ class Azumi {
 
 // Initialize
 window.azumi = new Azumi();
-console.log("Azumi Live Client Initialized 🚀");
+this.log("Azumi Live Client Initialized 🚀");
