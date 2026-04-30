@@ -1489,10 +1489,10 @@ Azumi uses a **Hybrid Optimistic Model** for state management. This is the "Gold
 4.  **Reconciliation**: The client seamlessly morphs to the server's signed state.
 
 **Why not just use client state?**
-Pure client state (like the now-removed `set` command) is "Zombie State". It looks alive but lacks the cryptographic signature from the server. The moment you interact with the server again, your unsigned local changes are rejected and overwritten.
+Pure client state without server round-trips is "Zombie State". It looks alive but lacks the cryptographic signature from the server. The moment you interact with the server again, your unsigned local changes are rejected and overwritten.
 
 **Best Practice:**
-Implement interactivity via `#[azumi::live_impl]` methods and add `data-predict` attributes to buttons for optimistic UI:
+Implement interactivity via `#[azumi::live_impl]` methods. Predictions are **auto-detected** for simple mutations. Add `data-predict` only for custom overrides or complex cases:
 
 ```rust
 #[azumi::live_impl(component = "like_button")]
@@ -1503,21 +1503,26 @@ impl LikeState {
 }
 
 // In your component template:
-<button on:click={state.toggle} data-predict="liked = !liked">"Like"</button>
+// Predictions auto-detected from #[azumi::live_impl]!
+<button on:click={state.toggle}>"Like"</button>
+
+// Manual override for custom prediction:
+<button on:click={state.toggle} data-predict="liked = !liked; count = count + 1">"Like"</button>
 ```
 
 #### 2. Manual (Complex Logic)
 
-For complex mutations (vectors, structs, arbitrary logic), explicitly define the prediction using `data-predict`.
+For complex mutations that can't be auto-detected, explicitly define the prediction using `data-predict` or `#[azumi::predict("...")]`.
 
 ```rust
-// HTML
-<button
-    on:click={state.add_todo}
-    data-predict="todos.push({ text: input, id: -1 })"
->
-    "Add Todo"
-</button>
+#[azumi::live_impl(component = "todo_view")]
+impl TodoList {
+    #[azumi::predict("todos.push({ text: input, id: -1 })")]
+    pub fn add_todo(&mut self) {
+        self.todos.push(TodoItem { id: -1, text: self.input.clone(), completed: false });
+        self.input.clear();
+    }
+}
 ```
 
 **Key Benefits:**
@@ -1898,18 +1903,25 @@ Azumi validates HTML structure at compile time:
 ```
 User clicks on:click={state.increment}
 ↓
-1. READ: Client reads data-predict attribute
+1. READ: Client checks data-predict (manual override) →
+   if absent, reads az-predictions JSON from parent scope
 ↓
 2. INSTANT: Execute prediction locally (0ms latency!)
 ↓
-3. ASYNC: Send request to server
+3. ASYNC: Send request to server with ORIGINAL signed state
 ↓
 4. RECONCILE: Server returns HTML, morph into DOM
 ↓
 5. VERIFY: If prediction was wrong, server wins
 ```
 
-**Note**: `#[azumi::live_impl]` auto-analyzes simple method mutations (toggle, increment, literal assignment) and stores them in `LiveStateMetadata`. The component macro automatically injects these predictions as `az-predictions` JSON on the scope div. The client JS reads this attribute and auto-executes predictions when buttons are clicked. You can still add manual `data-predict` attributes to buttons for custom predictions or when auto-detection isn't sufficient. For complex mutations that can't be auto-detected, use `#[azumi::predict("...")]` on the method.
+**Auto-detection flow**:
+1. `#[azumi::live_impl]` analyzes method bodies at compile time
+2. Stores predictions in `LiveStateMetadata`
+3. Component macro serializes predictions as `az-predictions` JSON on the scope div
+4. Client JS reads `az-predictions` on click and executes the matching prediction
+5. Manual `data-predict` always takes precedence over auto-detected predictions
+6. For complex mutations, use `#[azumi::predict("...")]` on the method
 
 ### Supported Prediction Patterns
 
@@ -1924,14 +1936,34 @@ User clicks on:click={state.increment}
 | `"items.push({text: input})"` | Add to vector |
 | `"items = []"` | Clear vector |
 
-### Adding Predictions to Buttons
+### Predictions: Auto-Detected (Default)
+
+For simple mutations, predictions are **automatically detected** by `#[azumi::live_impl]` and injected as `az-predictions` JSON. No manual `data-predict` needed:
 
 ```rust
-// In your component, add data-predict to buttons:
-html! {
-    <button on:click={state.increment} data-predict="count = count + 1">"+1"</button>
-    <button on:click={state.toggle} data-predict="active = !active">"Toggle"</button>
+#[azumi::live_impl(component = "counter_view")]
+impl Counter {
+    pub fn increment(&mut self) { self.count += 1; }
+    pub fn toggle(&mut self) { self.active = !self.active; }
 }
+
+// In your component — predictions auto-detected!
+html! {
+    <button on:click={state.increment}>"+1"</button>
+    <button on:click={state.toggle}>"Toggle"</button>
+}
+```
+
+### Manual Override with `data-predict`
+
+For custom predictions or when auto-detection isn't sufficient, add `data-predict` to the element. Manual `data-predict` takes precedence over auto-detected predictions:
+
+```rust
+// Custom prediction: count goes up by 10 instead of 1
+<button on:click={state.increment} data-predict="count = count + 10">"+10"</button>
+
+// Complex prediction with multiple fields
+<button on:click={state.reset} data-predict="count = 0; active = false">"Reset"</button>
 ```
 
 ### Complex Logic (No Prediction)
@@ -2260,9 +2292,7 @@ async fn my_page_handler(
     };
 
     // 5. Render
-    azumi::render_to_string(&MyComponent::render(
-        MyComponent::Props::builder().state(&state).build().unwrap()
-    ))
+    azumi::render_to_string(&my_page(&state))
 }
 ```
 
@@ -2309,10 +2339,10 @@ Instead of manually extracting `Extension` or implementing complex traits in eve
         CurrentUser(user): CurrentUser
     ) -> impl IntoResponse {
         // Initialize state directly from the user object
-        let state = MyState {
-            name: user.map(|u| u.name)
-        };
-        azumi::render(&view(&state))
+    let state = MyState {
+        name: user.map(|u| u.name)
+    };
+    azumi::render_to_string(&view(&state))
     }
     ```
 
@@ -2436,8 +2466,6 @@ If you ever need to manually place it (e.g. for specific ordering), use `{azumi_
     "Content"
 </div>
 ```
-
-### Development Server
 
 ### Error Messages
 
