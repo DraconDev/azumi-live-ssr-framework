@@ -267,7 +267,7 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let struct_name = &input.ident;
     let struct_vis = &input.vis;
     let struct_generics = &input.generics;
-    let struct_name_str = struct_name.to_string();
+    let _struct_name_str = struct_name.to_string();
 
     // Validate that struct has named fields
     if !matches!(input.fields, Fields::Named(_)) {
@@ -364,12 +364,12 @@ pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    let local_field_names_static: Vec<_> = local_field_names
+    let _local_field_names_static: Vec<_> = local_field_names
         .iter()
         .map(|s| quote!(#s))
         .collect();
 
-    let computed_field_names_static: Vec<_> = computed_field_names
+    let _computed_field_names_static: Vec<_> = computed_field_names
         .iter()
         .map(|s| quote!(#s))
         .collect();
