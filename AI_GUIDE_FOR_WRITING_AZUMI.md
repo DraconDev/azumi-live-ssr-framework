@@ -1964,6 +1964,74 @@ html! {
 
 ---
 
+## ❓ Prediction FAQ
+
+### What is `az-predictions`?
+
+The `az-predictions` attribute is a JSON array injected by the component macro:
+
+```html
+<div az-predictions='[["increment","count = count + 1"],["toggle","active = !active"]]'>
+```
+
+It contains `(method_name, prediction_dsl)` tuples auto-detected from `#[azumi::live_impl]`.
+
+### When does `az-predictions` appear?
+
+Only when ALL of these are true:
+1. Component has a `state: &T` parameter
+2. `T` has `#[azumi::live_impl]` with predictable methods
+3. At least one method has a detectable mutation
+
+### Why is my button not optimistic?
+
+**Check 1**: Do you have both macros?
+```rust
+#[azumi::live]           // ← Required
+#[azumi::live_impl]      // ← Also required! (was optional in v26)
+impl MyState { ... }
+```
+
+**Check 2**: Is the method predictable?
+```rust
+// ✅ Auto-detected: simple self mutations
+pub fn increment(&mut self) { self.count += 1; }
+pub fn toggle(&mut self) { self.active = !self.active; }
+
+// ❌ Not auto-detected: complex logic
+pub fn complex(&mut self) {
+    db.update().await;        // async = unpredictable
+    self.count = rand();      // external call
+}
+```
+
+**Check 3**: Look at rendered HTML
+```bash
+# Should see az-predictions in the scope div
+curl http://localhost:3000 | grep "az-predictions"
+```
+
+### Can I override auto-detected predictions?
+
+Yes! Manual `data-predict` always takes precedence:
+
+```rust
+// Auto-detected: "count = count + 1"
+// But we want custom logic:
+<button on:click={state.increment} data-predict="count = count + 10">"+10"</button>
+```
+
+### How do I disable predictions for a method?
+
+Use `#[azumi::predict("")]` to provide an empty prediction:
+
+```rust
+#[azumi::predict("")]
+pub fn no_prediction(&mut self) { ... }
+```
+
+---
+
 ## 🔧 Component Props System
 
 ### Required Props

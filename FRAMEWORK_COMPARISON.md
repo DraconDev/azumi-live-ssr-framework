@@ -15,7 +15,7 @@ The web is currently divided into four camps:
 
 **Azumi leads the fifth camp: The Optimists.**
 They rely on **Compiler-Driven Optimistic UI (CDO)**. Their philosophy? **"Assume success."**
-The server matches the Purists (SSOT), but compiles optimistic predictions into the HTML. The client updates instantly, bridging the gap between static speed and dynamic feel.
+The server matches the Purists (SSOT), but analyzes `&mut self` methods at compile time to generate prediction metadata. At render time, this metadata is injected as `az-predictions` JSON into the HTML. The client reads this JSON and updates instantly when buttons are clicked, bridging the gap between static speed and dynamic feel.
 
 ---
 

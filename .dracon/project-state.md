@@ -1,6 +1,9 @@
 # Project State
 
 ## Current Focus
-Add changelog and migration guide documenting auto-detected predictions and breaking changes from v26 to v27
+Add documentation for the new auto‑detected optimistic prediction system and update framework comparison to explain metadata injection.
 
-## Completed - [x] Add CHANGELOG.md with v27.0.0 entry describing auto-detected predictions and breaking changes - [x] Add MIGRATION.md guide for v26 → v27 upgrade - [x] Add tests verifying LiveStateMetadata predictions and runtime auto-detection - [x] Fix SEO test isolation by replacing OnceLock with Mutex and adding reset_seo() - [x] Update documentation (AI_GUIDE, README, etc.) to reflect auto-detection
+## Completed
+- [x] docs(scope): add detailed Prediction FAQ explaining `az-predictions`, how it’s generated, when it appears, and how to override or disable predictions
+- [x] docs(scope): clarify in framework comparison that Azumi analyzes `&mut self` methods at compile time and injects prediction metadata as `az-predictions` JSON into the rendered HTML, enabling instant client updates without runtime prediction logic
+- [x] updated FRAMEWORK_COMPARISON.md to reflect the new metadata injection mechanism and its impact on optimistic UI
