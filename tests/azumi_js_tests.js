@@ -236,7 +236,7 @@ assertEqual(az.findOperatorIndex("a != 'val'", "!="), 2, "finds != at index 2");
 // azumi.js scans RIGHT-TO-LEFT so 'a && b && c' returns 7 (position of rightmost &&)
 assertEqual(az.findOperatorIndex("a && b && c", "&&"), 7, "finds rightmost && in chain at index 7");
 assertEqual(az.findOperatorIndex("(a && b) || c", "||"), 9, "ignores && inside parens for ||");
-assertEqual(az.findOperatorIndex("a < b && c > d", "&&"), 8, "finds && avoiding < and > at index 8");
+assertEqual(az.findOperatorIndex("a < b && c > d", "&&"), 6, "finds && avoiding < and > — rightmost scan finds && at index 6");
 assertEqual(az.findOperatorIndex("no operator here", "&&"), -1, "returns -1 when not found");
 // Right-to-left scan finds the leftmost ! position
 assertEqual(az.findOperatorIndex("!flag ? 'a' : 'b'", "!"), 0, "finds ! at index 0 for negation in ternary");
@@ -419,24 +419,35 @@ assertEqual(az.evaluatePredicate("!!!flag", { flag: true }), false, "triple nega
 assertEqual(az.evaluatePredicate("!active", { active: false }), true, "negation: !false → true");
 assertEqual(az.evaluatePredicate("!active", { active: true }), false, "negation: !true → false");
 
-// Negation compounds — ! is prefix negation, && and || are evaluated right-to-left
-// Note: azumi.js findOperatorIndex scans RIGHT-TO-LEFT, so in "a && b || c && d":
-// The rightmost && (at index 13) is found first
-// Then after slicing, the next && (at index 2) is found
-// "a && b || c && d" → first splits on rightmost && → "a && b || c" and "d"
-// "a && b || c" → splits on && → "a" and "b || c" (has ||, processed next)
-assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: false, c: true, d: true }), false, "AND/OR chain evaluates correctly");
+// Deep compound chaining
+// azumi.js scans RIGHT-TO-LEFT, so "a && b || c && d" splits on rightmost && first:
+// (a && b || c) && d → ((a && b) || c) && d — left-assoc due to right-to-left scan order
+assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: false, c: true, d: true }), true, "AND/OR chain: ((T&&F)||T)&&T");
+assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: true, c: true, d: true }), true, "AND/OR chain: ((T&&T)||T)&&T = T");
+assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: true, c: false, d: true }), true, "AND/OR chain: ((T&&T)||F)&&T = T");
+assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: false, c: false, d: true }), false, "AND/OR chain: ((T&&F)||F)&&T = F");
+assertEqual(az.evaluatePredicate("a || b && c || d", { a: false, b: true, c: true, d: false }), true, "OR/AND chain: (F||(T&&T))||F");
+assertEqual(az.evaluatePredicate("a || b && c || d", { a: false, b: false, c: false, d: false }), false, "OR/AND chain: all false");
+
+// Quad AND chain — right-to-left scan means it becomes (a && (b && (c && d)))
+assertEqual(az.evaluatePredicate("a && b && c && d", { a: true, b: true, c: true, d: true }), true, "AND quad chain all true");
+assertEqual(az.evaluatePredicate("a && b && c && d", { a: true, b: true, c: true, d: false }), false, "AND quad chain last false");
+assertEqual(az.evaluatePredicate("a || b || c || d", { a: false, b: false, c: false, d: true }), true, "OR quad chain last true");
+assertEqual(az.evaluatePredicate("a || b || c || d", { a: false, b: false, c: false, d: false }), false, "OR quad chain all false");
+
+// Negation compounds
 assertEqual(az.evaluatePredicate("!a && b", { a: false, b: true }), true, "!a && b → !false && true");
 assertEqual(az.evaluatePredicate("a && !b", { a: true, b: false }), true, "a && !b → true && !false");
 assertEqual(az.evaluatePredicate("!a && !b", { a: false, b: false }), true, "!a && !b → both false");
 assertEqual(az.evaluatePredicate("!a || !b", { a: true, b: true }), false, "!a || !b → both truthy → false");
-// Due to right-to-left scanning, !(a && b) splits on && (inside parens at index 6):
-// left = "!(a" → evaluatePredicate → !!(state["(a"] || false) → false
-// right = " b)" → evaluatePredicate → !!(state[" b)"] || false) → false
-// Result: false && false = false
-assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), false, "!(a && b) → both true → false");
-assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: false }), false, "!(a && b) → one false");
-assertEqual(az.evaluatePredicate("!(a && b)", { a: false, b: false }), false, "!(a && b) → both false");
+assertEqual(az.evaluatePredicate("!!flag", { flag: false }), false, "double negation cancels");
+assertEqual(az.evaluatePredicate("!!!flag", { flag: true }), false, "triple negation");
+
+// Parens NOT supported — "(a && b)" is treated as a field name literal
+// So "!(a && b)" looks up "!(a && b)" as a field name (falsy → false)
+// Known limitation: parentheses are NOT grouping operators in this evaluator
+assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), false, "!(a && b) → parens literal, falsy field → false");
+assertEqual(az.evaluatePredicate("!(a && b)", { "!(a && b)": true }), true, "!(a && b) as field name works when present");
 
 // Multiple ternaries in expression
 assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: true, flag2: false }), "a", "first ternary truthy");
