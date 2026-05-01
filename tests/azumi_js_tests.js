@@ -780,9 +780,9 @@ const m2 = { user: { profile: {} } };
 az.applyPrediction(m2, "user.profile.age = 30");
 assertEqual(m2.user.profile.age, 30, "applyPrediction: deep set under existing chain");
 
-const m3 = { existing: {} };
+const m3 = { existing: { deep: {} } };
 az.applyPrediction(m3, "existing.deep.value = 'set'");
-assertEqual(m3.existing.deep.value, "set", "applyPrediction: extends existing object");
+assertEqual(m3.existing.deep.value, "set", "applyPrediction: sets value in existing nested object");
 
 // Missing intermediate path does NOT create objects (security design)
 const m4 = {};
