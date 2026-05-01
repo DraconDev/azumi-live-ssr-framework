@@ -274,9 +274,11 @@ class AzumiTest {
             const field = expr.slice(0, orIdx).trim();
             const defaultVal = expr.slice(orIdx + 2).trim();
             const fieldVal = this.evaluateExpression(field, state);
-            return fieldVal !== null && fieldVal !== undefined && fieldVal !== ''
-                ? fieldVal
-                : this.evaluateExpression(defaultVal, state);
+            // Only fall through to default if the field resolved to null, undefined, or ''
+            if (fieldVal != null && fieldVal !== undefined && fieldVal !== '') {
+                return fieldVal;
+            }
+            return this.evaluateExpression(defaultVal, state);
         }
 
         const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
@@ -291,10 +293,20 @@ class AzumiTest {
             return (parseFloat(this.getNestedValue(state, fieldPath)) || 0) - parseFloat(decMatch[2]);
         }
 
-        const val = this.getNestedValue(state, expr.split('.'));
-        if (val !== undefined) {
-            return val;
+        const pathParts = expr.split('.');
+        // Check if the full path is resolvable (all segments exist in state)
+        // If not (undefined returned because path doesn't exist), fall through to return expr
+        const val = this.getNestedValue(state, pathParts);
+        const parent = pathParts.length > 1
+            ? this.getNestedValue(state, pathParts.slice(0, -1))
+            : state;
+        if (parent != null && parent !== undefined) {
+            // Parent object exists - return the actual value (even if undefined)
+            if (val !== undefined) return val;
+            // val is undefined but parent exists → field IS set (to undefined)
+            return undefined;
         }
+        // Parent doesn't exist → field doesn't exist → return expr as-is
 
         if (/^-?\d+$/.test(expr)) {
             return parseInt(expr, 10);
