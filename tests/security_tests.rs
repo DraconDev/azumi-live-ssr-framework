@@ -765,9 +765,9 @@ fn test_verify_rejects_truncated_base64() {
 #[test]
 fn test_verify_rejects_modified_timestamp() {
     let signed = security::sign_state(r#"{"count":10}"#);
-    let parts: Vec<&str> = signed.splitn(2, '|').collect();
+    let parts: Vec<&str> = signed.split('|').collect();
     let signed2 = security::sign_state(r#"{"count":10}"#);
-    let parts2: Vec<&str> = signed2.splitn(2, '|').collect();
+    let parts2: Vec<&str> = signed2.split('|').collect();
     let tampered = format!("{}|{}|{}", parts[0], parts2[1], parts[2]);
     let result = security::verify_state(&tampered);
     assert!(result.is_err(), "Modified timestamp should be rejected");
@@ -777,8 +777,9 @@ fn test_verify_rejects_modified_timestamp() {
 fn test_verify_rejects_missing_timestamp() {
     let json = r#"{"count":10}"#;
     let signed = security::sign_state(json);
-    let parts: Vec<&str> = signed.splitn(2, '|').collect();
-    let without_ts = format!("{}|{}", parts[0], parts[1]);
+    let parts: Vec<&str> = signed.split('|').collect();
+    assert_eq!(parts.len(), 3, "Expected json|timestamp|signature format");
+    let without_ts = format!("{}|{}", parts[0], parts[2]);
     let result = security::verify_state(&without_ts);
     assert!(result.is_err(), "Missing timestamp should be rejected");
 }
