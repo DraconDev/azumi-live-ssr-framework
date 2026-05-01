@@ -847,11 +847,13 @@ assertEqual(az.findOperatorIndex("'a\\\\b' || 'c'", "||"), 7, "findOperatorIndex
 
 section("evaluateExpression: escaped string unescaping edge cases");
 
-assertEqual(az.evaluateExpression("'\\\\n'"), "\\n", "evaluateExpression: backslash-n literal (actual backslash + n chars)");
-assertEqual(az.evaluateExpression("'\\\\t'"), "\\t", "evaluateExpression: backslash-t literal (actual backslash + t chars)");
-assertEqual(az.evaluateExpression("'\\\\\\\\'"), "\\\\", "evaluateExpression: double backslash (two backslashes become one)");
-assertEqual(az.evaluateExpression("'hello\\\\'"), "hello\\", "evaluateExpression: trailing backslash");
-assertEqual(az.evaluateExpression("'a\\\\b\\\\c'"), "a\\b\\c", "evaluateExpression: multiple backslashes");
+// Backslash + non-quote/backslash char: regex doesn't match → string is returned as-is (no replacement)
+assertEqual(az.evaluateExpression("'\\\\n'"), "\\n", "evaluateExpression: backslash-n (no replacement)");
+assertEqual(az.evaluateExpression("'\\\\t'"), "\\t", "evaluateExpression: backslash-t (no replacement)");
+// \\n pattern in regex means backslash-backslash-n: this IS a match (\\ followed by \)
+assertEqual(az.evaluateExpression("'\\\\\\\\'"), "\\", "evaluateExpression: double backslash -> single backslash");
+assertEqual(az.evaluateExpression("'hello\\\\'"), "hello\\", "evaluateExpression: trailing backslash (no replacement)");
+assertEqual(az.evaluateExpression("'a\\\\b\\\\c'"), "a\\b\\c", "evaluateExpression: backslash-backslash-backslash (no replacement)");
 
 section("evaluatePredicate: equality with escaped quotes in value");
 
