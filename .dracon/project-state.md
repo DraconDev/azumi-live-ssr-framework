@@ -1,26 +1,23 @@
 # Project State
 
 ## Current Focus
-Enhanced test coverage for Azumi's nested property access in expression parser
+Enhanced test coverage for Azumi's nested property access with security-focused validation
 
 ## Context
-The recent refactoring added support for nested property access in Azumi's expression parser. These tests verify that the implementation correctly handles:
-- Deep property assignment
-- Intermediate object creation when parent objects exist
-- Proper error handling for missing parent objects
+The changes improve test coverage for Azumi's nested property access functionality, particularly around security considerations when creating intermediate objects in nested paths.
 
 ## Completed
-- [x] Updated test cases to reflect the new nested property access behavior
-- [x] Added test for deep property assignment under existing parent objects
-- [x] Improved test descriptions to clarify expected behavior
-- [x] Added test for nested chain assignment under existing parent objects
+- [x] Added test cases for security design where intermediate paths must exist before nested property creation
+- [x] Updated test comments to clarify security requirements
+- [x] Added explicit test case showing that missing parent paths prevent object creation
+- [x] Enhanced test documentation for prototype pollution guard section
 
 ## In Progress
 - [x] Comprehensive test coverage for nested property access scenarios
 
 ## Blockers
-- No blockers identified
+- None identified in this commit
 
 ## Next Steps
-1. Review test coverage for edge cases (e.g., null/undefined parents)
-2. Consider adding performance tests for nested property access
+1. Verify all test cases pass in CI
+2. Consider additional edge cases for nested property access

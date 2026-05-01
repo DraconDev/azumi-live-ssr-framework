@@ -770,10 +770,11 @@ assertEqual(i6.stats.total, 1, "applyPrediction: deep increment");
 section("applyPrediction: creates intermediate objects (pre-existing parent)");
 
 // setNested only creates intermediate objects if the parent already exists
-// It cannot create `a.b` from an empty `{}` — the parent `a` must exist first
-const m1 = { a: {} };
+// It CANNOT create `a.b` from an empty `{}` — the parent `a` must exist first
+// This is a security design: partial paths must exist for safety
+const m1 = { a: { b: {} } };
 az.applyPrediction(m1, "a.b.c = 5");
-assertEqual(m1.a.b.c, 5, "applyPrediction: creates nested c under existing a.b");
+assertEqual(m1.a.b.c, 5, "applyPrediction: creates c under existing a.b");
 
 const m2 = { user: { profile: {} } };
 az.applyPrediction(m2, "user.profile.age = 30");
@@ -782,6 +783,12 @@ assertEqual(m2.user.profile.age, 30, "applyPrediction: deep set under existing c
 const m3 = { existing: {} };
 az.applyPrediction(m3, "existing.deep.value = 'set'");
 assertEqual(m3.existing.deep.value, "set", "applyPrediction: extends existing object");
+
+// Missing intermediate path does NOT create objects (security design)
+const m4 = {};
+az.applyPrediction(m4, "a.b.c = 5");
+// setNested returns early because target (a) is undefined → m4 remains {}
+assertEqual(m4.a, undefined, "applyPrediction: missing parent path → no creation");
 
 section("applyPrediction: prototype pollution guard");
 
