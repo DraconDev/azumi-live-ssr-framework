@@ -469,21 +469,31 @@ az.applyPrediction(m3, "existing.deep.value = 'set'");
 assertEqual(m3.existing.deep.value, "set", "applyPrediction: sets value in existing nested object");
 
 section("applyPrediction: prototype pollution guard");
+const warnCalls = [];
+const origWarn = az.warn.bind(az);
+az.warn = (...args) => warnCalls.push(args.join(' '));
+
 const d1 = {};
 az.applyPrediction(d1, "__proto__ = 'blocked'");
-assertEqual(d1.__proto__, undefined, "applyPrediction: __proto__ blocked");
+assertEqual(warnCalls.some(c => c.includes("prototype-polluting")), true, "applyPrediction: __proto__ blocked (warn called)");
+
 const d2 = {};
 az.applyPrediction(d2, "prototype = 'blocked'");
 assertEqual(d2.prototype, undefined, "applyPrediction: prototype blocked");
+
 const d3 = {};
 az.applyPrediction(d3, "constructor = 'blocked'");
 assertEqual(d3.constructor, undefined, "applyPrediction: constructor blocked");
+
 const d4 = {};
 az.applyPrediction(d4, "toString = 'blocked'");
 assertEqual(d4.toString, undefined, "applyPrediction: toString blocked");
+
 const d5 = {};
 az.applyPrediction(d5, "valueOf = 'blocked'");
 assertEqual(d5.valueOf, undefined, "applyPrediction: valueOf blocked");
+
+az.warn = origWarn;
 
 // ─── Deep Nested Ternary Tests ─────────────────────────────────────────────
 section("Deep nested ternary: 3+ levels without parens");
