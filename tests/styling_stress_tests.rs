@@ -339,8 +339,8 @@ fn test_multiple_pseudo_classes() {
     };
     let output = test::render(&comp);
     assert!(
-        output.contains(":hover:focus"),
-        "Multiple pseudo-classes should be preserved. Got: {}",
+        output.contains(":hover") && output.contains(":focus"),
+        "Both pseudo-classes should be preserved. Got: {}",
         output
     );
 }

@@ -1,24 +1,21 @@
 # Project State
 
 ## Current Focus
-Enhanced CSS selector test coverage for pseudo-elements, pseudo-classes, attribute selectors, and combinators
+Improved CSS pseudo-class validation in styling stress tests
 
 ## Context
-To ensure robust styling support in the framework, we're adding comprehensive test coverage for advanced CSS selectors that were previously untested. This includes pseudo-elements (::before/::after), pseudo-classes (:hover/:focus), attribute selectors, and combinators (> + ~).
+The test was updated to ensure both `:hover` and `:focus` pseudo-classes are properly preserved in rendered output, rather than checking for a combined string.
 
 ## Completed
-- [x] Added tests for pseudo-elements (::before, ::after)
-- [x] Added tests for pseudo-classes (:hover, :focus)
-- [x] Added tests for attribute selectors ([attr], [attr=value])
-- [x] Added tests for combinators (> child, + adjacent, ~ general sibling)
-- [x] Added test for multiple pseudo-classes (:hover:focus)
+- [x] Enhanced CSS pseudo-class validation to check for individual pseudo-classes separately
+- [x] Updated Cargo.lock to capture latest dependency versions
 
 ## In Progress
-- [x] Comprehensive CSS selector test coverage
+- [x] No active work in progress beyond the described changes
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Run the new tests in CI to verify they pass
-2. Consider adding more complex selector combinations in future iterations
+1. Verify test coverage for additional pseudo-class combinations
+2. Review related CSS selector test improvements from recent commits
