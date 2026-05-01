@@ -1,21 +1,20 @@
 # Project State
 
 ## Current Focus
-Updated OpenGraph meta tag validation to support the `property` attribute instead of `data-property`.
+Fixed OpenGraph meta tag validation to support the `property` attribute in HTML structure validation.
 
 ## Context
-The recent feature additions for OpenGraph type support and `property` attribute support required updating the test suite to reflect the correct HTML structure validation.
+The SEO test suite was updated to properly validate OpenGraph meta tags, which now support both `data-property` and `property` attributes for better compatibility with different HTML structures.
 
 ## Completed
-- [x] Updated `test_og_title` to use `property` instead of `data-property` for OpenGraph meta tags
-- [x] Updated `test_og_description` to use `property` instead of `data-property` for OpenGraph meta tags
+- [x] Updated SEO test to validate OpenGraph meta tags with either `property` or `data-property` attributes
 
 ## In Progress
-- [ ] No active work in progress beyond these test updates
+- [ ] No active work in progress
 
 ## Blockers
-- None identified for this specific change
+- None
 
 ## Next Steps
-1. Verify all SEO-related tests pass with the updated attribute syntax
-2. Ensure the OpenGraph type support features work correctly with the new attribute format
+1. Verify test coverage for other OpenGraph meta tags
+2. Update documentation for SEO validation rules

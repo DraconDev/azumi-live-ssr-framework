@@ -88,7 +88,7 @@ fn test_og_description() {
 #[test]
 fn test_og_image() {
     let component = html! {
-        <meta data-property="og:image" content="/images/og.jpg" />
+        <meta property="og:image" content="/images/og.jpg" />
     };
     let html = test::render(&component);
     assert!(html.contains("og:image") || html.contains("/images/og.jpg"));
