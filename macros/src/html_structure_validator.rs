@@ -632,9 +632,9 @@ pub fn validate_tag_name(elem: &Element) -> Option<TokenStream> {
         "ms",
         "mtext",
         "mrow",
-        "frac",
-        "sqrt",
-        "root",
+        "mfrac",
+        "msqrt",
+        "mroot",
     ];
 
     if !valid_tags.contains(&name.as_str()) {
@@ -700,6 +700,7 @@ pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<
         "enterkeyhint",
         "hidden",
         "id",
+        "inert",
         "inputmode",
         "is",
         "itemid",
@@ -745,7 +746,6 @@ pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<
         "charset",
         "checked",
         "cite",
-        "color",
         "cols",
         "colspan",
         "content",
