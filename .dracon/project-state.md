@@ -1,21 +1,24 @@
 # Project State
 
 ## Current Focus
-Improved CSS pseudo-class validation in styling stress tests
+Expanded accessibility test coverage for ARIA roles and input types
 
 ## Context
-The test was updated to ensure both `:hover` and `:focus` pseudo-classes are properly preserved in rendered output, rather than checking for a combined string.
+The accessibility test suite was enhanced to verify proper implementation of ARIA roles and input types, ensuring better compliance with WCAG standards.
 
 ## Completed
-- [x] Enhanced CSS pseudo-class validation to check for individual pseudo-classes separately
-- [x] Updated Cargo.lock to capture latest dependency versions
+- [x] Added tests for additional ARIA roles (banner, main, search, dialog, tooltip)
+- [x] Added comprehensive tests for various input types (password, number, color, file)
+- [x] Added button type validation tests (submit, reset, button)
+- [x] Included accessibility suggestions for input types (tel, url)
 
 ## In Progress
-- [x] No active work in progress beyond the described changes
+- [ ] None (all accessibility test additions are complete)
 
 ## Blockers
-- None identified
+- None (all accessibility test additions are complete)
 
 ## Next Steps
-1. Verify test coverage for additional pseudo-class combinations
-2. Review related CSS selector test improvements from recent commits
+1. Review test coverage for any missing ARIA roles or input types
+2. Consider adding integration tests for complex accessibility patterns
+```

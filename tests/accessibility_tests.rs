@@ -185,14 +185,141 @@ fn test_aria_modal() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// SECTION 2: Role Attributes (20 tests)
+// SECTION 3: Additional ARIA Roles (banner, main, search, dialog, tooltip)
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn test_role_button() {
-    let component = html! { <div role="button">"Click me"</div> };
+fn test_role_tooltip() {
+    let component = html! { <div role="tooltip">"Hint text"</div> };
     let html = test::render(&component);
-    assert!(html.contains("role=\"button\""));
+    assert!(html.contains("role=\"tooltip\""));
+}
+
+#[test]
+fn test_role_banner_is_document_region() {
+    let component = html! { <header role="banner">"Site Header"</header> };
+    let html = test::render(&component);
+    assert!(html.contains("role=\"banner\""));
+}
+
+#[test]
+fn test_role_main_is_unique_per_page() {
+    let component = html! { <main role="main">"Main Content"</main> };
+    let html = test::render(&component);
+    assert!(html.contains("role=\"main\""));
+}
+
+#[test]
+fn test_role_search_with_form() {
+    let component = html! {
+        <form role="search">
+            <input type="search" aria-label="Search" />
+        </form>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("role=\"search\""));
+}
+
+#[test]
+fn test_role_dialog_with_aria_modal() {
+    let title_id = "title";
+    let component = html! {
+        <div role="dialog" aria-modal="true" aria-labelledby={title_id}>
+            <h2 id={title_id}>"Confirm"</h2>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("role=\"dialog\"") && html.contains("aria-modal="));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION 4: Remaining Input Types
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_input_type_password() {
+    let component = html! { <input type="password" name="pwd" /> };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"password\""));
+}
+
+#[test]
+fn test_input_type_number_with_attributes() {
+    let component = html! {
+        <input type="number" name="qty" min="0" max="100" step="5" />
+    };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"number\""));
+    assert!(html.contains("min="));
+    assert!(html.contains("max="));
+    assert!(html.contains("step="));
+}
+
+#[test]
+fn test_input_type_color() {
+    let component = html! { <input type="color" name="theme" value="#ff0000" /> };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"color\""));
+}
+
+#[test]
+fn test_input_type_file_accept() {
+    let component = html! {
+        <input type="file" name="avatar" accept="image/png, image/jpeg" />
+    };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"file\""));
+    assert!(html.contains("accept="));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION 5: Button Type Validation
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_button_type_submit() {
+    let component = html! { <button type="submit">"Submit"</button> };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"submit\""));
+}
+
+#[test]
+fn test_button_type_reset() {
+    let component = html! { <button type="reset">"Reset"</button> };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"reset\""));
+}
+
+#[test]
+fn test_button_type_button() {
+    let component = html! { <button type="button">"Click me"</button> };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"button\""));
+}
+
+#[test]
+fn test_button_without_type_defaults() {
+    let component = html! { <button>"Default"</button> };
+    let html = test::render(&component);
+    assert!(html.contains("<button>"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION 6: Accessibility Suggestion (suggested_type_correction)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_input_type_tel_suggested() {
+    let component = html! { <input type="tel" name="phone" /> };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"tel\""));
+}
+
+#[test]
+fn test_input_type_url_suggested() {
+    let component = html! { <input type="url" name="website" placeholder="https://" /> };
+    let html = test::render(&component);
+    assert!(html.contains("type=\"url\""));
 }
 
 #[test]
