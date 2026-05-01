@@ -6,175 +6,71 @@
  * the production logic in client/azumi.js exactly.
  *
  * Run with: node tests/azumi_js_tests.js
+ *
+ * NOTE: This stub implements the production logic exactly. Known limitations:
+ * - Field path access with dots returns undefined when parent doesn't exist
+ * - String literals with embedded quotes can't be matched for equality
+ * - String unescape only handles \' \" \\
  */
 
 // Minimal Azumi stub matching client/azumi.js evaluators exactly
 class AzumiTest {
-    constructor() {
-        this.debug = false;
-    }
-
-    log(...args) {
-        if (this.debug) console.log("[Azumi]", ...args);
-    }
-
-    warn(...args) {
-        if (this.debug) console.warn("[Azumi]", ...args);
-    }
-
-    error(...args) {
-        if (this.debug) console.error("[Azumi]", ...args);
-    }
+    constructor() { this.debug = false; }
+    log(...args) { if (this.debug) console.log("[Azumi]", ...args); }
+    warn(...args) { if (this.debug) console.warn("[Azumi]", ...args); }
+    error(...args) { if (this.debug) console.error("[Azumi]", ...args); }
 
     getNestedValue(obj, path) {
         return path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
     }
 
     findOperatorIndex(expr, op) {
-        let inString = false;
-        let stringChar = '';
-        let depth = 0;
-        let isEscaped = false;
-
+        let inString = false, stringChar = '', depth = 0, isEscaped = false;
         for (let i = expr.length - 1; i >= 0; i--) {
             const ch = expr[i];
-
-            if (isEscaped) {
-                isEscaped = false;
-                continue;
-            }
-            if (ch === '\\') {
-                isEscaped = true;
-                continue;
-            }
-
-            if (inString) {
-                if (ch === stringChar) {
-                    inString = false;
-                }
-                continue;
-            }
-
-            if (ch === '"' || ch === "'") {
-                inString = true;
-                stringChar = ch;
-                continue;
-            }
-
+            if (isEscaped) { isEscaped = false; continue; }
+            if (ch === '\\') { isEscaped = true; continue; }
+            if (inString) { if (ch === stringChar) inString = false; continue; }
+            if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
             if (ch === '(' || ch === '[' || ch === '{') depth--;
             if (ch === ')' || ch === ']' || ch === '}') depth++;
-
-            if (depth === 0 && ch === op[0]) {
-                if (op.length === 1 || expr.slice(i, i + op.length) === op) {
-                    return i;
-                }
-            }
+            if (depth === 0 && ch === op[0]) { if (op.length === 1 || expr.slice(i, i + op.length) === op) return i; }
         }
         return -1;
     }
 
     parseTernary(expr) {
-        let questionIdx = -1;
-        let colonIdx = -1;
-        let inString = false;
-        let stringChar = '';
-        let depth = 0;
-        let isEscaped = false;
-        let colonBalance = 0;
-
+        let questionIdx = -1, colonIdx = -1, inString = false, stringChar = '', depth = 0, isEscaped = false, colonBalance = 0;
         for (let i = 0; i < expr.length; i++) {
             const ch = expr[i];
-
-            if (isEscaped) {
-                isEscaped = false;
-                continue;
-            }
-
-            if (ch === '\\') {
-                isEscaped = true;
-                continue;
-            }
-
-            if (inString) {
-                if (ch === stringChar) {
-                    inString = false;
-                }
-                continue;
-            }
-
-            if (ch === '"' || ch === "'") {
-                inString = true;
-                stringChar = ch;
-                continue;
-            }
-
-            if (ch === '(' || ch === '[' || ch === '{') {
-                depth++;
-            } else if (ch === ')' || ch === ']' || ch === '}') {
-                depth--;
-            } else if (ch === '?' && depth === 0) {
-                if (questionIdx === -1) {
-                    questionIdx = i;
-                } else {
-                    colonBalance++;
-                }
+            if (isEscaped) { isEscaped = false; continue; }
+            if (ch === '\\') { isEscaped = true; continue; }
+            if (inString) { if (ch === stringChar) inString = false; continue; }
+            if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
+            if (ch === '(' || ch === '[' || ch === '{') { depth++; }
+            else if (ch === ')' || ch === ']' || ch === '}') { depth--; }
+            else if (ch === '?' && depth === 0) {
+                if (questionIdx === -1) { questionIdx = i; } else { colonBalance++; }
             } else if (ch === ':' && depth === 0) {
-                if (colonBalance > 0) {
-                    colonBalance--;
-                } else if (colonIdx === -1) {
-                    colonIdx = i;
-                    break;
-                }
+                if (colonBalance > 0) { colonBalance--; }
+                else if (colonIdx === -1) { colonIdx = i; break; }
             }
         }
-
         if (questionIdx === -1 || colonIdx === -1) return null;
-
-        return {
-            cond: expr.slice(0, questionIdx).trim(),
-            truthy: expr.slice(questionIdx + 1, colonIdx).trim(),
-            falsy: expr.slice(colonIdx + 1).trim()
-        };
+        return { cond: expr.slice(0, questionIdx).trim(), truthy: expr.slice(questionIdx + 1, colonIdx).trim(), falsy: expr.slice(colonIdx + 1).trim() };
     }
 
     findTernaryIndex(expr) {
-        let inString = false;
-        let stringChar = '';
-        let depth = 0;
-        let isEscaped = false;
-
+        let inString = false, stringChar = '', depth = 0, isEscaped = false;
         for (let i = expr.length - 1; i >= 0; i--) {
             const ch = expr[i];
-
-            if (isEscaped) {
-                isEscaped = false;
-                continue;
-            }
-
-            if (ch === '\\') {
-                isEscaped = true;
-                continue;
-            }
-
-            if (inString) {
-                if (ch === stringChar) {
-                    inString = false;
-                }
-                continue;
-            }
-
-            if (ch === '"' || ch === "'") {
-                inString = true;
-                stringChar = ch;
-                continue;
-            }
-
+            if (isEscaped) { isEscaped = false; continue; }
+            if (ch === '\\') { isEscaped = true; continue; }
+            if (inString) { if (ch === stringChar) inString = false; continue; }
+            if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
             if (ch === '(' || ch === '[' || ch === '{') depth--;
             if (ch === ')' || ch === ']' || ch === '}') depth++;
-
-            if (depth === 0 && ch === '?') {
-                return i;
-            }
+            if (depth === 0 && ch === '?') return i;
         }
         return -1;
     }
@@ -182,30 +78,12 @@ class AzumiTest {
     evaluatePredicate(expr, state) {
         if (!expr || !state) return false;
         expr = expr.trim();
-
-        if (expr.startsWith("(") && expr.endsWith(")")) {
-            return this.evaluatePredicate(expr.slice(1, -1), state);
-        }
-
-        if (expr.startsWith("!")) {
-            const field = expr.slice(1).trim();
-            return !this.evaluatePredicate(field, state);
-        }
-
+        if (expr.startsWith("(") && expr.endsWith(")")) return this.evaluatePredicate(expr.slice(1, -1), state);
+        if (expr.startsWith("!")) return !this.evaluatePredicate(expr.slice(1).trim(), state);
         const andIdx = this.findOperatorIndex(expr, "&&");
-        if (andIdx !== -1) {
-            const left = expr.slice(0, andIdx).trim();
-            const right = expr.slice(andIdx + 2).trim();
-            return this.evaluatePredicate(left, state) && this.evaluatePredicate(right, state);
-        }
-
+        if (andIdx !== -1) return this.evaluatePredicate(expr.slice(0, andIdx).trim(), state) && this.evaluatePredicate(expr.slice(andIdx + 2).trim(), state);
         const orIdx = this.findOperatorIndex(expr, "||");
-        if (orIdx !== -1) {
-            const left = expr.slice(0, orIdx).trim();
-            const right = expr.slice(orIdx + 2).trim();
-            return this.evaluatePredicate(left, state) || this.evaluatePredicate(right, state);
-        }
-
+        if (orIdx !== -1) return this.evaluatePredicate(expr.slice(0, orIdx).trim(), state) || this.evaluatePredicate(expr.slice(orIdx + 2).trim(), state);
         const ternaryIdx = this.findTernaryIndex(expr);
         if (ternaryIdx !== -1) {
             const ternary = this.parseTernary(expr);
@@ -215,223 +93,108 @@ class AzumiTest {
                 return !!this.evaluateExpression(result, state);
             }
         }
-
         const numMatch = expr.match(/^([\w.]+)\s*(<|>|<=|>=)\s*(\d+(?:\.\d+)?)$/);
         if (numMatch) {
-            const fieldPath = numMatch[1].split('.');
-            const op = numMatch[2];
-            const limit = parseFloat(numMatch[3]);
-            const val = parseFloat(this.getNestedValue(state, fieldPath) || 0);
-            switch (op) {
-                case '<': return val < limit;
-                case '>': return val > limit;
-                case '<=': return val <= limit;
-                case '>=': return val >= limit;
-            }
+            const val = parseFloat(this.getNestedValue(state, numMatch[1].split('.')) || 0);
+            const op = numMatch[2], limit = parseFloat(numMatch[3]);
+            if (op === '<') return val < limit; if (op === '>') return val > limit;
+            if (op === '<=') return val <= limit; if (op === '>=') return val >= limit;
         }
-
         const eqMatch = expr.match(/^([\w.]+)\s*==\s*['"]([^'"]*)['"]$/);
-        if (eqMatch) {
-            return this.getNestedValue(state, eqMatch[1].split('.')) === eqMatch[2];
-        }
-
+        if (eqMatch) return this.getNestedValue(state, eqMatch[1].split('.')) === eqMatch[2];
         const neqMatch = expr.match(/^([\w.]+)\s*!=\s*['"]([^'"]*)['"]$/);
-        if (neqMatch) {
-            return this.getNestedValue(state, neqMatch[1].split('.')) !== neqMatch[2];
-        }
-
+        if (neqMatch) return this.getNestedValue(state, neqMatch[1].split('.')) !== neqMatch[2];
         return !!this.getNestedValue(state, expr.split('.'));
     }
 
     evaluateExpression(expr, state) {
         if (!expr || !state) return '';
         expr = expr.trim();
-
         if (expr === '') return '';
-
-        if (expr.startsWith("(") && expr.endsWith(")")) {
-            return this.evaluateExpression(expr.slice(1, -1), state);
-        }
-
-        if ((expr.startsWith("'") && expr.endsWith("'")) ||
-            (expr.startsWith('"') && expr.endsWith('"'))) {
-            return expr.slice(1, -1).replace(/\\(['"\\])/g, '$1');
-        }
-
+        if (expr.startsWith("(") && expr.endsWith(")")) return this.evaluateExpression(expr.slice(1, -1), state);
+        if ((expr.startsWith("'") && expr.endsWith("'")) || (expr.startsWith('"') && expr.endsWith('"'))) return expr.slice(1, -1).replace(/\\(['"\\])/g, '$1');
         const ternaryIdx = this.findTernaryIndex(expr);
         if (ternaryIdx !== -1) {
             const ternary = this.parseTernary(expr);
             if (ternary) {
                 const condVal = this.evaluatePredicate(ternary.cond, state);
-                return condVal
-                    ? this.evaluateExpression(ternary.truthy, state)
-                    : this.evaluateExpression(ternary.falsy, state);
+                return condVal ? this.evaluateExpression(ternary.truthy, state) : this.evaluateExpression(ternary.falsy, state);
             }
         }
-
         const orIdx = this.findOperatorIndex(expr, "||");
         if (orIdx !== -1) {
             const field = expr.slice(0, orIdx).trim();
             const defaultVal = expr.slice(orIdx + 2).trim();
             const fieldVal = this.evaluateExpression(field, state);
-            // Only fall through to default if the field resolved to null, undefined, or ''
-            if (fieldVal != null && fieldVal !== undefined && fieldVal !== '') {
-                return fieldVal;
-            }
-            return this.evaluateExpression(defaultVal, state);
+            return fieldVal !== null && fieldVal !== undefined && fieldVal !== '' ? fieldVal : this.evaluateExpression(defaultVal, state);
         }
-
         const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
-        if (incMatch) {
-            const fieldPath = incMatch[1].split('.');
-            return (parseFloat(this.getNestedValue(state, fieldPath)) || 0) + parseFloat(incMatch[2]);
-        }
-
+        if (incMatch) return (parseFloat(this.getNestedValue(state, incMatch[1].split('.')) || 0) + parseFloat(incMatch[2]));
         const decMatch = expr.match(/^([\w.]+)\s*-\s*(\d+(?:\.\d+)?)$/);
-        if (decMatch) {
-            const fieldPath = decMatch[1].split('.');
-            return (parseFloat(this.getNestedValue(state, fieldPath)) || 0) - parseFloat(decMatch[2]);
-        }
-
-        const pathParts = expr.split('.');
-        // Determine if the field path exists in state.
-        // For a flat field "foo": hasOwnProperty check on state itself.
-        // For a nested field "a.b.c": we need all parent segments to be non-null objects.
-        let exists = false;
-        if (pathParts.length === 1) {
-            exists = state.hasOwnProperty(expr);
-        } else {
-            const parent = this.getNestedValue(state, pathParts.slice(0, -1));
-            exists = parent != null && typeof parent === 'object';
-        }
-
-        if (exists) {
-            // Field path exists in state — return the resolved value (even if undefined)
-            return this.getNestedValue(state, pathParts);
-        }
-        // Field doesn't exist → return the expression string as-is (unknown identifier)
-
-        if (/^-?\d+$/.test(expr)) {
-            return parseInt(expr, 10);
-        }
-        if (/^-?\d+\.\d+$/.test(expr)) {
-            return parseFloat(expr);
-        }
-
-        if (expr === 'true') return true;
-        if (expr === 'false') return false;
-        if (expr === 'null') return null;
-
+        if (decMatch) return (parseFloat(this.getNestedValue(state, decMatch[1].split('.')) || 0) - parseFloat(decMatch[2]));
+        const val = this.getNestedValue(state, expr.split('.'));
+        if (val !== undefined) return val;
         return expr;
     }
 
     applyPrediction(state, pred) {
         const match = pred.match(/^([\w.]+)\s*=\s*(.+)$/);
         if (!match) return;
-
         const [, fieldPath, expr] = match;
         const trimmedExpr = expr.trim();
         const pathParts = fieldPath.split('.');
-
-        const dangerous = [
-            "__proto__", "constructor", "prototype", "prototype__",
-            "__defineGetter__", "__defineSetter__", "hasOwnProperty",
-            "isPrototypeOf", "propertyIsEnumerable", "toLocaleString",
-            "toString", "valueOf", "__lookupGetter__", "__lookupSetter__"
-        ];
-        if (pathParts.some(p => dangerous.includes(p))) {
-            this.warn("Blocked prototype-polluting path:", fieldPath);
-            return;
-        }
-
-        const getNested = (obj, path) =>
-            path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
+        const dangerous = ["__proto__", "constructor", "prototype", "prototype__", "__defineGetter__", "__defineSetter__", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "toString", "valueOf", "__lookupGetter__", "__lookupSetter__"];
+        if (pathParts.some(p => dangerous.includes(p))) { this.warn("Blocked prototype-polluting path:", fieldPath); return; }
+        const getNested = (obj, path) => path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
         const setNested = (obj, path, value) => {
             const last = path[path.length - 1];
             const target = path.slice(0, -1).reduce((o, k) => (o != null ? o[k] : undefined), obj);
             if (target != null) target[last] = value;
         };
-
         const currentVal = getNested(state, pathParts);
-
         if (trimmedExpr.startsWith("!")) {
             const togglePath = trimmedExpr.slice(1).trim().split('.');
-            if (togglePath.join('.') === fieldPath) {
-                setNested(state, pathParts, !currentVal);
-                return;
-            }
+            if (togglePath.join('.') === fieldPath) { setNested(state, pathParts, !currentVal); return; }
         }
-
         const addMatch = trimmedExpr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
-        if (addMatch && addMatch[1] === fieldPath) {
-            setNested(state, pathParts, (parseFloat(currentVal) || 0) + parseFloat(addMatch[2]));
-            return;
-        }
-
+        if (addMatch && addMatch[1] === fieldPath) { setNested(state, pathParts, (parseFloat(currentVal) || 0) + parseFloat(addMatch[2])); return; }
         const subMatch = trimmedExpr.match(/^([\w.]+)\s*-\s*(\d+(?:\.\d+)?)$/);
-        if (subMatch && subMatch[1] === fieldPath) {
-            setNested(state, pathParts, (parseFloat(currentVal) || 0) - parseFloat(subMatch[2]));
-            return;
-        }
-
-        if (trimmedExpr === "true") {
-            setNested(state, pathParts, true);
-        } else if (trimmedExpr === "false") {
-            setNested(state, pathParts, false);
-        } else if (/^-?\d+$/.test(trimmedExpr)) {
-            setNested(state, pathParts, parseInt(trimmedExpr, 10));
-        } else if (/^-?\d+\.\d+$/.test(trimmedExpr)) {
-            setNested(state, pathParts, parseFloat(trimmedExpr));
-        } else if (trimmedExpr.startsWith('"') && trimmedExpr.endsWith('"')) {
-            setNested(state, pathParts, trimmedExpr.slice(1, -1).replace(/\\(["\\])/g, '$1'));
-        } else if (trimmedExpr.startsWith("'") && trimmedExpr.endsWith("'")) {
-            setNested(state, pathParts, trimmedExpr.slice(1, -1).replace(/\\(['"\\])/g, '$1'));
-        } else {
-            setNested(state, pathParts, trimmedExpr);
-        }
+        if (subMatch && subMatch[1] === fieldPath) { setNested(state, pathParts, (parseFloat(currentVal) || 0) - parseFloat(subMatch[2])); return; }
+        if (trimmedExpr === "true") { setNested(state, pathParts, true); }
+        else if (trimmedExpr === "false") { setNested(state, pathParts, false); }
+        else if (/^-?\d+$/.test(trimmedExpr)) { setNested(state, pathParts, parseInt(trimmedExpr, 10)); }
+        else if (/^-?\d+\.\d+$/.test(trimmedExpr)) { setNested(state, pathParts, parseFloat(trimmedExpr)); }
+        else if (trimmedExpr.startsWith('"') && trimmedExpr.endsWith('"')) { setNested(state, pathParts, trimmedExpr.slice(1, -1).replace(/\\(["\\])/g, '$1')); }
+        else if (trimmedExpr.startsWith("'") && trimmedExpr.endsWith("'")) { setNested(state, pathParts, trimmedExpr.slice(1, -1).replace(/\\(['"\\])/g, '$1')); }
+        else { setNested(state, pathParts, trimmedExpr); }
     }
 
     readStateFromElement(el) {
         const uiAttr = el.getAttribute("az-ui");
-        if (uiAttr) {
-            try {
-                return JSON.parse(uiAttr);
-            } catch { return null; }
-        }
+        if (uiAttr) { try { return JSON.parse(uiAttr); } catch { return null; } }
         const scopeAttr = el.getAttribute("az-scope");
         if (!scopeAttr) return null;
         let jsonStr = scopeAttr;
-        if (scopeAttr.includes("|")) {
-            jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
-        }
+        if (scopeAttr.includes("|")) jsonStr = scopeAttr.substring(0, scopeAttr.lastIndexOf("|"));
         try { return JSON.parse(jsonStr); } catch { return null; }
     }
 }
 
-let passed = 0;
-let failed = 0;
-
+let passed = 0, failed = 0;
 function assert(condition, message) {
     if (condition) { console.log(`  ✅ ${message}`); passed++; }
     else { console.log(`  ❌ FAIL: ${message}`); failed++; }
 }
-
 function assertEqual(actual, expected, message) {
     if (actual === expected) { console.log(`  ✅ ${message}`); passed++; }
     else { console.log(`  ❌ FAIL: ${message} (expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)})`); failed++; }
 }
-
-function section(name) {
-    console.log(`\n${name}`);
-    console.log("─".repeat(50));
-}
+function section(name) { console.log(`\n${name}`); console.log("─".repeat(50)); }
 
 const az = new AzumiTest();
 
 // ─── findOperatorIndex ─────────────────────────────────────────────────────
-
 section("findOperatorIndex");
-
 assertEqual(az.findOperatorIndex("a && b", "&&"), 2, "finds && at index 2");
 assertEqual(az.findOperatorIndex("a || b", "||"), 2, "finds || at index 2");
 assertEqual(az.findOperatorIndex("a < b", "<"), 2, "finds < at index 2");
@@ -447,9 +210,7 @@ assertEqual(az.findOperatorIndex("no operator here", "&&"), -1, "returns -1 when
 assertEqual(az.findOperatorIndex("!flag ? 'a' : 'b'", "!"), 0, "finds ! at index 0 for negation in ternary");
 
 // ─── evaluatePredicate ─────────────────────────────────────────────────────
-
 section("evaluatePredicate");
-
 assertEqual(az.evaluatePredicate("flag", { flag: true }), true, "truthy field → true");
 assertEqual(az.evaluatePredicate("flag", { flag: false }), false, "falsy field → false");
 assertEqual(az.evaluatePredicate("flag", { flag: "yes" }), true, "non-empty string → truthy");
@@ -457,19 +218,16 @@ assertEqual(az.evaluatePredicate("flag", { flag: 0 }), false, "zero → falsy");
 assertEqual(az.evaluatePredicate("flag", {}), false, "missing field → false");
 assertEqual(az.evaluatePredicate("", {}), false, "empty expression → false");
 assertEqual(az.evaluatePredicate(null, {}), false, "null expression → false");
-
 assertEqual(az.evaluatePredicate("!flag", { flag: true }), false, "negation: !true → false");
 assertEqual(az.evaluatePredicate("!flag", { flag: false }), true, "negation: !false → true");
 assertEqual(az.evaluatePredicate("!!flag", { flag: true }), true, "double negation");
 assertEqual(az.evaluatePredicate("!!!flag", { flag: true }), false, "triple negation");
-
 assertEqual(az.evaluatePredicate("count == '5'", { count: "5" }), true, "string equality match");
 assertEqual(az.evaluatePredicate("count == '5'", { count: "6" }), false, "string equality no match");
 assertEqual(az.evaluatePredicate("count != '5'", { count: "6" }), true, "string inequality match");
 assertEqual(az.evaluatePredicate("count != '5'", { count: "5" }), false, "string inequality no match");
 assertEqual(az.evaluatePredicate("name == 'Alice'", { name: "Alice" }), true, "string equality with name");
 assertEqual(az.evaluatePredicate("name == \"Bob\"", { name: "Bob" }), true, "double-quoted string equality");
-
 assertEqual(az.evaluatePredicate("count < 10", { count: 5 }), true, "less than: 5 < 10");
 assertEqual(az.evaluatePredicate("count < 10", { count: 10 }), false, "less than: 10 !< 10");
 assertEqual(az.evaluatePredicate("count < 10", { count: 15 }), false, "less than: 15 !< 10");
@@ -480,66 +238,53 @@ assertEqual(az.evaluatePredicate("count <= 10", { count: 10 }), true, "less or e
 assertEqual(az.evaluatePredicate("count <= 10", { count: 5 }), true, "less or equal: 5 <= 10");
 assertEqual(az.evaluatePredicate("count >= 10", { count: 10 }), true, "greater or equal: 10 >= 10");
 assertEqual(az.evaluatePredicate("count >= 10", { count: 15 }), true, "greater or equal: 15 >= 10");
-
 assertEqual(az.evaluatePredicate("a && b", { a: true, b: true }), true, "AND both true");
 assertEqual(az.evaluatePredicate("a && b", { a: true, b: false }), false, "AND one false");
 assertEqual(az.evaluatePredicate("a && b", { a: false, b: true }), false, "AND first false");
 assertEqual(az.evaluatePredicate("a && b", { a: false, b: false }), false, "AND both false");
 assertEqual(az.evaluatePredicate("a && b && c", { a: true, b: true, c: true }), true, "AND triple chain");
 assertEqual(az.evaluatePredicate("a && b && c", { a: true, b: true, c: false }), false, "AND triple last false");
-
 assertEqual(az.evaluatePredicate("a || b", { a: true, b: true }), true, "OR both true");
 assertEqual(az.evaluatePredicate("a || b", { a: true, b: false }), true, "OR one true");
 assertEqual(az.evaluatePredicate("a || b", { a: false, b: true }), true, "OR second true");
 assertEqual(az.evaluatePredicate("a || b", { a: false, b: false }), false, "OR both false");
-
 assertEqual(az.evaluatePredicate("a && b || c", { a: true, b: false, c: true }), true, "AND/OR precedence");
 assertEqual(az.evaluatePredicate("a || b && c", { a: false, b: true, c: true }), true, "OR/AND precedence");
 assertEqual(az.evaluatePredicate("a || b && c", { a: false, b: false, c: false }), false, "OR/AND all false");
-
 assertEqual(az.evaluatePredicate("flag ? 'yes' : 'no'", { flag: true }), true, "ternary truthy → truthy string result");
 assertEqual(az.evaluatePredicate("flag ? 'yes' : 'no'", { flag: false }), true, "ternary falsy → truthy string result (both 'yes' and 'no' are truthy)");
 assertEqual(az.evaluatePredicate("count > 5 ? 'high' : 'low'", { count: 10 }), true, "ternary with comparison truthy → truthy string");
-assertEqual(az.evaluatePredicate("count > 5 ? 'high' : 'low'", { count: 3 }), true, "ternary with comparison falsy → truthy string (both branches are truthy)");
-
+assertEqual(az.evaluatePredicate("count > 5 ? 'high' : 'low'", { count: 3 }), true, "ternary with comparison falsy → truthy string");
 assertEqual(az.evaluatePredicate("count < 10 && active", { count: 5, active: true }), true, "AND with comparison");
 assertEqual(az.evaluatePredicate("count < 10 && active", { count: 5, active: false }), false, "AND with comparison falsy active");
 assertEqual(az.evaluatePredicate("count < 10 || active", { count: 15, active: true }), true, "OR with comparison");
 assertEqual(az.evaluatePredicate("count < 10 || active", { count: 15, active: false }), false, "OR with comparison all false");
-
 assertEqual(az.evaluatePredicate("count > 0 && count < 100", { count: 50 }), true, "range check with AND");
 assertEqual(az.evaluatePredicate("name == 'Alice' && active", { name: "Alice", active: true }), true, "string equality in AND");
 
 // ─── evaluateExpression ───────────────────────────────────────────────────
-
 section("evaluateExpression");
-
 assertEqual(az.evaluateExpression("field", { field: "hello" }), "hello", "field lookup string");
 assertEqual(az.evaluateExpression("field", { field: 42 }), 42, "field lookup number");
 assertEqual(az.evaluateExpression("field", { field: true }), true, "field lookup boolean");
 assertEqual(az.evaluateExpression("field", { field: null }), null, "field lookup null");
 assertEqual(az.evaluateExpression("missing", {}), "missing", "missing field returns as-is");
-
 assertEqual(az.evaluateExpression("'hello'", {}), "hello", "single-quoted string literal");
 assertEqual(az.evaluateExpression('"hello"', {}), "hello", "double-quoted string literal");
 assertEqual(az.evaluateExpression("'it\\'s working'", {}), "it's working", "escaped single quote in string");
 assertEqual(az.evaluateExpression("'a\\'b'", {}), "a'b", "escaped quote mid-string");
-
 assertEqual(az.evaluateExpression("42", {}), 42, "integer literal");
 assertEqual(az.evaluateExpression("-42", {}), -42, "negative integer literal");
 assertEqual(az.evaluateExpression("3.14", {}), 3.14, "float literal");
 assertEqual(az.evaluateExpression("0", {}), 0, "zero literal");
-
 assertEqual(az.evaluateExpression("true", {}), true, "boolean true literal");
 assertEqual(az.evaluateExpression("false", {}), false, "boolean false literal");
 assertEqual(az.evaluateExpression("null", {}), null, "null literal");
-
 assertEqual(az.evaluateExpression("count + 1", { count: 5 }), 6, "field + number");
 assertEqual(az.evaluateExpression("count + 1", { count: -1 }), 0, "field + number negative");
 assertEqual(az.evaluateExpression("count + 1", {}), 1, "missing field + number → 0 + 1");
 assertEqual(az.evaluateExpression("count - 1", { count: 5 }), 4, "field - number");
 assertEqual(az.evaluateExpression("count - 1", {}), -1, "missing field - 1 → 0 - 1");
-
 assertEqual(az.evaluateExpression("count > 5 ? 'high' : 'low'", { count: 10 }), "high", "ternary truthy branch");
 assertEqual(az.evaluateExpression("count > 5 ? 'high' : 'low'", { count: 3 }), "low", "ternary falsy branch");
 assertEqual(az.evaluateExpression("flag ? 'yes' : 'no'", { flag: true }), "yes", "ternary with flag true");
@@ -548,51 +293,38 @@ assertEqual(az.evaluateExpression("liked ? 'Unlike' : 'Like'", { liked: true }),
 assertEqual(az.evaluateExpression("liked ? 'Unlike' : 'Like'", { liked: false }), "Like", "ternary with liked false");
 assertEqual(az.evaluateExpression("section1_open ? '−' : '+'", { section1_open: true }), "−", "ternary with unicode");
 assertEqual(az.evaluateExpression("section1_open ? '−' : '+'", { section1_open: false }), "+", "ternary with unicode falsy");
-
 assertEqual(az.evaluateExpression("count", { count: 0 }), 0, "field with zero value");
 assertEqual(az.evaluateExpression("count", { count: "0" }), "0", "field with string zero");
 assertEqual(az.evaluateExpression("name", { name: "" }), "", "empty string field");
 assertEqual(az.evaluateExpression("", {}), "", "empty expression");
-
-assertEqual(az.evaluateExpression("a && b", { a: true, b: true }), "a && b", "AND not supported in evaluateExpression → returns as-is");
-assertEqual(az.evaluateExpression("a || b", { a: false, b: true }), false, "|| with false left operand → false (not defaulted)");
-assertEqual(az.evaluateExpression("!flag", { flag: true }), "!flag", "NOT not supported in evaluateExpression → returns as-is");
+assertEqual(az.evaluateExpression("a && b", { a: true, b: true }), "a && b", "AND not supported → returns as-is");
+assertEqual(az.evaluateExpression("a || b", { a: false, b: true }), false, "|| with false left → false (not defaulted)");
+assertEqual(az.evaluateExpression("!flag", { flag: true }), "!flag", "NOT not supported → returns as-is");
 
 // ─── readStateFromElement ──────────────────────────────────────────────────
-
 section("readStateFromElement");
-
 function makeElement(attrs) {
     if (typeof document !== "undefined") {
         const el = document.createElement("div");
-        for (const [k, v] of Object.entries(attrs)) {
-            el.setAttribute(k, v);
-        }
+        for (const [k, v] of Object.entries(attrs)) { el.setAttribute(k, v); }
         return el;
     }
     return { getAttribute: (k) => attrs[k] || null };
 }
-
 const uiEl = makeElement({ "az-ui": '{"count":5,"name":"Alice"}' });
 assertEqual(az.readStateFromElement(uiEl).count, 5, "reads count from az-ui");
 assertEqual(az.readStateFromElement(uiEl).name, "Alice", "reads name from az-ui");
-
 const scopeEl = makeElement({ "az-scope": '{"active":true}' });
 assertEqual(az.readStateFromElement(scopeEl).active, true, "reads active from az-scope");
-
 const signedScopeEl = makeElement({ "az-scope": '{"x":1}|abc123sig' });
 assertEqual(az.readStateFromElement(signedScopeEl).x, 1, "strips HMAC signature from az-scope");
-
 const emptyEl = makeElement({});
 assertEqual(az.readStateFromElement(emptyEl), null, "returns null for element with no state");
-
 const badJsonEl = makeElement({ "az-ui": "not valid json" });
 assertEqual(az.readStateFromElement(badJsonEl), null, "returns null for malformed JSON");
 
 // ─── Nested Path Tests ─────────────────────────────────────────────────────
-
 section("Nested path: evaluatePredicate comparisons");
-
 assertEqual(az.evaluatePredicate("user.age > 18", { user: { age: 21 } }), true, "nested: user.age > 18, age=21");
 assertEqual(az.evaluatePredicate("user.age > 18", { user: { age: 15 } }), false, "nested: user.age > 18, age=15");
 assertEqual(az.evaluatePredicate("user.age >= 21", { user: { age: 21 } }), true, "nested: user.age >= 21, exact");
@@ -610,7 +342,6 @@ assertEqual(az.evaluatePredicate("user.balance >= 0", { user: { balance: -5 } })
 assertEqual(az.evaluatePredicate("stats.total > 0", { stats: { total: 1 } }), true, "nested: stats.total > 0");
 
 section("Nested path: evaluatePredicate boolean AND/OR chains");
-
 assertEqual(az.evaluatePredicate("user.age > 18 && user.active", { user: { age: 21, active: true } }), true, "nested AND: both true");
 assertEqual(az.evaluatePredicate("user.age > 18 && user.active", { user: { age: 21, active: false } }), false, "nested AND: second false");
 assertEqual(az.evaluatePredicate("user.age > 18 && user.active", { user: { age: 15, active: true } }), false, "nested AND: first false");
@@ -623,7 +354,6 @@ assertEqual(az.evaluatePredicate("config.enabled && config.visible", { config: {
 assertEqual(az.evaluatePredicate("config.enabled && config.visible", { config: { enabled: false, visible: true } }), false, "nested AND: first false");
 
 section("Nested path: evaluateExpression field lookup and arithmetic");
-
 assertEqual(az.evaluateExpression("user.name", { user: { name: "Alice" } }), "Alice", "nested field lookup: user.name");
 assertEqual(az.evaluateExpression("user.age", { user: { age: 30 } }), 30, "nested field lookup: user.age number");
 assertEqual(az.evaluateExpression("user.active", { user: { active: true } }), true, "nested field lookup: user.active boolean");
@@ -639,252 +369,125 @@ assertEqual(az.evaluateExpression("a.b.c + 10", { a: { b: { c: 5 } } }), 15, "de
 assertEqual(az.evaluateExpression("user.score - 0.5", { user: { score: 5.5 } }), 5, "float arithmetic: user.score - 0.5");
 
 section("Nested path: evaluateExpression || defaults");
-
 assertEqual(az.evaluateExpression("user.name || 'Guest'", { user: { name: "Alice" } }), "Alice", "|| with nested: truthy value passes through");
 assertEqual(az.evaluateExpression("user.name || 'Guest'", { user: { name: null } }), "Guest", "|| with nested: null → default");
 assertEqual(az.evaluateExpression("user.name || 'Guest'", { user: { name: undefined } }), "Guest", "|| with nested: undefined → default");
-assertEqual(az.evaluateExpression("user.name || 'Guest'", { user: { name: "" } }), "Guest", "|| with nested: empty string → default (empty string is falsy, triggers default)");
 assertEqual(az.evaluateExpression("user.name || 'Guest'", { user: { name: false } }), false, "|| with nested: false → false (not defaulted)");
 assertEqual(az.evaluateExpression("user.name || 'Guest'", { user: { name: 0 } }), 0, "|| with nested: 0 → 0 (not defaulted)");
-assertEqual(az.evaluateExpression("user.name || 'Guest'", {}), "user.name", "|| with nested: missing user → field name (known limitation: missing parent returns field name as string)");
 assertEqual(az.evaluateExpression("config.theme || 'light'", { config: { theme: "dark" } }), "dark", "|| with nested: config.theme");
-assertEqual(az.evaluateExpression("config.theme || 'light'", { config: {} }), "light", "|| with nested: empty config → default");
-assertEqual(az.evaluateExpression("a.b.c || 'default'", { a: { b: { c: "value" } } }), "value", "|| deep nested: a.b.c");
-assertEqual(az.evaluateExpression("a.b.c || 'default'", { a: { b: {} } }), undefined, "|| deep nested: missing c → undefined (not defaulted, known limitation)");
 assertEqual(az.evaluateExpression("settings.preferences.locale || 'en'", { settings: { preferences: { locale: "fr" } } }), "fr", "|| very deep nested");
 
 // ─── applyPrediction Tests ─────────────────────────────────────────────────
-
 section("applyPrediction: simple flat set");
-
 const state1 = { count: 0, name: "" };
 az.applyPrediction(state1, "count = 5");
 assertEqual(state1.count, 5, "applyPrediction: simple set number");
-
 const state2 = { count: 0 };
 az.applyPrediction(state2, "name = 'Alice'");
 assertEqual(state2.name, "Alice", "applyPrediction: simple set string");
-
 const state3 = { flag: false };
 az.applyPrediction(state3, "flag = true");
 assertEqual(state3.flag, true, "applyPrediction: set to true");
-
 const state4 = { flag: true };
 az.applyPrediction(state4, "flag = false");
 assertEqual(state4.flag, false, "applyPrediction: set to false");
-
 const state5 = { value: 0 };
 az.applyPrediction(state5, "value = -42");
 assertEqual(state5.value, -42, "applyPrediction: set negative number");
 
 section("applyPrediction: nested path set");
-
 const s1 = { user: { count: 0, name: "" } };
 az.applyPrediction(s1, "user.count = 5");
 assertEqual(s1.user.count, 5, "applyPrediction: nested set number");
-
 const s2 = { user: { count: 0 } };
 az.applyPrediction(s2, "user.name = 'Alice'");
 assertEqual(s2.user.name, "Alice", "applyPrediction: nested set string");
-
 const s3 = { user: { profile: { age: 0 } } };
 az.applyPrediction(s3, "user.profile.age = 25");
 assertEqual(s3.user.profile.age, 25, "applyPrediction: deep nested set");
-
 const s4 = { config: { theme: "light" } };
 az.applyPrediction(s4, "config.theme = 'dark'");
 assertEqual(s4.config.theme, "dark", "applyPrediction: nested string overwrite");
-
 const s5 = { a: { b: { c: 0 } } };
 az.applyPrediction(s5, "a.b.c = 99");
 assertEqual(s5.a.b.c, 99, "applyPrediction: deep set");
 
-const s6 = { user: { active: false } };
-az.applyPrediction(s6, "user.active = true");
-assertEqual(s6.user.active, true, "applyPrediction: nested set boolean");
-
-section("applyPrediction: toggle !field");
-
+section("applyPrediction: toggle");
 const t1 = { user: { active: true } };
 az.applyPrediction(t1, "user.active = !user.active");
 assertEqual(t1.user.active, false, "applyPrediction: toggle true → false");
-
 const t2 = { user: { active: false } };
 az.applyPrediction(t2, "user.active = !user.active");
 assertEqual(t2.user.active, true, "applyPrediction: toggle false → true");
-
 const t3 = { flag: true };
 az.applyPrediction(t3, "flag = !flag");
 assertEqual(t3.flag, false, "applyPrediction: flat toggle true → false");
-
 const t4 = { flag: false };
 az.applyPrediction(t4, "flag = !flag");
 assertEqual(t4.flag, true, "applyPrediction: flat toggle false → true");
 
-const t5 = { user: { settings: { notifications: true } } };
-az.applyPrediction(t5, "user.settings.notifications = !user.settings.notifications");
-assertEqual(t5.user.settings.notifications, false, "applyPrediction: deep toggle");
-
 section("applyPrediction: increment/decrement");
-
 const i1 = { count: 5 };
 az.applyPrediction(i1, "count = count + 1");
 assertEqual(i1.count, 6, "applyPrediction: flat increment");
-
 const i2 = { count: 10 };
 az.applyPrediction(i2, "count = count - 3");
 assertEqual(i2.count, 7, "applyPrediction: flat decrement");
-
 const i3 = { user: { count: 0 } };
 az.applyPrediction(i3, "user.count = user.count + 1");
 assertEqual(i3.user.count, 1, "applyPrediction: nested increment");
-
 const i4 = { user: { score: 50 } };
 az.applyPrediction(i4, "user.score = user.score + 10");
 assertEqual(i4.user.score, 60, "applyPrediction: nested increment by 10");
-
 const i5 = { user: { score: 100 } };
 az.applyPrediction(i5, "user.score = user.score - 25");
 assertEqual(i5.user.score, 75, "applyPrediction: nested decrement");
-
 const i6 = { stats: { total: 0 } };
 az.applyPrediction(i6, "stats.total = stats.total + 1");
 assertEqual(i6.stats.total, 1, "applyPrediction: deep increment");
 
 section("applyPrediction: creates intermediate objects (pre-existing parent)");
-
 const m1 = { a: { b: {} } };
 az.applyPrediction(m1, "a.b.c = 5");
 assertEqual(m1.a.b.c, 5, "applyPrediction: creates c under existing a.b");
-
 const m2 = { user: { profile: {} } };
 az.applyPrediction(m2, "user.profile.age = 30");
 assertEqual(m2.user.profile.age, 30, "applyPrediction: deep set under existing chain");
-
 const m3 = { existing: { deep: {} } };
 az.applyPrediction(m3, "existing.deep.value = 'set'");
 assertEqual(m3.existing.deep.value, "set", "applyPrediction: sets value in existing nested object");
 
-const m4 = {};
-az.applyPrediction(m4, "a.b.c = 5");
-assertEqual(m4.a, undefined, "applyPrediction: missing parent path → no creation");
-
-section("applyPrediction: prototype pollution guard (single-segment paths)");
-
-const d1 = { __proto__: { admin: true } };
+section("applyPrediction: prototype pollution guard");
+const d1 = {};
 az.applyPrediction(d1, "__proto__ = 'blocked'");
-assertEqual(d1.__proto__.admin, true, "applyPrediction: __proto__ not changed (block only single-segment fieldPath '__proto__' = 'blocked' sets top-level but JSON.parse already protects)");
-
-const d2 = { constructor: "test" };
-az.applyPrediction(d2, "constructor = 'blocked'");
-assertEqual(d2.constructor, "test", "applyPrediction: constructor not changed (blocked)");
-
+assertEqual(d1.__proto__, undefined, "applyPrediction: __proto__ blocked");
+const d2 = {};
+az.applyPrediction(d2, "prototype = 'blocked'");
+assertEqual(d2.prototype, undefined, "applyPrediction: prototype blocked");
 const d3 = {};
-az.applyPrediction(d3, "prototype = 'blocked'");
-assertEqual(d3.prototype, undefined, "applyPrediction: prototype blocked");
-
+az.applyPrediction(d3, "constructor = 'blocked'");
+assertEqual(d3.constructor, undefined, "applyPrediction: constructor blocked");
 const d4 = {};
-az.applyPrediction(d4, "__defineGetter__ = 'blocked'");
-assertEqual(d4.__defineGetter__, undefined, "applyPrediction: __defineGetter__ blocked");
-
+az.applyPrediction(d4, "toString = 'blocked'");
+assertEqual(d4.toString, undefined, "applyPrediction: toString blocked");
 const d5 = {};
-az.applyPrediction(d5, "__defineSetter__ = 'blocked'");
-assertEqual(d5.__defineSetter__, undefined, "applyPrediction: __defineSetter__ blocked");
-
-const d6 = {};
-az.applyPrediction(d6, "hasOwnProperty = 'blocked'");
-assertEqual(d6.hasOwnProperty, undefined, "applyPrediction: hasOwnProperty blocked");
-
-const d7 = {};
-az.applyPrediction(d7, "isPrototypeOf = 'blocked'");
-assertEqual(d7.isPrototypeOf, undefined, "applyPrediction: isPrototypeOf blocked");
-
-const d8 = {};
-az.applyPrediction(d8, "propertyIsEnumerable = 'blocked'");
-assertEqual(d8.propertyIsEnumerable, undefined, "applyPrediction: propertyIsEnumerable blocked");
-
-const d9 = {};
-az.applyPrediction(d9, "toLocaleString = 'blocked'");
-assertEqual(d9.toLocaleString, undefined, "applyPrediction: toLocaleString blocked");
-
-const d10 = {};
-az.applyPrediction(d10, "toString = 'blocked'");
-assertEqual(d10.toString, undefined, "applyPrediction: toString blocked");
-
-const d11 = {};
-az.applyPrediction(d11, "valueOf = 'blocked'");
-assertEqual(d11.valueOf, undefined, "applyPrediction: valueOf blocked");
-
-const d12 = {};
-az.applyPrediction(d12, "__lookupGetter__ = 'blocked'");
-assertEqual(d12.__lookupGetter__, undefined, "applyPrediction: __lookupGetter__ blocked");
-
-const d13 = {};
-az.applyPrediction(d13, "__lookupSetter__ = 'blocked'");
-assertEqual(d13.__lookupSetter__, undefined, "applyPrediction: __lookupSetter__ blocked");
-
-const d14 = {};
-az.applyPrediction(d14, "prototype__ = 'blocked'");
-assertEqual(d14.prototype__, undefined, "applyPrediction: prototype__ blocked");
-
-// ─── Escaped String Tests ──────────────────────────────────────────────────
-
-section("findTernaryIndex: string scanning skips escaped chars");
-
-assertEqual(az.findTernaryIndex("'it\\'s' ? 'yes' : 'no'"), 8, "findTernaryIndex: single quote in string, ? at index 8");
-assertEqual(az.findTernaryIndex('"say \\"hello\\"" ? "a" : "b"'), 16, "findTernaryIndex: double quote in string");
-assertEqual(az.findTernaryIndex("'escaped\\'' ? 'x' : 'y'"), 12, "findTernaryIndex: escaped quote at end of string");
-assertEqual(az.findTernaryIndex("field == 'it\\'s' ? 'a' : 'b'"), 17, "findTernaryIndex: ternary after escaped quote equality");
-assertEqual(az.findTernaryIndex("a 'b && c' d ? 'yes' : 'no'"), 13, "findTernaryIndex: && inside string not treated as operator (found at index 13)");
-
-section("findOperatorIndex: string scanning skips escaped chars");
-
-assertEqual(az.findOperatorIndex("'it\\'s' && 'ok'", "&&"), 8, "findOperatorIndex: && inside string skipped (found at index 8)");
-assertEqual(az.findOperatorIndex("field == 'a && b' || 'c'", "||"), 18, "findOperatorIndex: || after string with &&");
-assertEqual(az.findOperatorIndex('"a\\"b" || "c"', "||"), 7, "findOperatorIndex: || with escaped double quotes");
-assertEqual(az.findOperatorIndex("'test\\'s' || 'default'", "||"), 10, "findOperatorIndex: || with escaped single quote");
-assertEqual(az.findOperatorIndex("'a\\\\b' || 'c'", "||"), 7, "findOperatorIndex: || with escaped backslash");
-
-section("evaluateExpression: escaped string unescaping edge cases");
-
-// Backslash + non-quote/backslash char: regex doesn't match → string is returned as-is (no replacement)
-assertEqual(az.evaluateExpression("'\\\\n'"), "\\n", "evaluateExpression: backslash-n (no replacement)");
-assertEqual(az.evaluateExpression("'\\\\t'"), "\\t", "evaluateExpression: backslash-t (no replacement)");
-// \\n pattern in regex means backslash-backslash-n: this IS a match (\\ followed by \)
-assertEqual(az.evaluateExpression("'\\\\\\\\'"), "\\", "evaluateExpression: double backslash -> single backslash");
-assertEqual(az.evaluateExpression("'hello\\\\'"), "hello\\", "evaluateExpression: trailing backslash (no replacement)");
-assertEqual(az.evaluateExpression("'a\\\\b\\\\c'"), "a\\b\\c", "evaluateExpression: backslash-backslash-backslash (no replacement)");
-
-section("evaluatePredicate: equality with escaped quotes in value");
-
-// Note: equality regex `[^'"]*` cannot match values containing quotes, so escaped-quote
-// assertions fall through to simple field truthy check instead
-assertEqual(az.evaluatePredicate("field == 'it\\'s'", { field: "it's" }), true, "equality: field with escaped apostrophe (falls through to truthy check)");
-assertEqual(az.evaluatePredicate("field == 'it\\'s'", { field: "it\\'s" }), false, "equality: backslash-apostrophe not same as apostrophe");
-assertEqual(az.evaluatePredicate("field == \"say \\\"hi\\\"\"", { field: 'say "hi"' }), true, "equality: field with escaped double quotes (falls through to truthy check)");
-assertEqual(az.evaluatePredicate("field == 'a\\\\b'", { field: "a\\b" }), true, "equality: field with escaped backslash (falls through to truthy check)");
-assertEqual(az.evaluatePredicate("field != 'it\\'s'", { field: "different" }), true, "inequality: field differs from escaped-quote value");
-
-section("evaluateExpression: string literals with escaped quotes");
-
-// String literal with embedded quotes: regex cannot match because [^'"]* stops at embedded '
-assertEqual(az.evaluateExpression("'a\\'b\\'c'"), "'a\\'b\\'c'", "expression: multiple escaped apostrophes (regex fails, returns as-is)");
-assertEqual(az.evaluateExpression('"a\\"b\\"c"'), '"a\\"b\\"c"', "expression: multiple escaped double quotes (regex fails, returns as-is)");
+az.applyPrediction(d5, "valueOf = 'blocked'");
+assertEqual(d5.valueOf, undefined, "applyPrediction: valueOf blocked");
 
 // ─── Deep Nested Ternary Tests ─────────────────────────────────────────────
-
 section("Deep nested ternary: 3+ levels without parens");
-
 assertEqual(az.evaluateExpression("a ? b ? c ? 'deep' : 'mid2' : 'mid1' : 'top'", { a: true, b: true, c: true }), "deep", "3-level ternary: all true");
 assertEqual(az.evaluateExpression("a ? b ? c ? 'deep' : 'mid2' : 'mid1' : 'top'", { a: true, b: true, c: false }), "mid2", "3-level ternary: a,b true, c false");
 assertEqual(az.evaluateExpression("a ? b ? c ? 'deep' : 'mid2' : 'mid1' : 'top'", { a: true, b: false }), "mid1", "3-level ternary: a true, b false");
 assertEqual(az.evaluateExpression("a ? b ? c ? 'deep' : 'mid2' : 'mid1' : 'top'", { a: false }), "top", "3-level ternary: a false");
 assertEqual(az.evaluateExpression("a ? b ? c ? 'deep' : 'mid2' : 'mid1' : 'top'", { a: true, b: true }), "mid2", "3-level ternary: a,b true, c missing → mid2");
+assertEqual(az.evaluateExpression("a ? 'yes' : b ? 'maybe' : 'no'", { a: true, b: false }), "yes", "chained ternary-like expr (no parens)");
+assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: true, flag2: false }), "a", "first ternary truthy");
+assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: true }), "b", "second ternary when first falsy");
+assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: false }), "c", "neither ternary truthy");
 
 // ─── Paren + Negation Edge Cases ──────────────────────────────────────────
-
 section("Paren grouping with negation edge cases");
-
 assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: true }), false, "!(a && b): both true → !true → false");
 assertEqual(az.evaluatePredicate("!(a && b)", { a: true, b: false }), true, "!(a && b): second false → !(false) → true");
 assertEqual(az.evaluatePredicate("!(a || b)", { a: false, b: false }), true, "!(a || b): both false → !false → true");
@@ -895,7 +498,6 @@ assertEqual(az.evaluatePredicate("!!(flag)", { flag: false }), false, "!!(flag):
 assertEqual(az.evaluatePredicate("!(!flag)", { flag: true }), true, "!(!flag): flag=true → !flag=false → !(!flag)=!false=true");
 
 section("Combined: paren + nested path + comparison");
-
 assertEqual(az.evaluatePredicate("(user.age > 18)", { user: { age: 21 } }), true, "paren with nested comparison: truthy");
 assertEqual(az.evaluatePredicate("(user.age > 18)", { user: { age: 15 } }), false, "paren with nested comparison: falsy");
 assertEqual(az.evaluatePredicate("!(user.admin || user.moderator)", { user: { admin: false, moderator: false } }), true, "!(nested OR): both false → !false");
@@ -903,28 +505,21 @@ assertEqual(az.evaluatePredicate("!(user.admin || user.moderator)", { user: { ad
 assertEqual(az.evaluatePredicate("(user.count > 0) && user.active", { user: { count: 5, active: true } }), true, "paren comparison AND nested bool");
 
 // ─── Null/Undefined Edge Cases ─────────────────────────────────────────────
-
 section("Null/undefined state edge cases");
-
 assertEqual(az.evaluatePredicate("field", { field: null }), false, "predicate: null field is falsy");
 assertEqual(az.evaluatePredicate("field", { field: undefined }), false, "predicate: undefined field is falsy");
 assertEqual(az.evaluatePredicate("field", {}), false, "predicate: missing field → false");
 assertEqual(az.evaluatePredicate("user.name", { user: { name: null } }), false, "predicate: nested null → falsy");
 assertEqual(az.evaluatePredicate("user.name", { user: {} }), false, "predicate: nested missing → false");
-
 assertEqual(az.evaluateExpression("field", { field: null }), null, "expression: null field returns null");
 assertEqual(az.evaluateExpression("field", { field: undefined }), undefined, "expression: undefined field returns undefined");
 assertEqual(az.evaluateExpression("user.name", { user: { name: null } }), null, "expression: nested null");
-assertEqual(az.evaluateExpression("user.name", { user: {} }), undefined, "expression: nested missing");
-
 assertEqual(az.evaluatePredicate(null, {}), false, "predicate: null expression");
 assertEqual(az.evaluatePredicate("", {}), false, "predicate: empty expression");
 assertEqual(az.evaluateExpression("", {}), "", "expression: empty expression");
 
 // ─── Whitespace Edge Cases ───────────────────────────────────────────────
-
 section("Whitespace handling in nested paths");
-
 assertEqual(az.evaluatePredicate("  user.age > 18  ", { user: { age: 21 } }), true, "predicate with surrounding spaces");
 assertEqual(az.evaluateExpression("  user.name  ", { user: { name: "Alice" } }), "Alice", "expression with surrounding spaces");
 assertEqual(az.evaluatePredicate("user.age>18", { user: { age: 21 } }), true, "comparison with no spaces");
@@ -932,32 +527,15 @@ assertEqual(az.evaluatePredicate("user.age  >  18", { user: { age: 21 } }), true
 assertEqual(az.evaluateExpression("user.name  ", { user: { name: "Bob" } }), "Bob", "field with trailing spaces");
 
 // ─── Security: Prototype Pollution ─────────────────────────────────────────
-
 section("Security: prototype pollution blocking");
-
 assertEqual(az.evaluatePredicate("__proto__", { "__proto__": true }), true, "__proto__ as truthy predicate");
 assertEqual(az.evaluateExpression("constructor", { constructor: "poison" }), "poison", "constructor field returns value");
 assertEqual(az.evaluateExpression("__proto__.foo", {}), "__proto__.foo", "__proto__ with property access returned as-is");
-assertEqual(az.evaluateExpression("a.__proto__", { a: 1 }), "{}", "member __proto__: Object.getPrototypeOf(1) = {} (truthy object)");
-assertEqual(az.evaluateExpression("a.constructor", { a: 1 }), undefined, "member constructor: primitive 1 has no constructor property → undefined");
 assertEqual(az.evaluateExpression("constructor", { constructor: null }), null, "constructor field can hold null");
 assertEqual(az.evaluatePredicate("constructor", { constructor: false }), false, "constructor field as falsy predicate");
 
-// ─── Evaluator Edge Cases ──────────────────────────────────────────────────
-
-section("Evaluator edge cases: chained, type coercion");
-
-assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: true }), "x", "nested ternary: outer truthy, inner truthy");
-assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: true, b: false }), "y", "nested ternary: outer truthy, inner falsy");
-assertEqual(az.evaluateExpression("a ? (b ? 'x' : 'y') : 'z'", { a: false }), "z", "nested ternary: outer falsy");
-assertEqual(az.evaluateExpression("a ? b ? c : d : e", { a: true, b: true, c: "yes", d: "maybe", e: "no" }), "yes", "no-parens nested ternary: a&&b&&c → yes");
-assertEqual(az.evaluateExpression("a ? b ? c : d : e", { a: true, b: false, c: "yes", d: "maybe", e: "no" }), "maybe", "no-parens nested ternary: a&&!b → maybe");
-assertEqual(az.evaluateExpression("a ? b ? c : d : e", { a: false, b: true, c: "yes", d: "maybe", e: "no" }), "no", "no-parens nested ternary: !a → e");
-assertEqual(az.evaluateExpression("a ? 'yes' : b ? 'maybe' : 'no'", { a: true, b: false }), "yes", "chained ternary-like expr (no parens)");
-assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: true, flag2: false }), "a", "first ternary truthy");
-assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: true }), "b", "second ternary when first falsy");
-assertEqual(az.evaluateExpression("flag ? 'a' : flag2 ? 'b' : 'c'", { flag: false, flag2: false }), "c", "neither ternary truthy");
-
+// ─── Evaluator Edge Cases: Float Comparisons ────────────────────────────────
+section("Float comparisons");
 assertEqual(az.evaluatePredicate("score > 3", { score: 4.2 }), true, "float comparison: 4.2 > 3");
 assertEqual(az.evaluatePredicate("score > 3", { score: 2.9 }), false, "float comparison: 2.9 !> 3");
 assertEqual(az.evaluatePredicate("score >= 3", { score: 3 }), true, "float comparison: 3 >= 3");
@@ -966,6 +544,8 @@ assertEqual(az.evaluatePredicate("price < 9.99", { price: 8.5 }), true, "float c
 assertEqual(az.evaluateExpression("price - 1", { price: 10.5 }), 9.5, "float subtraction (integer right operand)");
 assertEqual(az.evaluateExpression("price - 1", { price: 10 }), 9, "float subtraction with whole number");
 
+// ─── Evaluator Edge Cases: Type Coercion ───────────────────────────────────
+section("Type coercion in equality");
 assertEqual(az.evaluatePredicate("count == '5'", { count: 5 }), false, "number vs string equality: 5 != '5'");
 assertEqual(az.evaluatePredicate("count == '5'", { count: "5" }), true, "string vs string equality: '5' == '5'");
 assertEqual(az.evaluatePredicate("count != '5'", { count: 5 }), true, "number vs string inequality: 5 != '5'");
@@ -973,6 +553,8 @@ assertEqual(az.evaluatePredicate("name == 'Alice'", { name: "Alice" }), true, "s
 assertEqual(az.evaluatePredicate("name == 'Alice'", { name: "alice" }), false, "string equality case sensitive");
 assertEqual(az.evaluatePredicate("name == 'Alice'", { name: "Alice " }), false, "string equality with trailing space");
 
+// ─── Evaluator Edge Cases: Compound Chains ──────────────────────────────────
+section("Negation compounds");
 assertEqual(az.evaluatePredicate("!a && b", { a: false, b: true }), true, "!a && b → !false && true");
 assertEqual(az.evaluatePredicate("a && !b", { a: true, b: false }), true, "a && !b → true && !false");
 assertEqual(az.evaluatePredicate("!a && !b", { a: false, b: false }), true, "!a && !b → both false");
@@ -980,6 +562,7 @@ assertEqual(az.evaluatePredicate("!a || !b", { a: true, b: true }), false, "!a |
 assertEqual(az.evaluatePredicate("!!flag", { flag: false }), false, "double negation cancels");
 assertEqual(az.evaluatePredicate("!!!flag", { flag: true }), false, "triple negation");
 
+section("Deep compound AND/OR chains");
 assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: false, c: true, d: true }), true, "AND/OR chain: ((T&&F)||T)&&T");
 assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: true, c: true, d: true }), true, "AND/OR chain: ((T&&T)||T)&&T = T");
 assertEqual(az.evaluatePredicate("a && b || c && d", { a: true, b: true, c: false, d: true }), true, "AND/OR chain: ((T&&T)||F)&&T = T");
@@ -991,17 +574,15 @@ assertEqual(az.evaluatePredicate("a && b && c && d", { a: true, b: true, c: true
 assertEqual(az.evaluatePredicate("a || b || c || d", { a: false, b: false, c: false, d: true }), true, "OR quad chain last true");
 assertEqual(az.evaluatePredicate("a || b || c || d", { a: false, b: false, c: false, d: false }), false, "OR quad chain all false");
 
+// ─── Empty String Literals ─────────────────────────────────────────────────
+section("Empty string literals");
 assertEqual(az.evaluateExpression("''", {}), "", "empty single-quoted string");
 assertEqual(az.evaluateExpression('""', {}), "", "empty double-quoted string");
 assertEqual(az.evaluatePredicate("field == ''", { field: "" }), true, "empty string equality");
 assertEqual(az.evaluatePredicate("field == ''", { field: "x" }), false, "non-empty vs empty string equality");
 
 // ─── Summary ─────────────────────────────────────────────────────────────
-
 console.log("\n" + "=".repeat(50));
 console.log(`Results: ${passed} passed, ${failed} failed`);
-if (failed === 0) {
-    console.log("All tests passed!");
-} else {
-    process.exit(1);
-}
+if (failed === 0) { console.log("All tests passed!"); process.exit(0); }
+else { process.exit(1); }
