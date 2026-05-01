@@ -35,20 +35,7 @@ fn xml_escape(s: &str) -> String {
     out
 }
 
-/// Escape a string for safe inclusion as HTML text content.
-/// Escapes `<`, `>`, and `&`.
-fn html_text_escape(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '&' => out.push_str("&amp;"),
-            _ => out.push(c),
-        }
-    }
-    out
-}
+
 
 static SITE_CONFIG: Mutex<Option<SeoConfig>> = Mutex::new(None);
 
