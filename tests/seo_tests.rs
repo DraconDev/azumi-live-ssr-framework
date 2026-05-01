@@ -405,18 +405,13 @@ fn test_seo_safe_values_unchanged() {
 // ════════════════════════════════════════════════════════════════════════════
 // SECTION: Twitter Card — site and creator (generate_head)
 // Tests that twitter:site and twitter:creator are output when configured.
-// These tests must run BEFORE any init_seo call (which is idempotent and
-// only applies on first call). The init_seo test runs last in this section.
+// Note: init_seo is idempotent (first call wins), so these tests run AFTER
+// the init_seo test to avoid pollution. The twitter config from init_seo
+// is preserved for subsequent tests.
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
 fn test_twitter_card_with_site_and_creator() {
-    let mut tw = azumi::seo::TwitterCard::default();
-    tw.site = Some("@handle".to_string());
-    tw.creator = Some("@creator".to_string());
-    let mut config = azumi::seo::SeoConfig::new("Test");
-    config.twitter = Some(tw);
-    azumi::seo::init_seo(config);
     let html = azumi::seo::generate_head("Title", None, None, None, None);
     let output = html.0;
     assert!(
