@@ -767,12 +767,12 @@ fn test_verify_rejects_modified_timestamp() {
     let signed = security::sign_state(r#"{"count":10}"#);
     let parts: Vec<&str> = signed.split('|').collect();
     assert_eq!(parts.len(), 3, "Expected json|timestamp|signature format");
-    let signed2 = security::sign_state(r#"{"count":10}"#);
-    let parts2: Vec<&str> = signed2.split('|').collect();
-    assert_eq!(parts2.len(), 3, "Expected json|timestamp|signature format");
-    let tampered = format!("{}|{}|{}", parts[0], parts2[1], parts[2]);
+    let old_timestamp = parts[1];
+    let original_sig = parts[2];
+    let new_timestamp = "9999999999";
+    let tampered = format!("{}|{}|{}", parts[0], new_timestamp, original_sig);
     let result = security::verify_state(&tampered);
-    assert!(result.is_err(), "Modified timestamp should be rejected. Got: {:?}", result);
+    assert!(result.is_err(), "Modified timestamp should be rejected");
 }
 
 #[test]
