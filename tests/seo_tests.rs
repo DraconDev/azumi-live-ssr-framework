@@ -445,7 +445,8 @@ fn test_twitter_card_site_escapes_quotes() {
 // ════════════════════════════════════════════════════════════════════════════
 // SECTION: init_seo idempotency
 // Tests that init_seo only applies on first call.
-// Note: Uses #[serial] to prevent init_seo pollution between tests.
+// This test MUST run last in this section because it sets base_url which
+// affects subsequent generate_head calls in other tests.
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
