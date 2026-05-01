@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Added OpenGraph type support to SEO metadata generation
+Updated OpenGraph meta tag validation to support the `property` attribute instead of `data-property`.
 
 ## Context
-The change enables setting the `og:type` property in OpenGraph metadata, which is crucial for proper content classification in social media sharing.
+The recent feature additions for OpenGraph type support and `property` attribute support required updating the test suite to reflect the correct HTML structure validation.
 
 ## Completed
-- [x] Added SEO initialization with configurable OpenGraph type
-- [x] Implemented test case for OpenGraph type generation
+- [x] Updated `test_og_title` to use `property` instead of `data-property` for OpenGraph meta tags
+- [x] Updated `test_og_description` to use `property` instead of `data-property` for OpenGraph meta tags
 
 ## In Progress
-- [ ] No active work in progress
+- [ ] No active work in progress beyond these test updates
 
 ## Blockers
-- None identified
+- None identified for this specific change
 
 ## Next Steps
-1. Verify OpenGraph type rendering in social media platforms
-2. Add support for additional OpenGraph properties
+1. Verify all SEO-related tests pass with the updated attribute syntax
+2. Ensure the OpenGraph type support features work correctly with the new attribute format

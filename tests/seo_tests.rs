@@ -70,7 +70,7 @@ fn test_meta_theme_color() {
 #[test]
 fn test_og_title() {
     let component = html! {
-        <meta data-property="og:title" content="My Page Title" />
+        <meta property="og:title" content="My Page Title" />
     };
     let html = test::render(&component);
     assert!(html.contains("og:title") || html.contains("My Page Title"));
@@ -79,7 +79,7 @@ fn test_og_title() {
 #[test]
 fn test_og_description() {
     let component = html! {
-        <meta data-property="og:description" content="Page description" />
+        <meta property="og:description" content="Page description" />
     };
     let html = test::render(&component);
     assert!(html.contains("og:description") || html.contains("Page description"));
