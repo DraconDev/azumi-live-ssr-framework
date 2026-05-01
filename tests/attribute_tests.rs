@@ -1113,6 +1113,7 @@ fn test_az_ui_set_increment_on_string() {
     assert!(html.contains("click set n = n + "));
 }
 
+#[test]
 fn test_az_ui_set_multiple_commands() {
     let component = html! {
         <div az-ui="{\"a\": 1, \"b\": 2}">
