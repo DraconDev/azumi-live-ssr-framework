@@ -797,6 +797,7 @@ pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<
         "playsinline",
         "poster",
         "preload",
+        "property",
         "readonly",
         "referrerpolicy",
         "rel",
