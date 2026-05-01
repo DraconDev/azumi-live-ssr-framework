@@ -445,44 +445,39 @@ class Azumi {
             }
         }
 
-// Less than: field < N
-        const ltMatch = expr.match(/^([\w.]+)\s*<\s*(\d+(?:\.\d+)?)$/);
-        if (ltMatch) {
-            return (parseFloat(state[ltMatch[1]]) || 0) < parseFloat(ltMatch[2]);
-        }
+// Helper: get nested property value
+        const getNestedValue = (obj, path) =>
+            path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
 
-        // Greater than: field > N
-        const gtMatch = expr.match(/^([\w.]+)\s*>\s*(\d+(?:\.\d+)?)$/);
-        if (gtMatch) {
-            return (parseFloat(state[gtMatch[1]]) || 0) > parseFloat(gtMatch[2]);
-        }
-
-        // Less than or equal: field <= N
-        const lteMatch = expr.match(/^([\w.]+)\s*<=\s*(\d+(?:\.\d+)?)$/);
-        if (lteMatch) {
-            return (parseFloat(state[lteMatch[1]]) || 0) <= parseFloat(lteMatch[2]);
-        }
-
-        // Greater than or equal: field >= N
-        const gteMatch = expr.match(/^([\w.]+)\s*>=\s*(\d+(?:\.\d+)?)$/);
-        if (gteMatch) {
-            return (parseFloat(state[gteMatch[1]]) || 0) >= parseFloat(gteMatch[2]);
+        // Numeric comparisons: field < N, field > N, field <= N, field >= N
+        const numMatch = expr.match(/^([\w.]+)\s*(<|>|<=|>=)\s*(\d+(?:\.\d+)?)$/);
+        if (numMatch) {
+            const fieldPath = numMatch[1];
+            const op = numMatch[2];
+            const limit = parseFloat(numMatch[3]);
+            const val = parseFloat(getNestedValue(state, fieldPath.split('.')) || 0);
+            switch (op) {
+                case '<': return val < limit;
+                case '>': return val > limit;
+                case '<=': return val <= limit;
+                case '>=': return val >= limit;
+            }
         }
 
         // Equality: field == 'value' or field == "value"
         const eqMatch = expr.match(/^([\w.]+)\s*==\s*['"]([^'"]*)['"]$/);
         if (eqMatch) {
-            return state[eqMatch[1]] === eqMatch[2];
+            return getNestedValue(state, eqMatch[1].split('.')) === eqMatch[2];
         }
 
         // Inequality: field != 'value' or field != "value"
         const neqMatch = expr.match(/^([\w.]+)\s*!=\s*['"]([^'"]*)['"]$/);
         if (neqMatch) {
-            return state[neqMatch[1]] !== neqMatch[2];
+            return getNestedValue(state, neqMatch[1].split('.')) !== neqMatch[2];
         }
 
         // Simple field name: truthy check
-        return !!state[expr];
+        return !!getNestedValue(state, [expr]);
     }
 
     /**

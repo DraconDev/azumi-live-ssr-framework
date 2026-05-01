@@ -1,21 +1,23 @@
 # Project State
 
 ## Current Focus
-Refresh Cargo.lock to capture latest dependency versions after recent updates
+Refactored Azumi's expression parser to support nested property access and consolidated numeric comparison logic.
 
 ## Context
-This change was prompted by recent updates to the project's dependencies, particularly in the SEO and OpenGraph metadata handling features. The Cargo.lock file needs to be refreshed to ensure all dependencies are properly versioned and compatible with the current codebase.
+The previous implementation had separate regex patterns for each numeric comparison operator (<, >, <=, >=), leading to code duplication. This change consolidates the logic into a single handler while adding support for nested property access (e.g., `user.profile.age`).
 
 ## Completed
-- [x] Updated Cargo.lock to reflect latest dependency versions
-- [x] Ensured compatibility with recent SEO and OpenGraph metadata improvements
+- [x] Consolidated numeric comparison logic into a single handler with switch statement
+- [x] Added nested property access support using a helper function
+- [x] Maintained backward compatibility with existing string-based comparisons
+- [x] Improved code readability by reducing duplicate regex patterns
 
 ## In Progress
-- [x] Dependency reconciliation and version alignment
+- [ ] Update test cases to verify nested property access functionality
 
 ## Blockers
-- None reported; dependency updates are complete
+- Need to ensure existing tests pass with the new implementation
 
 ## Next Steps
-1. Verify all dependencies are properly resolved in Cargo.lock
-2. Continue with ongoing documentation updates for the new features
+1. Update test cases to cover nested property access scenarios
+2. Verify edge cases for null/undefined values in nested paths
