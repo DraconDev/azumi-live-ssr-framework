@@ -682,3 +682,103 @@ fn test_sitemap_query_params_escaped() {
     assert!(sitemap.contains("&amp;"));
     assert!(sitemap.contains("q=test"));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: User-Scoped Signing Edge Cases
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_sign_state_for_user_format() {
+    let signed = security::sign_state_for_user("user123", r#"{"count":0}"#);
+    let parts: Vec<&str> = signed.splitn(2, '|').collect();
+    assert_eq!(parts.len(), 2, "Signed state must contain exactly one '|'");
+    let payload = parts[0];
+    assert!(
+        payload.starts_with("user123:{"),
+        "Payload should start with user_id:json. Got: {}",
+        payload
+    );
+}
+
+#[test]
+fn test_verify_state_for_user_correct_user() {
+    let signed = security::sign_state_for_user("user123", r#"{"count":5}"#);
+    let verified = security::verify_state_for_user("user123", &signed).unwrap();
+    assert_eq!(verified, r#"{"count":5}"#);
+}
+
+#[test]
+fn test_verify_state_for_user_wrong_user() {
+    let signed = security::sign_state_for_user("user123", r#"{"count":5}"#);
+    let result = security::verify_state_for_user("user456", &signed);
+    assert!(result.is_err(), "Wrong user_id should be rejected");
+}
+
+#[test]
+fn test_verify_state_rejects_user_scoped_when_not_expected() {
+    let signed = security::sign_state_for_user("user123", r#"{"count":5}"#);
+    let result = security::verify_state(&signed);
+    assert!(result.is_err(), "User-scoped state should be rejected by verify_state");
+}
+
+#[test]
+fn test_verify_state_accepts_non_user_scoped() {
+    let signed = security::sign_state(r#"{"count":5}"#);
+    let verified = security::verify_state(&signed).unwrap();
+    assert_eq!(verified, r#"{"count":5}"#);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: Malformed Base64
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_verify_rejects_invalid_base64_characters() {
+    let signed = security::sign_state("test");
+    let parts: Vec<&str> = signed.splitn(2, '|').collect();
+    let invalid = format!("{}|{}|INVALID_BASE64!!!!", parts[0], parts[1]);
+    let result = security::verify_state(&invalid);
+    assert!(result.is_err(), "Invalid base64 characters should be rejected");
+}
+
+#[test]
+fn test_verify_rejects_truncated_base64() {
+    let signed = security::sign_state("test");
+    let parts: Vec<&str> = signed.splitn(2, '|').collect();
+    let truncated = format!("{}|{}|A", parts[0], parts[1]);
+    let result = security::verify_state(&truncated);
+    assert!(result.is_err(), "Truncated base64 should be rejected");
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: Timestamp Boundary
+// Note: Cannot easily test exact timestamp boundaries without mocking time.
+// These tests document the expected behavior based on MAX_STATE_AGE_SECS = 3600.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Note: test_verify_accepts_fresh_timestamp already exists at line 150
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: Tampered Timestamp
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_verify_rejects_modified_timestamp() {
+    let signed = security::sign_state(r#"{"count":10}"#);
+    let parts: Vec<&str> = signed.splitn(2, '|').collect();
+    let signed2 = security::sign_state(r#"{"count":10}"#);
+    let parts2: Vec<&str> = signed2.splitn(2, '|').collect();
+    let tampered = format!("{}|{}|{}", parts[0], parts2[1], parts[2]);
+    let result = security::verify_state(&tampered);
+    assert!(result.is_err(), "Modified timestamp should be rejected");
+}
+
+#[test]
+fn test_verify_rejects_missing_timestamp() {
+    let json = r#"{"count":10}"#;
+    let signed = security::sign_state(json);
+    let parts: Vec<&str> = signed.splitn(2, '|').collect();
+    let without_ts = format!("{}|{}", parts[0], parts[1]);
+    let result = security::verify_state(&without_ts);
+    assert!(result.is_err(), "Missing timestamp should be rejected");
+}
