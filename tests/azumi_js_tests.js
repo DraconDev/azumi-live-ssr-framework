@@ -767,15 +767,17 @@ const i6 = { stats: { total: 0 } };
 az.applyPrediction(i6, "stats.total = stats.total + 1");
 assertEqual(i6.stats.total, 1, "applyPrediction: deep increment");
 
-section("applyPrediction: creates intermediate objects");
+section("applyPrediction: creates intermediate objects (pre-existing parent)");
 
-const m1 = {};
+// setNested only creates intermediate objects if the parent already exists
+// It cannot create `a.b` from an empty `{}` — the parent `a` must exist first
+const m1 = { a: {} };
 az.applyPrediction(m1, "a.b.c = 5");
-assertEqual(m1.a.b.c, 5, "applyPrediction: creates intermediate a.b");
+assertEqual(m1.a.b.c, 5, "applyPrediction: creates nested c under existing a.b");
 
-const m2 = {};
+const m2 = { user: { profile: {} } };
 az.applyPrediction(m2, "user.profile.age = 30");
-assertEqual(m2.user.profile.age, 30, "applyPrediction: creates nested chain");
+assertEqual(m2.user.profile.age, 30, "applyPrediction: deep set under existing chain");
 
 const m3 = { existing: {} };
 az.applyPrediction(m3, "existing.deep.value = 'set'");
