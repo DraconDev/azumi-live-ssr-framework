@@ -5,6 +5,35 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [34.5.4] - 2026-05-01
+
+### Fixed
+- **`property` attribute added to HTML validator**: OpenGraph meta tags (`<meta property="og:*">`) now compile correctly in `html!` macros — `property` was missing from the allowed attribute whitelist
+- **`test_generate_head_with_type` initialization**: Test now properly calls `reset_seo()` + `init_seo()` before `generate_head()` to avoid test pollution from global `SITE_CONFIG`
+- **SEO tests use correct HTML**: `tests/seo_tests.rs` OG tests now use `property` instead of `data-property` workaround
+
+## [34.3.0] - 2026-04-30
+
+### Added
+- **`||` operator in `evaluateExpression`**: Field fallback/default value support — `field || 'default'` returns the field value unless it's `null`, `undefined`, or `''` (empty string), in which case it evaluates and returns the default expression
+- **Parenthetical grouping in evaluators**: Both `evaluatePredicate` and `evaluateExpression` now strip outer `()` and recurse — `(a && b)` no longer treated as a literal field name
+- **Depth-tracked ternary parser**: `parseTernary()` and `findTernaryIndex()` use depth tracking for `()`/`[]`/`{}` brackets instead of a simple regex — correctly handles nested ternaries like `a ? b ? c : d : e`
+- **`colonBalance` for nested ternary on truthy side**: `parseTernary` tracks how many `?`/`:` pairs are open on the truthy branch, ensuring the correct `:` is matched for the outer ternary
+
+### Fixed
+- **Float comparisons in `evaluatePredicate`**: All 4 comparison operators (`<`, `>`, `<=`, `>=`) now use `[\d.]+` regex + `parseFloat` instead of `\d+` + `parseInt`
+- **Float arithmetic in `evaluateExpression`**: Increment (`+`) and decrement (`-`) operators now use `parseFloat` instead of `parseInt`
+- **Strict numeric literal regex**: Changed `[\d.]+` → `\d+(?:\.\d+)?` to prevent malformed floats like `1.5.2` from being silently truncated to `1.5`
+- **`findOperatorIndex` escape handling**: Replaced fragile `expr[i-1] !== '\\'` check with proper `isEscaped` state-machine, consistent with `parseTernary` and `findTernaryIndex`
+- **Dead code removed**: Three stale duplicate comparison blocks (integer-only `\d+`/parseInt) deleted from `evaluatePredicate`; unused `normalizedValue`, `parenDepth`, and `allAttrs` sentinel variable removed
+- **String escape regex**: Fixed spurious `)` in character class `['")\\]` → `['"\\]`
+
+### Changed
+- **`applyPrediction` increment/decrement**: Now supports float operands and uses `parseFloat` — `score = count + 1.5` works correctly
+- **Documentation**: `client/README.md` "Supported Expressions" updated; `AI_GUIDE_FOR_WRITING_AZUMI.md` `az-bind` syntax table updated; test descriptions clarified
+
+---
+
 ## [30.3.1] - 2026-04-30
 
 ### Added

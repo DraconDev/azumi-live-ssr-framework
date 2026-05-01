@@ -19,9 +19,11 @@ No runtime errors. No "works on my machine". No surprises.
 
 ---
 
-## 🚀 v30.3.1 Release Notes
+## 🚀 v34.5.4 Release Notes
 
-**Azumi v30.3.1** — Client-side micro-state management via `az-ui`, expression-based binding with `az-bind:class` and `az-bind:text`, and restored `set` command for ephemeral UI state.
+**Azumi v34.5.4** — Strict numeric regex, depth-tracked nested ternary parser, `||` operator in expressions, parenthetical grouping in evaluators, `property` attribute support for OpenGraph meta tags, and full test suite at 420 tests.
+
+### What's New in v34.5.4
 
 ### What's New
 - **TrustedHtml Component**: User-facing escape hatch for pre-sanitized HTML from trusted sources
@@ -340,7 +342,7 @@ pub fn RootLayout(children: impl Component) -> impl Component {
 
 Production builds (no devtools):
 ```toml
-azumi = { version = "30.3.1" }
+azumi = { version = "34.5.4" }
 ```
 ...
 azumi = { version = "30.3.1", features = ["devtools"] }
