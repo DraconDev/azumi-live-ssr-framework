@@ -1,20 +1,21 @@
 # Project State
 
 ## Current Focus
-Added support for the `property` attribute in HTML structure validation.
+Added OpenGraph type support to SEO metadata generation
 
 ## Context
-The `property` attribute is commonly used in HTML to define custom properties on elements, particularly in the context of microdata or RDFa. This addition ensures the validator recognizes this attribute when processing HTML structures.
+The change enables setting the `og:type` property in OpenGraph metadata, which is crucial for proper content classification in social media sharing.
 
 ## Completed
-- [x] Added `property` to the list of valid HTML attributes in the validator
+- [x] Added SEO initialization with configurable OpenGraph type
+- [x] Implemented test case for OpenGraph type generation
 
 ## In Progress
-- [x] No active work in progress beyond this change
+- [ ] No active work in progress
 
 ## Blockers
-- None identified for this specific change
+- None identified
 
 ## Next Steps
-1. Verify the attribute is correctly handled in validation logic
-2. Consider adding tests for `property` attribute validation
+1. Verify OpenGraph type rendering in social media platforms
+2. Add support for additional OpenGraph properties
