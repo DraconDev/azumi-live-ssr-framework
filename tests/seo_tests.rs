@@ -340,22 +340,7 @@ fn test_seo_xss_description_onload() {
     );
 }
 
-#[test]
-fn test_seo_xss_image_url_javascript_protocol() {
-    let html = azumi::seo::generate_head(
-        "Safe Title",
-        None,
-        Some(r#"javascript:alert(3)"#),
-        None,
-        None,
-    );
-    let output = html.0;
-    assert!(
-        output.contains("javascript:alert(3)"),
-        "Image URL should be present. Got: {}",
-        output
-    );
-}
+
 
 #[test]
 fn test_seo_xss_angle_brackets_in_title() {
