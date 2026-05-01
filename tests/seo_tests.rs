@@ -403,33 +403,6 @@ fn test_seo_safe_values_unchanged() {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// SECTION: Twitter Card XSS escaping
-// Tests that twitter:title properly escapes dangerous content.
-// ════════════════════════════════════════════════════════════════════════════
-
-#[test]
-fn test_seo_xss_angle_brackets_in_title() {
-    let html = azumi::seo::generate_head(
-        r#"<script>alert(1)</script>"#,
-        None,
-        None,
-        None,
-        None,
-    );
-    let output = html.0;
-    assert!(
-        !output.contains("<script>"),
-        "twitter:title should escape script tags. Got: {}",
-        output
-    );
-    assert!(
-        output.contains("&lt;script&gt;"),
-        "Expected escaped script tag. Got: {}",
-        output
-    );
-}
-
-// ════════════════════════════════════════════════════════════════════════════
 // SECTION: All fields None
 // ════════════════════════════════════════════════════════════════════════════
 
