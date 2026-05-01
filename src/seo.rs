@@ -197,7 +197,7 @@ pub fn generate_head(
 
     let mut html = String::new();
 
-    let safe_title = html_text_escape(&full_title);
+    let safe_title = html_attr_escape(&full_title);
     let safe_desc = effective_desc.as_deref().map(html_attr_escape);
     let safe_url = full_url.as_deref().map(html_attr_escape);
     let safe_image = effective_image.as_deref().map(html_attr_escape);
