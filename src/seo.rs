@@ -102,7 +102,10 @@ impl SeoConfig {
         og.image = Some(img.clone());
         self.open_graph = Some(og);
 
-        let mut tw = self.twitter.unwrap_or_default();
+        let mut tw = self.twitter.take().unwrap_or_else(|| TwitterCard {
+            card: "summary".to_string(),
+            ..Default::default()
+        });
         tw.image = Some(img);
         self.twitter = Some(tw);
         self
