@@ -1,21 +1,20 @@
 # Project State
 
 ## Current Focus
-Removed a redundant SEO test case for JavaScript protocol image URLs
+Refresh Cargo.lock to capture latest dependency versions
 
 ## Context
-The test was removed as part of ongoing SEO test refactoring to simplify the test suite and improve focus on critical XSS protection scenarios.
+This change updates the Cargo.lock file to reflect the most recent dependency versions after several recent refactoring and security improvements in the SEO test cases and Azumi's expression parser.
 
 ## Completed
-- [x] Removed redundant SEO test case for JavaScript protocol image URLs
-- [x] Updated Cargo.lock to capture latest dependency versions
+- [x] Updated Cargo.lock to reflect latest dependency versions
 
 ## In Progress
-- [x] Ongoing SEO test refactoring and enhancement efforts
+- [x] No active work in progress beyond the Cargo.lock update
 
 ## Blockers
-- None identified
+- None identified for this specific change
 
 ## Next Steps
-1. Continue SEO test refactoring and enhancement
-2. Review remaining SEO test cases for further simplification
+1. Verify that all dependencies are compatible with the latest versions
+2. Continue with ongoing refactoring and testing work in related areas
