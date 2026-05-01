@@ -294,19 +294,22 @@ class AzumiTest {
         }
 
         const pathParts = expr.split('.');
-        // Check if the full path is resolvable (all segments exist in state)
-        // If not (undefined returned because path doesn't exist), fall through to return expr
-        const val = this.getNestedValue(state, pathParts);
-        const parent = pathParts.length > 1
-            ? this.getNestedValue(state, pathParts.slice(0, -1))
-            : state;
-        if (parent != null && parent !== undefined) {
-            // Parent object exists - return the actual value (even if undefined)
-            if (val !== undefined) return val;
-            // val is undefined but parent exists → field IS set (to undefined)
-            return undefined;
+        // Determine if the field path exists in state.
+        // For a flat field "foo": hasOwnProperty check on state itself.
+        // For a nested field "a.b.c": we need all parent segments to be non-null objects.
+        let exists = false;
+        if (pathParts.length === 1) {
+            exists = state.hasOwnProperty(expr);
+        } else {
+            const parent = this.getNestedValue(state, pathParts.slice(0, -1));
+            exists = parent != null && typeof parent === 'object';
         }
-        // Parent doesn't exist → field doesn't exist → return expr as-is
+
+        if (exists) {
+            // Field path exists in state — return the resolved value (even if undefined)
+            return this.getNestedValue(state, pathParts);
+        }
+        // Field doesn't exist → return the expression string as-is (unknown identifier)
 
         if (/^-?\d+$/.test(expr)) {
             return parseInt(expr, 10);
