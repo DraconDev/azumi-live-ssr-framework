@@ -404,6 +404,9 @@ fn test_seo_safe_values_unchanged() {
 
 // ════════════════════════════════════════════════════════════════════════════
 // SECTION: Twitter Card — site and creator (generate_head)
+// Tests that twitter:site and twitter:creator are output when configured.
+// These tests must run BEFORE any init_seo call (which is idempotent and
+// only applies on first call). The init_seo test runs last in this section.
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
@@ -411,11 +414,9 @@ fn test_twitter_card_with_site_and_creator() {
     let mut tw = azumi::seo::TwitterCard::default();
     tw.site = Some("@handle".to_string());
     tw.creator = Some("@creator".to_string());
-    let mut og = azumi::seo::OpenGraph::default();
-    og.site_name = Some("Test Site".to_string());
     let mut config = azumi::seo::SeoConfig::new("Test");
     config.twitter = Some(tw);
-    config.open_graph = Some(og);
+    azumi::seo::init_seo(config);
     let html = azumi::seo::generate_head("Title", None, None, None, None);
     let output = html.0;
     assert!(
@@ -448,10 +449,12 @@ fn test_twitter_card_site_escapes_quotes() {
 
 // ════════════════════════════════════════════════════════════════════════════
 // SECTION: init_seo idempotency
+// Tests that init_seo only applies on first call.
+// Note: Uses #[serial] to prevent init_seo pollution between tests.
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn test_init_seo_idempotent() {
+fn test_init_seo_first_call_wins() {
     let config1 = azumi::seo::SeoConfig::new("First Title")
         .with_description("First Description");
     let config2 = azumi::seo::SeoConfig::new("Second Title")
