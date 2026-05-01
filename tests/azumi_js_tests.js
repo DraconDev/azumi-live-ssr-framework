@@ -244,8 +244,8 @@ class AzumiTest {
             return this.getNestedValue(state, neqMatch[1].split('.')) !== neqMatch[2];
         }
 
-        // Simple field name: truthy check (supports nested paths)
-        return !!this.getNestedValue(state, [expr]);
+        // Simple field name: truthy check (supports nested paths via dot-splitting)
+        return !!this.getNestedValue(state, expr.split('.'));
     }
 
     evaluateExpression(expr, state) {

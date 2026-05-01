@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Enhanced test coverage for Azumi's nested property access in JavaScript tests
+Improved nested property access handling in Azumi's expression parser
 
 ## Context
-This change improves test coverage for Azumi's expression parser's handling of nested property access, ensuring robust behavior when setting values in existing nested objects.
+This change enhances the expression parser's ability to handle nested property access by properly splitting dot-separated paths when evaluating simple field names.
 
 ## Completed
-- [x] Updated test case to verify setting values in existing nested objects
-- [x] Improved test description to clarify the specific scenario being tested
+- [x] Refactored simple field name evaluation to use dot-splitting for nested property access
+- [x] Maintained backward compatibility with existing truthy checks
 
 ## In Progress
-- [x] No active work in progress beyond the current changes
+- [x] Testing the updated nested property access behavior
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Review test results to ensure all edge cases are covered
-2. Consider additional test cases for more complex nested property scenarios
+1. Verify test coverage for nested property access
+2. Document the new nested property access syntax in user documentation
