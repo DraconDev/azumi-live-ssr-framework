@@ -766,11 +766,13 @@ fn test_verify_rejects_truncated_base64() {
 fn test_verify_rejects_modified_timestamp() {
     let signed = security::sign_state(r#"{"count":10}"#);
     let parts: Vec<&str> = signed.split('|').collect();
+    assert_eq!(parts.len(), 3, "Expected json|timestamp|signature format");
     let signed2 = security::sign_state(r#"{"count":10}"#);
     let parts2: Vec<&str> = signed2.split('|').collect();
+    assert_eq!(parts2.len(), 3, "Expected json|timestamp|signature format");
     let tampered = format!("{}|{}|{}", parts[0], parts2[1], parts[2]);
     let result = security::verify_state(&tampered);
-    assert!(result.is_err(), "Modified timestamp should be rejected");
+    assert!(result.is_err(), "Modified timestamp should be rejected. Got: {:?}", result);
 }
 
 #[test]
