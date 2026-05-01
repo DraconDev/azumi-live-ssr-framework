@@ -128,13 +128,24 @@ class AzumiTest {
             const fieldVal = this.evaluateExpression(field, state);
             return fieldVal !== null && fieldVal !== undefined && fieldVal !== '' ? fieldVal : this.evaluateExpression(defaultVal, state);
         }
-        const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
-        if (incMatch) return (parseFloat(this.getNestedValue(state, incMatch[1].split('.')) || 0) + parseFloat(incMatch[2]));
+const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
+        if (incMatch) return (parseFloat(this.getNestedValue(state, incMatch[1].split('.')) || 0) + parseFloat(incMatch[2]);
         const decMatch = expr.match(/^([\w.]+)\s*-\s*(\d+(?:\.\d+)?)$/);
-        if (decMatch) return (parseFloat(this.getNestedValue(state, decMatch[1].split('.')) || 0) - parseFloat(decMatch[2]));
-        const val = this.getNestedValue(state, expr.split('.'));
-        if (val !== undefined) return val;
-        return expr;
+        if (decMatch) return (parseFloat(this.getNestedValue(state, decMatch[1].split('.')) || 0) - parseFloat(decMatch[2]);
+        // Check if field exists (for single-segment) or parent chain exists (for nested)
+        const pathParts = expr.split('.');
+        let fieldExists = false;
+        if (pathParts.length === 1) {
+            fieldExists = state.hasOwnProperty(expr);
+        } else {
+            const parent = this.getNestedValue(state, pathParts.slice(0, -1));
+            fieldExists = parent != null && typeof parent === 'object';
+        }
+        if (fieldExists) {
+            const val = this.getNestedValue(state, pathParts);
+            if (val !== undefined) return val;
+            return undefined;
+        }
     }
 
     applyPrediction(state, pred) {
