@@ -159,3 +159,188 @@ fn test_style_multiple_classes() {
     assert!(output.contains("class=\"content\""));
     assert!(output.contains("data-s"));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Pseudo-elements (::before, ::after)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_pseudo_element_before() {
+    let comp = html! {
+        <div class={tooltip}>"Text"</div>
+        <style>
+            .tooltip::before { content: "→"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains("::before"),
+        "::before pseudo-element should be preserved. Got: {}",
+        output
+    );
+}
+
+#[test]
+fn test_pseudo_element_after() {
+    let comp = html! {
+        <div class={arrow}>"Item"</div>
+        <style>
+            .arrow::after { content: "↦"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains("::after"),
+        "::after pseudo-element should be preserved. Got: {}",
+        output
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Pseudo-classes (:hover, :focus)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_pseudo_class_hover() {
+    let comp = html! {
+        <button class={btn}>"Click"</button>
+        <style>
+            .btn:hover { background: "blue"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains(":hover"),
+        ":hover pseudo-class should be preserved. Got: {}",
+        output
+    );
+}
+
+#[test]
+fn test_pseudo_class_focus() {
+    let comp = html! {
+        <input class={field} type="text" />
+        <style>
+            .field:focus { border: "2px solid blue"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains(":focus"),
+        ":focus pseudo-class should be preserved. Got: {}",
+        output
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Attribute selectors ([attr], [attr=value])
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_attribute_selector_present() {
+    let comp = html! {
+        <input type="text" />
+        <style>
+            [type] { border: "1px"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains("[type]"),
+        "Attribute selector [type] should be preserved. Got: {}",
+        output
+    );
+}
+
+#[test]
+fn test_attribute_selector_exact_match() {
+    let comp = html! {
+        <input type="password" />
+        <style>
+            [type="password"] { color: "red"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    let has_selector = output.contains("[type=") && output.contains("password]");
+    assert!(
+        has_selector,
+        "Attribute selector should be preserved. Got: {}",
+        output
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Combinators (> child, + adjacent, ~ general sibling)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_combinator_child() {
+    let comp = html! {
+        <div class={wrapper}>
+            <span>"Child"</span>
+        </div>
+        <style>
+            .wrapper > span { color: "blue"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains("> span") || output.contains(">span"),
+        "Child combinator > should be preserved. Got: {}",
+        output
+    );
+}
+
+#[test]
+fn test_combinator_adjacent_sibling() {
+    let comp = html! {
+        <div class={item}>"First"</div>
+        <div class={item}>"Second"</div>
+        <style>
+            .item + .item { margin-top: "1rem"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains("+ .item") || output.contains("+.item"),
+        "Adjacent sibling combinator + should be preserved. Got: {}",
+        output
+    );
+}
+
+#[test]
+fn test_combinator_general_sibling() {
+    let comp = html! {
+        <h1 class={title}>"Title"</h1>
+        <p class={para}>"Para"</p>
+        <style>
+            .title ~ .para { color: "gray"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains("~ .para") || output.contains("~.para"),
+        "General sibling combinator ~ should be preserved. Got: {}",
+        output
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Multiple pseudo-classes (:hover:focus)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_multiple_pseudo_classes() {
+    let comp = html! {
+        <button class={btn}>"Submit"</button>
+        <style>
+            .btn:hover:focus { background: "green"; }
+        </style>
+    };
+    let output = test::render(&comp);
+    assert!(
+        output.contains(":hover:focus"),
+        "Multiple pseudo-classes should be preserved. Got: {}",
+        output
+    );
+}
