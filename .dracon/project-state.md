@@ -1,23 +1,23 @@
 # Project State
 
 ## Current Focus
-Refactored Azumi's expression parser to support nested property access and consolidated numeric comparison logic.
+Enhance Azumi's expression parser to support nested property access in increment/decrement operations and field lookups.
 
 ## Context
-The previous implementation had separate regex patterns for each numeric comparison operator (<, >, <=, >=), leading to code duplication. This change consolidates the logic into a single handler while adding support for nested property access (e.g., `user.profile.age`).
+The previous implementation only handled top-level properties. This change enables working with nested object structures (e.g., `user.profile.age`) in expressions.
 
 ## Completed
-- [x] Consolidated numeric comparison logic into a single handler with switch statement
-- [x] Added nested property access support using a helper function
-- [x] Maintained backward compatibility with existing string-based comparisons
-- [x] Improved code readability by reducing duplicate regex patterns
+- [x] Refactored increment operations to support nested property paths (e.g., `user.profile.age + 5`)
+- [x] Refactored decrement operations to support nested property paths (e.g., `user.profile.age - 5`)
+- [x] Updated field lookups to support nested property paths (e.g., `user.profile.age`)
+- [x] Added helper function `getNestedValue` to handle nested property access
 
 ## In Progress
-- [ ] Update test cases to verify nested property access functionality
+- [ ] Update test cases to verify nested property access scenarios
 
 ## Blockers
-- Need to ensure existing tests pass with the new implementation
+- Need to ensure backward compatibility with existing expressions that use flat properties
 
 ## Next Steps
-1. Update test cases to cover nested property access scenarios
-2. Verify edge cases for null/undefined values in nested paths
+1. Update test suite to cover nested property access cases
+2. Document the new nested property syntax in the Azumi expression documentation

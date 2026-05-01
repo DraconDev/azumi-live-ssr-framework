@@ -686,18 +686,21 @@ class Azumi {
         // Increment: field + N
         const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
         if (incMatch) {
-            return (parseFloat(state[incMatch[1]]) || 0) + parseFloat(incMatch[2]);
+            const fieldPath = incMatch[1].split('.');
+            return (parseFloat(getNestedValue(state, fieldPath)) || 0) + parseFloat(incMatch[2]);
         }
 
         // Decrement: field - N
         const decMatch = expr.match(/^([\w.]+)\s*-\s*(\d+(?:\.\d+)?)$/);
         if (decMatch) {
-            return (parseFloat(state[decMatch[1]]) || 0) - parseFloat(decMatch[2]);
+            const fieldPath = decMatch[1].split('.');
+            return (parseFloat(getNestedValue(state, fieldPath)) || 0) - parseFloat(decMatch[2]);
         }
 
-        // Field lookup
-        if (state.hasOwnProperty(expr)) {
-            return state[expr];
+        // Field lookup (supports nested paths)
+        const val = getNestedValue(state, expr.split('.'));
+        if (val !== undefined) {
+            return val;
         }
 
         // Number literal
