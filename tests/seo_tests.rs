@@ -581,5 +581,4 @@ fn test_seo_xss_image_url_with_angle_brackets() {
         "Image URL should escape angle brackets and event handlers. Got: {}",
         output
     );
-    azumi::seo::reset_seo();
 }
