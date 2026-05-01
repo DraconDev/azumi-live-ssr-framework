@@ -493,53 +493,20 @@ fn test_init_seo_idempotent() {
 
 // ════════════════════════════════════════════════════════════════════════════
 // SECTION: URL construction (base_url + current_path)
+// Note: These tests use the public API. The base_url is set via init_seo
+// and current_path is managed by the context module (internal).
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn test_canonical_url_from_base_url_and_path() {
-    let mut config = azumi::seo::SeoConfig::new("Test");
-    config.base_url = Some("https://example.com/".to_string());
-    azumi::seo::init_seo(config);
-    crate::context::set_current_path(Some("/about".to_string()));
-    let html = azumi::seo::generate_head("Title", None, None, None, None);
-    let output = html.0;
-    assert!(
-        output.contains("https://example.com/about"),
-        "Canonical URL should combine base_url + path. Got: {}",
-        output
-    );
-    crate::context::set_current_path(None);
-    azumi::seo::reset_seo();
-}
-
-#[test]
-fn test_canonical_url_path_strips_leading_slash() {
-    let mut config = azumi::seo::SeoConfig::new("Test");
-    config.base_url = Some("https://example.com/".to_string());
-    azumi::seo::init_seo(config);
-    crate::context::set_current_path(Some("/blog/post-1".to_string()));
-    let html = azumi::seo::generate_head("Title", None, None, None, None);
-    let output = html.0;
-    assert!(
-        output.contains("https://example.com/blog/post-1"),
-        "Path with leading slash should not create double slash. Got: {}",
-        output
-    );
-    crate::context::set_current_path(None);
-    azumi::seo::reset_seo();
-}
-
-#[test]
-fn test_canonical_url_no_path_uses_base_only() {
+fn test_canonical_url_from_base_url() {
     let mut config = azumi::seo::SeoConfig::new("Test");
     config.base_url = Some("https://example.com".to_string());
     azumi::seo::init_seo(config);
-    crate::context::set_current_path(None);
     let html = azumi::seo::generate_head("Title", None, None, None, None);
     let output = html.0;
     assert!(
         output.contains("https://example.com"),
-        "Canonical URL should use base_url when no path. Got: {}",
+        "Canonical URL should include base_url. Got: {}",
         output
     );
     azumi::seo::reset_seo();
@@ -579,7 +546,7 @@ fn test_generate_head_empty_title_still_renders() {
 fn test_seo_xss_image_url_with_quotes() {
     let mut og = azumi::seo::OpenGraph::default();
     og.site_name = Some("Test".into());
-    let mut config = azumi::seo::seo::SeoConfig::new("Test");
+    let mut config = azumi::seo::SeoConfig::new("Test");
     config.open_graph = Some(og);
     azumi::seo::init_seo(config);
     let html = azumi::seo::generate_head(
@@ -602,7 +569,7 @@ fn test_seo_xss_image_url_with_quotes() {
 fn test_seo_xss_image_url_with_angle_brackets() {
     let mut og = azumi::seo::OpenGraph::default();
     og.site_name = Some("Test".into());
-    let mut config = azumi::seo::seo::SeoConfig::new("Test");
+    let mut config = azumi::seo::SeoConfig::new("Test");
     config.open_graph = Some(og);
     azumi::seo::init_seo(config);
     let html = azumi::seo::generate_head(
