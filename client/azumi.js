@@ -646,6 +646,10 @@ class Azumi {
         if (!expr || !state) return '';
         expr = expr.trim();
 
+        // Helper: get nested property value
+        const getNestedValue = (obj, path) =>
+            path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
+
         // Empty
         if (expr === '') return '';
 

@@ -1,23 +1,23 @@
 # Project State
 
 ## Current Focus
-Enhance Azumi's expression parser to support nested property access in increment/decrement operations and field lookups.
+Added nested property access support to Azumi's expression parser
 
 ## Context
-The previous implementation only handled top-level properties. This change enables working with nested object structures (e.g., `user.profile.age`) in expressions.
+This change enables Azumi's expression parser to handle nested object properties, which was previously missing functionality. The recent refactoring of Azumi's expression parser prompted this addition to maintain consistency and improve data access capabilities.
 
 ## Completed
-- [x] Refactored increment operations to support nested property paths (e.g., `user.profile.age + 5`)
-- [x] Refactored decrement operations to support nested property paths (e.g., `user.profile.age - 5`)
-- [x] Updated field lookups to support nested property paths (e.g., `user.profile.age`)
-- [x] Added helper function `getNestedValue` to handle nested property access
+- [x] Added `getNestedValue` helper function to traverse nested object properties
+- [x] Implemented path-based property access in expressions
 
 ## In Progress
-- [ ] Update test cases to verify nested property access scenarios
+- [ ] Testing edge cases for nested property access
+- [ ] Documentation updates for new feature
 
 ## Blockers
-- Need to ensure backward compatibility with existing expressions that use flat properties
+- Need to verify performance impact with deeply nested objects
+- Requires test coverage for error cases (missing properties, invalid paths)
 
 ## Next Steps
-1. Update test suite to cover nested property access cases
-2. Document the new nested property syntax in the Azumi expression documentation
+1. Complete test coverage for nested property access
+2. Document the new syntax in Azumi's expression language guide
