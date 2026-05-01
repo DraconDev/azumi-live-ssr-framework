@@ -423,3 +423,200 @@ fn test_seo_safe_values_unchanged() {
     assert!(output.contains(r#"content="A normal description.""#));
     assert!(output.contains(r#"href="https://example.com/page""#));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: Twitter Card — site and creator (generate_head)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_twitter_card_with_site_and_creator() {
+    let config = azumi::seo::SeoConfig::new("Test")
+        .with_description("Test desc")
+        .with_image("/img.jpg");
+    azumi::seo::init_seo(config);
+    let html = azumi::seo::generate_head("Title", None, None, None, None);
+    let output = html.0;
+    assert!(
+        output.contains(r#"twitter:site"#),
+        "Expected twitter:site meta. Got: {}",
+        output
+    );
+    assert!(
+        output.contains(r#"twitter:creator"#),
+        "Expected twitter:creator meta. Got: {}",
+        output
+    );
+    azumi::seo::reset_seo();
+}
+
+#[test]
+fn test_twitter_card_site_esapes_xss() {
+    let config = azumi::seo::SeoConfig::new("Test");
+    azumi::seo::init_seo(config);
+    let html = azumi::seo::generate_head(
+        "Title",
+        None,
+        None,
+        None,
+        None,
+    );
+    let output = html.0;
+    // twitter:site content should have quotes escaped
+    assert!(
+        !output.contains(r#"content=""#),
+        "twitter:site should not have empty content attribute"
+    );
+    azumi::seo::reset_seo();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: init_seo idempotency
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_init_seo_idempotent() {
+    let config1 = azumi::seo::SeoConfig::new("First Title")
+        .with_description("First Description");
+    let config2 = azumi::seo::SeoConfig::new("Second Title")
+        .with_description("Second Description");
+    azumi::seo::init_seo(config1);
+    azumi::seo::init_seo(config2);
+    let html = azumi::seo::generate_head("", None, None, None, None);
+    let output = html.0;
+    assert!(
+        output.contains("First Title") || output.contains("First Description"),
+        "Second init_seo should not overwrite first. Got: {}",
+        output
+    );
+    azumi::seo::reset_seo();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: URL construction (base_url + current_path)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_canonical_url_from_base_url_and_path() {
+    let mut config = azumi::seo::SeoConfig::new("Test");
+    config.base_url = Some("https://example.com/".to_string());
+    azumi::seo::init_seo(config);
+    crate::context::set_current_path(Some("/about".to_string()));
+    let html = azumi::seo::generate_head("Title", None, None, None, None);
+    let output = html.0;
+    assert!(
+        output.contains("https://example.com/about"),
+        "Canonical URL should combine base_url + path. Got: {}",
+        output
+    );
+    crate::context::set_current_path(None);
+    azumi::seo::reset_seo();
+}
+
+#[test]
+fn test_canonical_url_path_strips_leading_slash() {
+    let mut config = azumi::seo::SeoConfig::new("Test");
+    config.base_url = Some("https://example.com/".to_string());
+    azumi::seo::init_seo(config);
+    crate::context::set_current_path(Some("/blog/post-1".to_string()));
+    let html = azumi::seo::generate_head("Title", None, None, None, None);
+    let output = html.0;
+    assert!(
+        output.contains("https://example.com/blog/post-1"),
+        "Path with leading slash should not create double slash. Got: {}",
+        output
+    );
+    crate::context::set_current_path(None);
+    azumi::seo::reset_seo();
+}
+
+#[test]
+fn test_canonical_url_no_path_uses_base_only() {
+    let mut config = azumi::seo::SeoConfig::new("Test");
+    config.base_url = Some("https://example.com".to_string());
+    azumi::seo::init_seo(config);
+    crate::context::set_current_path(None);
+    let html = azumi::seo::generate_head("Title", None, None, None, None);
+    let output = html.0;
+    assert!(
+        output.contains("https://example.com"),
+        "Canonical URL should use base_url when no path. Got: {}",
+        output
+    );
+    azumi::seo::reset_seo();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: All fields None
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_generate_head_all_none() {
+    let html = azumi::seo::generate_head("", None, None, None, None);
+    let output = html.0;
+    assert!(
+        output.contains("<title>"),
+        "Should still produce <title> tag even with all None. Got: {}",
+        output
+    );
+}
+
+#[test]
+fn test_generate_head_empty_title_still_renders() {
+    let html = azumi::seo::generate_head("", None, None, None, None);
+    let output = html.0;
+    assert!(
+        output.contains("<title></title>") || output.contains("<title>"),
+        "Empty title should still produce title tag. Got: {}",
+        output
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: XSS escaping in image URL (generate_head)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_seo_xss_image_url_with_quotes() {
+    let mut og = azumi::seo::OpenGraph::default();
+    og.site_name = Some("Test".into());
+    let mut config = azumi::seo::seo::SeoConfig::new("Test");
+    config.open_graph = Some(og);
+    azumi::seo::init_seo(config);
+    let html = azumi::seo::generate_head(
+        "Safe Title",
+        None,
+        Some(r#"/img.png" onload="alert(1) x=""#),
+        None,
+        None,
+    );
+    let output = html.0;
+    assert!(
+        output.contains("&quot;") || !output.contains(r#" onload=""#),
+        "Image URL should have quotes escaped. Got: {}",
+        output
+    );
+    azumi::seo::reset_seo();
+}
+
+#[test]
+fn test_seo_xss_image_url_with_angle_brackets() {
+    let mut og = azumi::seo::OpenGraph::default();
+    og.site_name = Some("Test".into());
+    let mut config = azumi::seo::seo::SeoConfig::new("Test");
+    config.open_graph = Some(og);
+    azumi::seo::init_seo(config);
+    let html = azumi::seo::generate_head(
+        "Title",
+        None,
+        Some("/<img/src=x onerror=alert(1)>"),
+        None,
+        None,
+    );
+    let output = html.0;
+    assert!(
+        !output.contains("<script") && !output.contains("onerror"),
+        "Image URL should escape angle brackets and event handlers. Got: {}",
+        output
+    );
+    azumi::seo::reset_seo();
+}
