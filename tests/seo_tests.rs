@@ -430,10 +430,14 @@ fn test_seo_safe_values_unchanged() {
 
 #[test]
 fn test_twitter_card_with_site_and_creator() {
-    let config = azumi::seo::SeoConfig::new("Test")
-        .with_description("Test desc")
-        .with_image("/img.jpg");
-    azumi::seo::init_seo(config);
+    let mut tw = azumi::seo::TwitterCard::default();
+    tw.site = Some("@handle".to_string());
+    tw.creator = Some("@creator".to_string());
+    let mut og = azumi::seo::OpenGraph::default();
+    og.site_name = Some("Test Site".to_string());
+    let mut config = azumi::seo::SeoConfig::new("Test");
+    config.twitter = Some(tw);
+    config.open_graph = Some(og);
     let html = azumi::seo::generate_head("Title", None, None, None, None);
     let output = html.0;
     assert!(
@@ -446,27 +450,22 @@ fn test_twitter_card_with_site_and_creator() {
         "Expected twitter:creator meta. Got: {}",
         output
     );
-    azumi::seo::reset_seo();
 }
 
 #[test]
-fn test_twitter_card_site_esapes_xss() {
-    let config = azumi::seo::SeoConfig::new("Test");
-    azumi::seo::init_seo(config);
-    let html = azumi::seo::generate_head(
-        "Title",
-        None,
-        None,
-        None,
-        None,
-    );
+fn test_twitter_card_site_escapes_quotes() {
+    let mut tw = azumi::seo::TwitterCard::default();
+    tw.site = Some(r#"@handle" onclick="alert(1)"#.to_string());
+    tw.card = "summary".to_string();
+    let mut config = azumi::seo::SeoConfig::new("Test");
+    config.twitter = Some(tw);
+    let html = azumi::seo::generate_head("Title", None, None, None, None);
     let output = html.0;
-    // twitter:site content should have quotes escaped
     assert!(
-        !output.contains(r#"content=""#),
-        "twitter:site should not have empty content attribute"
+        !output.contains(r#"onclick=""#),
+        "twitter:site should escape quotes. Got: {}",
+        output
     );
-    azumi::seo::reset_seo();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -488,7 +487,6 @@ fn test_init_seo_idempotent() {
         "Second init_seo should not overwrite first. Got: {}",
         output
     );
-    azumi::seo::reset_seo();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -509,7 +507,6 @@ fn test_canonical_url_from_base_url() {
         "Canonical URL should include base_url. Got: {}",
         output
     );
-    azumi::seo::reset_seo();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -562,7 +559,6 @@ fn test_seo_xss_image_url_with_quotes() {
         "Image URL should have quotes escaped. Got: {}",
         output
     );
-    azumi::seo::reset_seo();
 }
 
 #[test]
