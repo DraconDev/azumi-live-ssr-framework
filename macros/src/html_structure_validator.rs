@@ -116,26 +116,24 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 "Azumi: JavaScript content detected inside Raw().\n\n\
                                 Raw() with JS bypasses Azumi's security model.\n\
                                 \n\
-                                ✅ Correct pattern:\n\
+                                ✅ Correct patterns:\n\
                                 \n\
+                                // For inline scripts - use inline_script! macro:\n\
                                 html! {\n\
-                                    <script>\n\
-                                        console.log(\"Hello\");\n\
-                                    </script>\n\
+                                    {azumi::inline_script!(AI_HUB_COPY_JS)}\n\
                                 }\n\
+                                \n\
+                                // For JSON data - use json_data! macro:\n\
+                                html! {\n\
+                                    {azumi::json_data!(window.__DATA__ = &data)}\n\
+                                }\n\
+                                \n\
+                                // For framework scripts - use azumi_script():\n\
+                                html! { {azumi::azumi_script()} }\n\
                                 \n\
                                 ❌ Wrong pattern:\n\
                                 \n\
                                 @{Raw(\"<script>alert('hi')</script>\")}\n\
-                                \n\
-                                For dynamic JS with data, use data attributes:\n\
-                                html! {\n\
-                                    <div data-config={json_string}>\n\
-                                        <script>\n\
-                                            const config = JSON.parse(document.getElementById(\"config\").dataset.config);\n\
-                                        </script>\n\
-                                    </div>\n\
-                                }\n\
                                 \n\
                                 See: AI_GUIDE_FOR_WRITING_AZUMI.md"
                             );

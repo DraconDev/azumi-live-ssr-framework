@@ -1,16 +1,15 @@
 # Project State
 
 ## Current Focus
-Improved guidance for CSS usage patterns in Azumi's HTML structure validator
+Improved guidance for JavaScript content patterns in Azumi's HTML structure validator
 
 ## Context
-The validator was updated to reflect new procedural macros for safe CSS injection, replacing the previous Raw() usage pattern which bypassed Azumi's CSS scoping and validation.
+The validator now provides clearer guidance for handling JavaScript content within Azumi's secure HTML framework, replacing outdated patterns with new procedural macros.
 
 ## Completed
-- [x] Updated error messages to recommend new procedural macros (inline_css!) instead of Raw() for CSS
-- [x] Added examples for both small CSS (style blocks) and external CSS (inline_css!)
-- [x] Removed outdated guidance about using Raw() for CSS
-- [x] Updated documentation references to point to the correct guide section
+- [x] Updated documentation to recommend new procedural macros (`inline_script!`, `json_data!`, `azumi_script()`) instead of raw JavaScript
+- [x] Removed outdated examples showing direct `<script>` tag usage
+- [x] Added specific guidance for different JavaScript use cases
 
 ## In Progress
 - [ ] No active work in progress
@@ -19,5 +18,5 @@ The validator was updated to reflect new procedural macros for safe CSS injectio
 - None identified
 
 ## Next Steps
-1. Verify all existing codebases have migrated from Raw() CSS usage to the new macros
-2. Update related documentation and examples throughout the project
+1. Verify all affected codebases have migrated to the new patterns
+2. Update related documentation files to reflect these changes
