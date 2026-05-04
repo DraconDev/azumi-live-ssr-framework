@@ -119,7 +119,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 \n\
                                 // For JSON data - use json_data! macro:\n\
                                 html! {\n\
-                                    {azumi::json_data!("window.DATA" = &data)}\n\
+                                    {azumi::json_data!("MY_DATA" = &data)}\n\
                                 }\n\
                                 \n\
                                 // For framework scripts - use azumi_script():\n\

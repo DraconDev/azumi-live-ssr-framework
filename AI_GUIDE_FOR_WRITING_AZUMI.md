@@ -209,6 +209,74 @@ html! {
 > [!IMPORTANT]
 > If you find yourself reaching for `TrustedHtml`, ask: "Can I use a Component, `<style>` block, or data attribute instead?" If yes, do that instead. `TrustedHtml` bypasses all of Azumi's safety guarantees.
 
+### 4b. Safe Injection Macros (json_data!, inline_css!, inline_script!)
+
+Azumi provides safe macros for injecting data into HTML, CSS, and JavaScript contexts. These replace unsafe patterns like `Raw()`, `format!()`, and manual string concatenation.
+
+#### `json_data!("varname" = &data)` — Safe JSON data injection
+
+For passing Rust data to JavaScript, use `json_data!`:
+
+```rust
+// ✅ CORRECT - Safe JSON injection with auto-escaping
+let user_data = serde_json::json!({"name": "Alice", "age": 30});
+html! {
+    {azumi::json_data!("APP_DATA" = &user_data)}
+}
+
+// Renders as: <script>APP_DATA = {"name":"Alice","age":30};</script>
+
+// ❌ WRONG - format! bypasses safety
+html! {
+    @{Raw(format!("window.__DATA__ = {};", serde_json::to_string(&data).unwrap()))}
+}
+```
+
+**Features:**
+- Auto-serializes any `serde::Serialize` type
+- Escapes `</script>` to prevent XSS (`</script>` → `<\/script>`)
+- Type-safe at compile time
+
+#### `inline_css!(css_var)` — Safe CSS injection
+
+For CSS that needs to be injected dynamically:
+
+```rust
+// ✅ CORRECT - Safe CSS injection
+html! {
+    {azumi::inline_css!(THEME_CSS)}
+}
+
+// ❌ WRONG - Raw with CSS bypasses scoping
+html! {
+    @{Raw("<style>.btn { color: red; }</style>")}
+}
+```
+
+**Features:**
+- Escapes `</style>` to prevent XSS
+- Integrates with Azumi's CSS scoping
+
+#### `inline_script!(js_var)` — Safe JavaScript injection
+
+For JavaScript that needs to be injected dynamically:
+
+```rust
+// ✅ CORRECT - Safe JS injection
+html! {
+    {azumi::inline_script!(TRACKING_JS)}
+}
+
+// ❌ WRONG - Raw with JS bypasses security
+html! {
+    @{Raw("<script>alert('hi')</script>")}
+}
+```
+
+**Features:**
+- Escapes `</script>` to prevent XSS
+- Used internally by `azumi_script()` and `session_cleanup_script()`
+
 ### 5. CSS Classes MUST Be Defined in `<style>` Block
 
 **This is a common AI mistake.** Every class used in `class={...}` MUST have a corresponding `.classname` definition in the `<style>` block (or `<style global>`). The compiler will reject undefined classes.
