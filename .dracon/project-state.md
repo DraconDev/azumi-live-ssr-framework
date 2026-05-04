@@ -4,19 +4,18 @@
 Standardized JSON data injection syntax in HTML macros
 
 ## Context
-The code changes standardize the syntax for JSON data injection in HTML macros to ensure consistency and prevent potential parsing errors.
+The project is improving the consistency of JSON data injection patterns across the HTML macro system. This change ensures all JSON data injections follow a uniform naming convention.
 
 ## Completed
-- [x] Updated JSON data injection syntax in `html_structure_validator.rs` to use quoted keys
-- [x] Applied the same syntax change in `lib.rs` for consistency
-- [x] Updated Cargo.lock to reflect dependency changes
+- [x] Updated JSON data injection syntax from `window.__DATA__` to `window.DATA` in all examples and validation messages
+- [x] Modified both the HTML structure validator and the main library file to maintain consistent syntax
 
 ## In Progress
-- [x] Verification of consistent syntax across all HTML macro usage examples
+- [x] Documentation updates to reflect the new standardized syntax
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Verify all examples in documentation use the new syntax
-2. Add unit tests for the new JSON data injection syntax
+1. Verify all existing codebases using the old syntax are updated
+2. Document the new syntax in the public API documentation
