@@ -1,23 +1,20 @@
 # Project State
 
 ## Current Focus
-Added documentation for safe injection patterns in Azumi's HTML macros
+Update Cargo.lock to reflect dependency changes from recent macro and documentation improvements
 
 ## Context
-Standardized safe injection patterns for JSON data, CSS, and JavaScript to prevent XSS vulnerabilities while maintaining developer convenience
+The Cargo.lock file was modified to reflect updates in dependencies introduced by recent procedural macro additions and documentation standardization for safe injection patterns in Azumi's HTML macros.
 
 ## Completed
-- [x] Added documentation for `json_data!` macro usage instead of `format!` or `Raw()`
-- [x] Added documentation for `inline_css!` macro usage instead of `<style>` with `Raw()`
-- [x] Added documentation for `inline_script!` and `azumi_script!` macros instead of `Raw()`
-- [x] Documented automatic escaping of dangerous sequences in all injection macros
+- [x] Updated Cargo.lock to synchronize with new dependency versions from macro and documentation changes
 
 ## In Progress
-- [ ] No active work in progress beyond these documentation updates
+- [x] No active work in progress beyond the Cargo.lock update
 
 ## Blockers
-- None identified for this documentation update
+- None; this is an automated dependency resolution update
 
 ## Next Steps
-1. Review and finalize documentation for consistency with implementation
-2. Update related examples and tests to reflect these patterns
+1. Verify that all recent macro and documentation changes are properly reflected in the dependency tree
+2. Prepare for potential integration testing with the updated dependencies
