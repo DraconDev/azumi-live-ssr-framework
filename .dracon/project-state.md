@@ -1,22 +1,23 @@
 # Project State
 
 ## Current Focus
-Added new procedural macros for inline injection of JSON data, CSS, and scripts to the macros library.
+Improved guidance for CSS usage patterns in Azumi's HTML structure validator
 
 ## Context
-This change expands the existing procedural macro functionality to support inline injection of JSON data, CSS, and scripts, which were recently added as new features. The changes ensure these new macros are properly exposed in the library's prelude and public interface.
+The validator was updated to reflect new procedural macros for safe CSS injection, replacing the previous Raw() usage pattern which bypassed Azumi's CSS scoping and validation.
 
 ## Completed
-- [x] Added `inline_css`, `inline_script`, and `json_data` macros to the prelude exports
-- [x] Updated the public macro re-exports to include the new inline injection macros
-- [x] Maintained backward compatibility with existing macro exports
+- [x] Updated error messages to recommend new procedural macros (inline_css!) instead of Raw() for CSS
+- [x] Added examples for both small CSS (style blocks) and external CSS (inline_css!)
+- [x] Removed outdated guidance about using Raw() for CSS
+- [x] Updated documentation references to point to the correct guide section
 
 ## In Progress
-- [ ] None (this change is complete)
+- [ ] No active work in progress
 
 ## Blockers
-- None (this change is complete)
+- None identified
 
 ## Next Steps
-1. Verify the new macros work correctly in downstream projects
-2. Update documentation to reflect the new inline injection capabilities
+1. Verify all existing codebases have migrated from Raw() CSS usage to the new macros
+2. Update related documentation and examples throughout the project

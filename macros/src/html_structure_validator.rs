@@ -40,12 +40,18 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 "Azumi: CSS content detected inside Raw().\n\n\
                                 Raw() is NOT for CSS - it bypasses Azumi's CSS scoping and validation.\n\
                                 \n\
-                                ✅ Correct pattern:\n\
+                                ✅ Correct patterns:\n\
                                 \n\
+                                // For small CSS - use <style> block:\n\
                                 html! {\n\
                                     <style>\n\
                                         .my_class { color: \"red\"; }\n\
                                     </style>\n\
+                                }\n\
+                                \n\
+                                // For external CSS - use inline_css! macro:\n\
+                                html! {\n\
+                                    {azumi::inline_css!(HUB_GLOBAL_CSS)}\n\
                                 }\n\
                                 \n\
                                 ❌ Wrong pattern:\n\
@@ -56,8 +62,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 \n\
                                 CSS in Raw() cannot be scoped, validated, or deduplicated by Azumi.\n\
                                 \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Proper CSS Patterns\"\n\
-                                Or run: cargo expand to see the generated code"
+                                See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Proper CSS Patterns\""
                             );
                         });
                         return;
@@ -76,18 +81,18 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 // For HTML content - use html! macro:\n\
                                 html! { <div class={my_class}>\"Hello\"</div> }\n\
                                 \n\
-                                // For dynamic values - use data attributes:\n\
-                                html! { <div data-value={value}>...</div> }\n\
+                                // For JSON data - use json_data! macro:\n\
+                                html! { {azumi::json_data!(window.__DATA__ = &data)} }\n\
                                 \n\
-                                // For JSON data - use data-* with JSON:\n\
-                                html! { <div data-models={serde_json::to_string(&models).unwrap()}>...</div> }\n\
+                                // For CSS - use inline_css! macro:\n\
+                                html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
+                                \n\
+                                // For scripts - use inline_script! macro:\n\
+                                html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
                                 \n\
                                 ❌ Wrong pattern:\n\
                                 \n\
                                 @{Raw(format!(\"<div>{}</div>\", value))}\n\
-                                \n\
-                                If you MUST use Raw (legacy entry points only), use string concatenation\n\
-                                outside the macro instead of format! inside.\n\
                                 \n\
                                 See: AI_GUIDE_FOR_WRITING_AZUMI.md"
                             );
