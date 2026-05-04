@@ -1,23 +1,23 @@
 # Project State
 
 ## Current Focus
-Standardized safe HTML injection patterns in Azumi's documentation and macros
+Added documentation for safe injection patterns in Azumi's HTML macros
 
 ## Context
-The team needed to clarify and standardize how to safely inject dynamic content (JSON, CSS, JavaScript) into HTML templates while preventing XSS vulnerabilities.
+Standardized safe injection patterns for JSON data, CSS, and JavaScript to prevent XSS vulnerabilities while maintaining developer convenience
 
 ## Completed
-- [x] Updated documentation to show preferred patterns for JSON data injection using `json_data!` macro
-- [x] Added guidance for CSS injection using either style blocks or `inline_css!` macro
-- [x] Documented JavaScript injection patterns using `inline_script!` or `azumi_script!` macros
-- [x] Refreshed Cargo.lock to capture latest dependency versions
+- [x] Added documentation for `json_data!` macro usage instead of `format!` or `Raw()`
+- [x] Added documentation for `inline_css!` macro usage instead of `<style>` with `Raw()`
+- [x] Added documentation for `inline_script!` and `azumi_script!` macros instead of `Raw()`
+- [x] Documented automatic escaping of dangerous sequences in all injection macros
 
 ## In Progress
-- [ ] Implementing validation for format strings in HTML expressions
+- [ ] No active work in progress beyond these documentation updates
 
 ## Blockers
-- Need to finalize validation rules for complex format string patterns
+- None identified for this documentation update
 
 ## Next Steps
-1. Complete validation implementation for format strings
-2. Add integration tests for all safe injection patterns
+1. Review and finalize documentation for consistency with implementation
+2. Update related examples and tests to reflect these patterns

@@ -69,6 +69,10 @@ pub const AZUMI_RULES: &[&str] = &[
     "Use on:click={state.method} for event handlers",
     "Components use Props::builder() pattern",
     "State is HMAC-signed. Set AZUMI_SECRET for production",
+    "For JSON data to JS: use json_data!(\"varname\" = &data), NOT format! or Raw()",
+    "For CSS injection: use inline_css!(var), NOT Raw() with <style>",
+    "For JS injection: use inline_script!(var) or azumi_script(), NOT Raw()",
+    "All injection macros escape dangerous sequences (</script>, </style>)",
 ];
 
 pub trait Component {
