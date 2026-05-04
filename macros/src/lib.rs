@@ -355,6 +355,103 @@ fn is_valid_identifier(s: &str) -> bool {
     chars.all(|c| c.is_alphanumeric() || c == '_')
 }
 
+/// Validate that expressions don't use format! to build HTML strings
+/// This is a common AI anti-pattern: using format!("<div>{}</div>", value)
+/// instead of proper html! macro interpolation
+fn validate_format_in_expressions(nodes: &[token_parser::Node]) -> Vec<proc_macro2::TokenStream> {
+    let mut errors = vec![];
+
+    fn check_node(node: &token_parser::Node, errors: &mut Vec<proc_macro2::TokenStream>) {
+        match node {
+            token_parser::Node::Expression(expr) => {
+                let content_str = expr.content.to_string();
+                let normalized = content_str.replace(' ', "");
+                
+                // Check for format! usage that's building HTML-like strings
+                if normalized.contains("format!") {
+                    let has_html_tags = content_str.contains('<') 
+                        || content_str.contains('>')
+                        || content_str.contains("</")
+                        || content_str.contains("href=")
+                        || content_str.contains("class=")
+                        || content_str.contains("style=");
+                    
+                    if has_html_tags {
+                        errors.push(quote_spanned! { expr.span =>
+                            compile_error!(
+                                "Azumi: format!() detected building HTML strings.\n\n\
+                                Using format!() to build HTML defeats Azumi's compile-time safety.\n\
+                                \n\
+                                ✅ Correct patterns:\n\
+                                \n\
+                                // For dynamic text - use html! interpolation:\n\
+                                html! { <p>{value}</p> }\n\
+                                \n\
+                                // For dynamic attributes - use expression:\n\
+                                html! { <a href={url}>{label}</a> }\n\
+                                \n\
+                                // For JSON data - use json_data! macro:\n\
+                                html! { {azumi::json_data!(window.__DATA__ = &data)} }\n\
+                                \n\
+                                // For CSS - use inline_css! macro:\n\
+                                html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
+                                \n\
+                                ❌ Wrong pattern:\n\
+                                \n\
+                                html! { {format!(\"<div>{}</div>\", value)} }\n\
+                                \n\
+                                See: AI_GUIDE_FOR_WRITING_AZUMI.md"
+                            );
+                        });
+                    }
+                }
+            }
+            token_parser::Node::Element(elem) => {
+                for child in &elem.children {
+                    check_node(child, errors);
+                }
+            }
+            token_parser::Node::Fragment(frag) => {
+                for child in &frag.children {
+                    check_node(child, errors);
+                }
+            }
+            token_parser::Node::Block(block) => match block {
+                token_parser::Block::If(if_block) => {
+                    for child in &if_block.then_branch {
+                        check_node(child, errors);
+                    }
+                    if let Some(else_branch) = &if_block.else_branch {
+                        for child in else_branch {
+                            check_node(child, errors);
+                        }
+                    }
+                }
+                token_parser::Block::For(for_block) => {
+                    for child in &for_block.body {
+                        check_node(child, errors);
+                    }
+                }
+                token_parser::Block::Match(match_block) => {
+                    for arm in &match_block.arms {
+                        for child in &arm.body {
+                            check_node(child, errors);
+                        }
+                    }
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    for node in nodes {
+        check_node(node, &mut errors);
+    }
+
+    errors
+}
+
 fn generate_nodes(nodes: &[token_parser::Node]) -> proc_macro2::TokenStream {
     let body = generate_body(nodes, first_node_span(nodes));
     quote! {
