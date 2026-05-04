@@ -2844,8 +2844,9 @@ This guide covers all aspects of Azumi development. Use it as your comprehensive
 | `@let x = "hello"; class={x}` | `class={x}; <style>.x { ... }</style>` | @let shadows CSS variable |
 | `<style>.foo { ... }</style><div>` | `<div class={foo}><style>...</style>` | Style must come after HTML |
 | `<script>alert(1)</script>` | `<script src="/app.js"></script>` | Inline scripts blocked |
-| `Raw(dynamic_value)` | `<style>` / `<script>` / data attrs | Raw disables escaping — XSS risk |
-| `Raw(format!("<div>{}</div>", x))` | `{x}` (auto-escaped) or data attributes | Use Azumi's built-in escaping |
+| `Raw(format!("window.__DATA__ = {}", data))` | `json_data!("DATA" = &data)` | Use safe injection macros |
+| `Raw("<style>.btn { color: red; }</style>")` | `<style>.btn { color: "red"; }</style>` or `inline_css!(CSS)` | Use style blocks or safe macros |
+| `Raw("<script>...</script>")` | `inline_script!(JS)` or `azumi_script()` | Use safe injection macros |
 | `state.counter = 42` (in predict) | `#[azumi::predict("counter = 42")]` on method in `#[azumi::live_impl]` | Manual prediction attribute for complex mutations |
 
 ---
