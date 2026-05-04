@@ -1,23 +1,22 @@
 # Project State
 
 ## Current Focus
-Added validation for format strings in HTML expressions to prevent unsafe HTML construction patterns
+Standardized JSON data injection syntax in HTML macros
 
 ## Context
-The change addresses a common AI anti-pattern where developers use `format!()` to build HTML strings, which defeats Azumi's compile-time safety guarantees. The new validation ensures developers use proper HTML interpolation instead.
+The code changes standardize the syntax for JSON data injection in HTML macros to ensure consistency and prevent potential parsing errors.
 
 ## Completed
-- [x] Added `validate_format_in_expressions` function to detect and reject `format!()` usage building HTML strings
-- [x] Created comprehensive test cases for JSON data, CSS, and script injection macros
-- [x] Added XSS protection for script and style tag escaping in inline injection macros
+- [x] Updated JSON data injection syntax in `html_structure_validator.rs` to use quoted keys
+- [x] Applied the same syntax change in `lib.rs` for consistency
+- [x] Updated Cargo.lock to reflect dependency changes
 
 ## In Progress
-- [ ] No active work in progress beyond these changes
+- [x] Verification of consistent syntax across all HTML macro usage examples
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Review and merge the changes
-2. Update documentation to reflect the new validation rules
-```
+1. Verify all examples in documentation use the new syntax
+2. Add unit tests for the new JSON data injection syntax

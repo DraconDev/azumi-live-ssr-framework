@@ -391,7 +391,7 @@ fn validate_format_in_expressions(nodes: &[token_parser::Node]) -> Vec<proc_macr
                                 html! { <a href={url}>{label}</a> }\n\
                                 \n\
                                 // For JSON data - use json_data! macro:\n\
-                                html! { {azumi::json_data!(window.__DATA__ = &data)} }\n\
+                                html! { {azumi::json_data!("window.__DATA__" = &data)} }\n\
                                 \n\
                                 // For CSS - use inline_css! macro:\n\
                                 html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\

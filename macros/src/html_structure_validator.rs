@@ -82,7 +82,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 html! { <div class={my_class}>\"Hello\"</div> }\n\
                                 \n\
                                 // For JSON data - use json_data! macro:\n\
-                                html! { {azumi::json_data!(window.__DATA__ = &data)} }\n\
+                                html! { {azumi::json_data!("window.__DATA__" = &data)} }\n\
                                 \n\
                                 // For CSS - use inline_css! macro:\n\
                                 html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
@@ -125,7 +125,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 \n\
                                 // For JSON data - use json_data! macro:\n\
                                 html! {\n\
-                                    {azumi::json_data!(window.__DATA__ = &data)}\n\
+                                    {azumi::json_data!("window.__DATA__" = &data)}\n\
                                 }\n\
                                 \n\
                                 // For framework scripts - use azumi_script():\n\
