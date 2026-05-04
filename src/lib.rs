@@ -1,13 +1,16 @@
 pub mod prelude {
     pub use crate::action::Action;
     pub use crate::{
-        action, azumi_script, component, head, html, live, live_impl, page, predict,
-        session_cleanup_script, AzumiScript, Component, escape_css_string, from_fn, FnComponent,
-        TrustedHtml,
+        action, azumi_script, component, head, html, inline_css, inline_script, json_data, live,
+        live_impl, page, predict, session_cleanup_script, AzumiScript, Component, escape_css_string,
+        from_fn, FnComponent, TrustedHtml,
     };
 }
 
-pub use azumi_macros::{action, component, head, html, live, live_impl, page, predict};
+pub use azumi_macros::{
+    action, component, head, html, inline_css, inline_script, json_data, live, live_impl, page,
+    predict,
+};
 pub mod action;
 pub mod context;
 #[cfg(feature = "devtools")]
