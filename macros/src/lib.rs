@@ -611,6 +611,15 @@ fn generate_body(
         return tokens;
     }
 
+    let format_warnings = validate_format_in_expressions(nodes);
+    if !format_warnings.is_empty() {
+        let mut tokens = proc_macro2::TokenStream::new();
+        for warn in format_warnings {
+            tokens.extend(warn);
+        }
+        return tokens;
+    }
+
     let (global_css, scoped_css) = collect_all_styles(nodes);
     let (valid_classes, valid_ids) = crate::css::extract_selectors(&scoped_css);
 

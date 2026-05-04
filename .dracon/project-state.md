@@ -1,22 +1,21 @@
 # Project State
 
 ## Current Focus
-Improved guidance for JavaScript content patterns in Azumi's HTML structure validator
+Added validation for format strings in HTML expressions to prevent injection vulnerabilities
 
 ## Context
-The validator now provides clearer guidance for handling JavaScript content within Azumi's secure HTML framework, replacing outdated patterns with new procedural macros.
+The change addresses a critical security concern in the procedural macros by validating format strings used in HTML expressions before processing them. This prevents potential injection vulnerabilities that could occur when user-provided data is interpolated into HTML.
 
 ## Completed
-- [x] Updated documentation to recommend new procedural macros (`inline_script!`, `json_data!`, `azumi_script()`) instead of raw JavaScript
-- [x] Removed outdated examples showing direct `<script>` tag usage
-- [x] Added specific guidance for different JavaScript use cases
+- [x] Added format string validation in `generate_body` function
+- [x] Implemented early return with warning tokens if invalid format strings are detected
 
 ## In Progress
-- [ ] No active work in progress
+- [x] Validation of format strings in HTML expressions
 
 ## Blockers
-- None identified
+- None identified for this specific change
 
 ## Next Steps
-1. Verify all affected codebases have migrated to the new patterns
-2. Update related documentation files to reflect these changes
+1. Add unit tests for the new format string validation
+2. Document the new validation behavior in the procedural macro documentation
