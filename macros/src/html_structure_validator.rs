@@ -81,20 +81,12 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 // For HTML content - use html! macro:\n\
                                 html! { <div class={my_class}>\"Hello\"</div> }\n\
                                 \n\
-                                // For JSON data - use json_data! macro:\n\
-                                html! {
-                                    {azumi::json_data!("MY_DATA" = &data)}
-                                }\n\
-                                \n\
-                                // For CSS - use inline_css! macro:\n\
-                                html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
-                                \n\
-                                // For scripts - use inline_script! macro:\n\
-                                html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
+// For JSON data - use json_data! macro:\n\
+                                html! { {azumi::json_data!("MY_DATA" = &data)} }\n\
                                 \n\
                                 ❌ Wrong pattern:\n\
                                 \n\
-                                @{Raw(format!(\"<div>{}</div>\", value))}\n\
+                                @{Raw(format!("<div>{}</div>", value))}\n\
                                 \n\
                                 See: AI_GUIDE_FOR_WRITING_AZUMI.md"
                             );
