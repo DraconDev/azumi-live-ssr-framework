@@ -61,6 +61,21 @@ pub fn predict(_attr: TokenStream, item: TokenStream) -> TokenStream {
     item
 }
 
+#[proc_macro]
+pub fn json_data(input: TokenStream) -> TokenStream {
+    inline_inject::expand_json_data(input)
+}
+
+#[proc_macro]
+pub fn inline_css(input: TokenStream) -> TokenStream {
+    inline_inject::expand_inline_css(input)
+}
+
+#[proc_macro]
+pub fn inline_script(input: TokenStream) -> TokenStream {
+    inline_inject::expand_inline_script(input)
+}
+
 // Helpers for parsing Component arguments
 struct KeyValueArg {
     key: syn::Ident,

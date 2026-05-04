@@ -1,21 +1,22 @@
 # Project State
 
 ## Current Focus
-Added inline injection module to the macros library
+Added new procedural macros for inline injection of JSON data, CSS, and scripts
 
 ## Context
-This change adds support for safe HTML injection macros specifically for inline content (JSON data, CSS, and scripts) to the project's HTML generation system.
+This implements the inline injection module that was recently added to the macros library, providing safe HTML injection capabilities for JSON data, CSS, and scripts
 
 ## Completed
-- [x] Added `inline_inject` module to handle safe HTML injection for inline content
-- [x] Removed redundant module import that was no longer needed
+- [x] Added `json_data` macro for safe JSON data injection
+- [x] Added `inline_css` macro for safe CSS injection
+- [x] Added `inline_script` macro for safe script injection
 
 ## In Progress
-- [ ] Verifying integration with existing HTML generation pipeline
+- [x] Implementation of the inline injection macros
 
 ## Blockers
-- Need to ensure compatibility with existing HTML sanitization policies
+- None identified
 
 ## Next Steps
-1. Verify the new module works with existing test cases
-2. Document the new injection capabilities in the project documentation
+1. Write tests for the new macros
+2. Document usage examples in the project documentation
