@@ -1,22 +1,22 @@
 # Project State
 
 ## Current Focus
-Added new procedural macros for inline injection of JSON data, CSS, and scripts
+Refactored procedural macros to use explicit expansion functions instead of direct proc_macro attributes
 
 ## Context
-This implements the inline injection module that was recently added to the macros library, providing safe HTML injection capabilities for JSON data, CSS, and scripts
+The previous implementation used `#[proc_macro]` attributes directly on the macro functions, which is now being replaced with explicit expansion functions (`expand_*`) to better control the macro expansion process and improve maintainability.
 
 ## Completed
-- [x] Added `json_data` macro for safe JSON data injection
-- [x] Added `inline_css` macro for safe CSS injection
-- [x] Added `inline_script` macro for safe script injection
+- [x] Renamed `json_data` to `expand_json_data` and removed `#[proc_macro]` attribute
+- [x] Renamed `inline_css` to `expand_inline_css` and removed `#[proc_macro]` attribute
+- [x] Renamed `inline_script` to `expand_inline_script` and removed `#[proc_macro]` attribute
 
 ## In Progress
-- [x] Implementation of the inline injection macros
+- [ ] Update macro invocations to use the new expansion functions instead of the old attribute-based syntax
 
 ## Blockers
-- None identified
+- Macro invocations in the codebase need to be updated to use the new expansion functions
 
 ## Next Steps
-1. Write tests for the new macros
-2. Document usage examples in the project documentation
+1. Update all macro invocations in the codebase to use the new expansion functions
+2. Verify that the refactored macros still produce the same output as before the change

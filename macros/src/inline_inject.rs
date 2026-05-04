@@ -22,8 +22,7 @@ use syn::{parse_macro_input, Expr, LitStr};
 /// - Type-safe: accepts any serde::Serialize type
 /// 
 /// AI Note: Use this instead of format!() or Raw() for passing data to JS.
-#[proc_macro]
-pub fn json_data(input: TokenStream) -> TokenStream {
+pub fn expand_json_data(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as JsonDataInput);
     
     let target = input.target;
@@ -77,11 +76,9 @@ impl syn::parse::Parse for JsonDataInput {
 /// Features:
 /// - Escapes </style> tags to prevent XSS
 /// - Generates proper <style> block
-/// - Validates CSS syntax (optional via lightningcss)
 ///
 /// AI Note: Use this instead of Raw(format!("<style>...</style>")) for CSS injection.
-#[proc_macro]
-pub fn inline_css(input: TokenStream) -> TokenStream {
+pub fn expand_inline_css(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as InlineCssInput);
     
     let value = input.value;
@@ -129,8 +126,7 @@ impl syn::parse::Parse for InlineCssInput {
 /// - Generates proper <script> block
 ///
 /// AI Note: Use this instead of Raw() for inline scripts.
-#[proc_macro]
-pub fn inline_script(input: TokenStream) -> TokenStream {
+pub fn expand_inline_script(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as InlineScriptInput);
     
     let value = input.value;
