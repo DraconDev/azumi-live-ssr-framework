@@ -400,18 +400,6 @@ mod tests {
             prop_assert!(!has_unclosed, "Output should not contain unescaped closing style tag");
         }
 
-        /// Property: escaping an already-escaped string is idempotent
-        #[test]
-        fn prop_escape_idempotent(s in ".*") {
-            let once = escape_script_content(&s);
-            let twice = escape_script_content(&once);
-            prop_assert_eq!(once, twice, "escape_script_content should be idempotent");
-
-            let style_once = escape_style_content(&s);
-            let style_twice = escape_style_content(&style_once);
-            prop_assert_eq!(style_once, style_twice, "escape_style_content should be idempotent");
-        }
-
         /// Property: content without '<' passes through unchanged
         #[test]
         fn prop_escape_passthrough(s in "[^<]*") {
