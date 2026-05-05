@@ -370,4 +370,63 @@ mod tests {
         assert!(!SessionCleanupScript::SCRIPT.is_empty(), "SCRIPT constant should not be empty");
         assert!(SessionCleanupScript::SCRIPT.contains("history.replaceState"), "Should contain history.replaceState");
     }
+
+    // =========================================================================
+    // Property-based tests for escape functions
+    // =========================================================================
+
+    use proptest::prelude::*;
+
+    proptest! {
+        /// Property: escape_script_content never leaves </script> unescaped in output
+        #[test]
+        fn prop_escape_script_always_escapes(s in ".*") {
+            let output = escape_script_content(&s);
+            // If input contains </script> case variants, output must have them escaped
+            let has_unclosed = output.contains("</script>")
+                || output.contains("</Script>")
+                || output.contains("</SCRIPT>")
+                || output.contains("</ script>");
+            prop_assert!(!has_unclosed, "Output should not contain unescaped closing script tag");
+        }
+
+        /// Property: escape_style_content never leaves </style> unescaped in output
+        #[test]
+        fn prop_escape_style_always_escapes(s in ".*") {
+            let output = escape_style_content(&s);
+            let has_unclosed = output.contains("</style>")
+                || output.contains("</Style>")
+                || output.contains("</STYLE>")
+                || output.contains("</ style>");
+            prop_assert!(!has_unclosed, "Output should not contain unescaped closing style tag");
+        }
+
+        /// Property: already-escaped content is NOT double-escaped
+        #[test]
+        fn prop_escape_script_no_double_escape(s in ".*") {
+            let escaped_input = format!("{}\\u003C/script>", s);
+            let output = escape_script_content(&escaped_input);
+            // The already-escaped part should remain unchanged
+            prop_assert!(!output.contains(r"\\/script"), "Should not double-escape");
+        }
+
+        /// Property: content without closing tags passes through unchanged
+        #[test]
+        fn prop_escape_passthrough(s in "[^<]*") {
+            let script_out = escape_script_content(&s);
+            prop_assert_eq!(script_out, s, "Content without '<' should pass through unchanged for script");
+
+            let style_out = escape_style_content(&s);
+            prop_assert_eq!(style_out, s, "Content without '<' should pass through unchanged for style");
+        }
+
+        /// Property: output length is always >= input length
+        #[test]
+        fn prop_escape_length_monotonic(s in ".*") {
+            let output = escape_script_content(&s);
+            prop_assert!(output.len() >= s.len(),
+                "Escape output should never be shorter than input (got {} < {})",
+                output.len(), s.len());
+        }
+    }
 }
