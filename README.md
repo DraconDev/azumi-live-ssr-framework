@@ -38,31 +38,34 @@ No runtime errors. No "works on my machine". No surprises.
 
 ### Migration from v14.x–v25
 - `Raw("window.location.hash...")` → Use `{session_cleanup_script()}`
-- `Raw(trusted_html)` → Use `{TrustedHtml::new(html)}`
+- `Raw(trusted_html)` → Use `{TrustedHtml::new(html)}` (legacy; prefer safe macros)
 - All framework Components use `{}` syntax, not `@{Raw(...)}`
 - `#[azumi::page]` replaces manual SEO setup
 - `<script src="azumi.js" />` → Use `{azumi_script()}` (macro transformation removed)
 - `AZUMI_SECRET` still required in production
 
-### Raw() Validation
+### Raw() Validation — ALL Raw() is Blocked
 
-These patterns cause **compile errors** (not runtime failures):
+**Any use of `Raw()` inside `html!` is now a compile error.** Use the safe injection macros instead:
 
 | Pattern | Fix |
 |---------|-----|
-| `@{Raw(format!("<style>...</style>", ...))}` | Use `<style>` block |
-| `@{Raw("<script>...</script>")}` | Use `<script>` block |
-| `@{Raw("element.addEventListener(...)")}` | Use proper Azumi event handlers |
-| `@{Raw(azumi_script())}` | Use `{azumi_script()}` (returns Component) |
-| `@{Raw("window.location.hash...")}` | Use `{session_cleanup_script()}` |
+| `@{}` `Raw(format!(...))` | Use `json_data!`, `inline_css!`, or `inline_script!` macros |
+| `@{}` `Raw("<script>...</script>")` | Use `{azumi::inline_script!(VAR)}` |
+| `@{}` `Raw("<style>...</style>")` | Use `{azumi::inline_css!(VAR)}` or `<style>` block |
+| `@{}` `Raw(format!("..."))` with HTML/CSS/JS | Build content outside html!, pass as variable |
 | `style="..."` (static) | Use `style={--var: value}` |
 | `class="..."` (static) | Use `class={variable_name}` |
 
-**Allowed patterns:**
+**Safe injection macros (the only way):**
+- `{azumi::json_data!("VAR" = &data)}` — JSON data to JavaScript
+- `{azumi::inline_css!(CSS_VAR)}` — CSS content injection
+- `{azumi::inline_script!(JS_VAR)}` — JavaScript content injection
+- `{value}` — Auto-escaped text interpolation
 - `{azumi_script()}` — Framework JS Component
 - `{session_cleanup_script()}` — Session cleanup Component
-- `TrustedHtml::new(...)` — Pre-sanitized HTML from trusted sources
-- `Raw("constant_string")` — Internal framework use only
+
+**Note:** `Raw()`, `TrustedHtml`, and `from_fn()` are `#[doc(hidden)]` — internal framework use only.
 
 ---
 

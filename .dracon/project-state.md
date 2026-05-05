@@ -1,27 +1,25 @@
 # Project State
 
 ## Current Focus
-Added comprehensive AI agent guidelines for Azumi framework development
+Enforce stricter safety guarantees by completely banning `Raw()` usage in favor of safe injection macros
 
 ## Context
-To ensure AI-generated code follows strict safety rules and validation patterns, we needed formal documentation for AI agents working on the project.
+The framework previously allowed unsafe `Raw()` usage which could lead to XSS vulnerabilities. This change eliminates all `Raw()` usage in favor of type-safe injection macros to prevent runtime injection vulnerabilities.
 
 ## Completed
-- [x] Created AGENTS.md with 142 lines of AI development guidelines
-- [x] Documented three golden rules for AI-generated code
-- [x] Defined safe injection macros (json_data!, inline_css!, inline_script!)
-- [x] Specified validation pipeline order and rules
-- [x] Marked escape hatches as hidden documentation
-- [x] Included project structure overview
-- [x] Added common anti-pattern examples
-- [x] Documented test commands and key constants
+- [x] Added comprehensive documentation for safe injection patterns
+- [x] Implemented compile-time checks to block all `Raw()` usage
+- [x] Added safe injection macros for JSON data, CSS, and JavaScript
+- [x] Updated asset manifest with new file hashes
+- [x] Standardized documentation for all safe injection patterns
 
 ## In Progress
-- [x] Finalized all content in AGENTS.md
+- [x] Framework-wide enforcement of safe injection patterns
 
 ## Blockers
-- None identified
+- No blockers identified
 
 ## Next Steps
-1. Review AGENTS.md with core team for completeness
-2. Begin implementing AI agent integration tests
+1. Verify all framework components use only safe injection macros
+2. Update all documentation examples to use new patterns
+3. Prepare migration guide for existing projects using `Raw()`
