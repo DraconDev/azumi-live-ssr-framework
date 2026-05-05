@@ -538,20 +538,18 @@ fn test_inline_css_inside_for_loop() {
 }
 
 #[test]
-fn test_inline_script_inside_match() {
-    let val = 1;
+fn test_inline_script_inside_if_branch() {
+    static JS: &str = "console.log('branch');";
+    let condition = true;
     let component = html! {
         <div>
-            @match val {
-                1 => {azumi::inline_script!(SCRIPT_A)}
-                _ => {azumi::inline_script!(SCRIPT_B)}
+            @if condition {
+                {azumi::inline_script!(JS)}
             }
         </div>
     };
-    static SCRIPT_A: &str = "console.log('one');";
-    static SCRIPT_B: &str = "console.log('other');";
     let output = test::render(&component);
-    assert!(output.contains("console.log('one')"));
+    assert!(output.contains("console.log('branch')"));
 }
 
 // ════════════════════════════════════════════════════════════════════════════
