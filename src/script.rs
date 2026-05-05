@@ -1,23 +1,71 @@
 use crate::Component;
 
+/// Escape closing tag sequences in content strings to prevent XSS.
+/// 
+/// Covers all case variants: lowercase, titlecase, uppercase, and with space.
+/// Uses a single-pass scanner for O(n) performance regardless of content size.
+/// 
+/// # Examples
+/// ```
+/// let js = azumi::escape_tag_content("hello </script> world", "script");
+/// assert_eq!(js, r"hello <\/script> world");
+/// 
+/// let css = azumi::escape_tag_content(".btn { color: red; } </style>", "style");
+/// assert_eq!(css, r".btn { color: red; } <\/style>");
+/// ```
+pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
+    // Pre-allocate with extra capacity for escapes (worst case: every 9 chars is an escape)
+    let mut result = String::with_capacity(content.len() + content.len() / 8);
+    let bytes = content.as_bytes();
+    let tag_lower = tag_name.to_lowercase();
+    let tag_upper = tag_name.to_uppercase();
+    let tag_title = format!("{}{}", &tag_name[..1].to_uppercase(), &tag_name[1..].to_lowercase());
+    
+    let patterns: [(&[u8], &str); 4] = [
+        (format!("</{}", tag_lower).as_bytes(), &format!(r"<\/{}", tag_lower)),
+        (format!("</{}", tag_title).as_bytes(), &format!(r"<\/{}", tag_title)),
+        (format!("</{}", tag_upper).as_bytes(), &format!(r"<\/{}", tag_upper)),
+        (format!("</ {}", tag_lower).as_bytes(), &format!(r"<\/{}", tag_lower)),
+    ];
+    
+    let mut i = 0;
+    while i < bytes.len() {
+        let mut matched = false;
+        
+        // Check for </tag> pattern (starts with '<' followed by '/')
+        if i + 2 < bytes.len() && bytes[i] == b'<' && bytes[i + 1] == b'/' {
+            for (pattern, replacement) in &patterns {
+                let end = i + pattern.len();
+                if end <= bytes.len() && &bytes[i..end] == *pattern {
+                    result.push_str(replacement);
+                    i = end;
+                    matched = true;
+                    break;
+                }
+            }
+        }
+        
+        if !matched {
+            result.push(content[i]);
+            i += 1;
+        }
+    }
+    
+    result
+}
+
 /// Escape `</script>` in JavaScript strings (case-insensitive) to prevent XSS.
-/// Covers: </script>, </Script>, </SCRIPT>, </ script>
-/// ALL occurrences are escaped (not just the first).
+/// 
+/// Delegates to [`escape_tag_content`] with tag_name="script".
 pub fn escape_script_content(js: &str) -> String {
-    js.replace("</script>", r"<\/script>")
-        .replace("</Script>", r"<\/Script>")
-        .replace("</SCRIPT>", r"<\/SCRIPT>")
-        .replace("</ script>", r"<\/ script>")
+    escape_tag_content(js, "script")
 }
 
 /// Escape `</style>` in CSS strings (case-insensitive) to prevent XSS.
-/// Covers: </style>, </Style>, </STYLE>, </ style>
-/// ALL occurrences are escaped (not just the first).
+/// 
+/// Delegates to [`escape_tag_content`] with tag_name="style".
 pub fn escape_style_content(css: &str) -> String {
-    css.replace("</style>", r"<\/style>")
-        .replace("</Style>", r"<\/Style>")
-        .replace("</STYLE>", r"<\/STYLE>")
-        .replace("</ style>", r"<\/ style>")
+    escape_tag_content(css, "style")
 }
 
 pub struct AzumiScript;
