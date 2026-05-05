@@ -414,10 +414,10 @@ mod tests {
         #[test]
         fn prop_escape_passthrough(s in "[^<]*") {
             let script_out = escape_script_content(&s);
-            prop_assert_eq!(script_out, s, "Content without '<' should pass through unchanged for script");
+            prop_assert_eq!(&script_out, &s, "Content without '<' should pass through unchanged for script");
 
             let style_out = escape_style_content(&s);
-            prop_assert_eq!(style_out, s, "Content without '<' should pass through unchanged for style");
+            prop_assert_eq!(&style_out, &s, "Content without '<' should pass through unchanged for style");
         }
 
         /// Property: output length is always >= input length
