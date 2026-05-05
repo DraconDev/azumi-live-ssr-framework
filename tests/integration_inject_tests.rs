@@ -1,6 +1,7 @@
-//! Integration Tests for Safe Injection Macros
+//! Integration Tests for Safe Injection Patterns
 //!
-//! These tests verify the macros work correctly in real-world scenarios,
+//! These tests verify that <script>{var}</script> and <style>{var}</style>
+//! auto-escaping and json_data! work correctly in real-world scenarios,
 //! including full page composition and edge cases.
 //!
 //! Run with: cargo test --test integration_inject_tests --features test-utils
@@ -12,7 +13,7 @@ use azumi::{html, test};
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn test_complete_page_with_all_macros() {
+fn test_complete_page_with_all_patterns() {
     let css = ".container { padding: 20px; }";
     let js = "console.log('page loaded');";
     let config = serde_json::json!({
@@ -28,8 +29,8 @@ fn test_complete_page_with_all_macros() {
             <body>
                 <div class={"container"}>
                     <h1>"Welcome"</h1>
-                    {azumi::inline_css!(css)}
-                    {azumi::inline_script!(js)}
+                    <style>{css}</style>
+                    <script>{js}</script>
                     {azumi::json_data!("APP_CONFIG" = &config)}
                 </div>
             </body>
@@ -48,7 +49,7 @@ fn test_complete_page_with_all_macros() {
 }
 
 #[test]
-fn test_macro_siblings_with_regular_html() {
+fn test_inline_patterns_siblings_with_regular_html() {
     let css = ".card { background: white; }";
     let js = "init();";
     let data = serde_json::json!({"id": 42});
@@ -60,9 +61,9 @@ fn test_macro_siblings_with_regular_html() {
                 <p>"Some content here"</p>
             </article>
             <aside>
-                {azumi::inline_css!(css)}
+                <style>{css}</style>
                 {azumi::json_data!("ARTICLE" = &data)}
-                {azumi::inline_script!(js)}
+                <script>{js}</script>
                 <div class={"widget"}>"Widget content"</div>
             </aside>
         </main>
@@ -77,7 +78,7 @@ fn test_macro_siblings_with_regular_html() {
 }
 
 #[test]
-fn test_macro_inside_component() {
+fn test_script_inside_component() {
     let js = "setupNavigation();";
     let component = html! {
         <nav>
@@ -85,7 +86,7 @@ fn test_macro_inside_component() {
                 <li>"Home"</li>
                 <li>"About"</li>
             </ul>
-            {azumi::inline_script!(js)}
+            <script>{js}</script>
         </nav>
     };
 
@@ -96,14 +97,14 @@ fn test_macro_inside_component() {
 }
 
 #[test]
-fn test_json_data_followed_by_script_usage() {
+fn test_json_data_followed_by_script_tag() {
     let config = serde_json::json!({"theme": "dark"});
     let init_js = "applyTheme(config.theme);";
 
     let component = html! {
         <head>
             {azumi::json_data!("CONFIG" = &config)}
-            {azumi::inline_script!(init_js)}
+            <script>{init_js}</script>
         </head>
     };
 
@@ -157,7 +158,7 @@ fn test_theme_css_pattern() {
 
     let component = html! {
         <head>
-            {azumi::inline_css!(DARK_THEME_CSS)}
+            <style>{DARK_THEME_CSS}</style>
         </head>
     };
 
@@ -178,7 +179,7 @@ fn test_tracking_script_pattern() {
 
     let component = html! {
         <head>
-            {azumi::inline_script!(GA_SCRIPT)}
+            <script>{GA_SCRIPT}</script>
         </head>
     };
 
@@ -188,7 +189,7 @@ fn test_tracking_script_pattern() {
 }
 
 #[test]
-fn test_inline_script_with_dom_ready() {
+fn test_script_tag_with_dom_ready() {
     let js = r#"
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('app').classList.add('loaded');
@@ -200,7 +201,7 @@ fn test_inline_script_with_dom_ready() {
     let component = html! {
         <body>
             <div id={app_id}>"Loading..."</div>
-            {azumi::inline_script!(js)}
+            <script>{js}</script>
         </body>
     };
 
@@ -210,7 +211,7 @@ fn test_inline_script_with_dom_ready() {
 }
 
 #[test]
-fn test_inline_css_with_component_scoped() {
+fn test_style_tag_with_component_scoped() {
     let css = r#"
         .profile-card {
             border: 1px solid #ddd;
@@ -231,7 +232,7 @@ fn test_inline_css_with_component_scoped() {
         <div class={card_class}>
             <img class={avatar_class} src="/avatar.png" alt="Avatar" />
             <span>"Username"</span>
-            {azumi::inline_css!(css)}
+            <style>{css}</style>
         </div>
     };
 
@@ -255,18 +256,18 @@ fn test_empty_json_data_renders() {
 }
 
 #[test]
-fn test_empty_inline_css_renders() {
+fn test_empty_style_tag_renders() {
     let css = "";
-    let component = html! { {azumi::inline_css!(css)} };
+    let component = html! { <style>{css}</style> };
     let output = test::render(&component);
     assert!(output.contains("<style>"));
     assert!(output.contains("</style>"));
 }
 
 #[test]
-fn test_empty_inline_script_renders() {
+fn test_empty_script_tag_renders() {
     let js = "";
-    let component = html! { {azumi::inline_script!(js)} };
+    let component = html! { <script>{js}</script> };
     let output = test::render(&component);
     assert!(output.contains("<script>"));
     assert!(output.contains("</script>"));
@@ -292,22 +293,22 @@ fn test_json_data_with_unicode_content() {
 }
 
 #[test]
-fn test_inline_script_with_unicode() {
+fn test_script_with_unicode() {
     let js = "console.log('你好'); console.log('🎉');";
-    let component = html! { {azumi::inline_script!(js)} };
+    let component = html! { <script>{js}</script> };
     let output = test::render(&component);
     assert!(output.contains("你好"));
     assert!(output.contains("🎉"));
 }
 
 #[test]
-fn test_inline_css_with_unicode_emoji() {
+fn test_style_with_unicode_emoji() {
     let css = r#"
         .emoji-test::before {
             content: "🚀 🇺🇸 💻";
         }
     "#;
-    let component = html! { {azumi::inline_css!(css)} };
+    let component = html! { <style>{css}</style> };
     let output = test::render(&component);
     assert!(output.contains("🚀"));
 }
@@ -344,8 +345,8 @@ fn test_css_then_script_then_json() {
 
     let component = html! {
         <div>
-            {azumi::inline_css!(css)}
-            {azumi::inline_script!(js)}
+            <style>{css}</style>
+            <script>{js}</script>
             {azumi::json_data!("DATA" = &data)}
         </div>
     };
@@ -378,7 +379,7 @@ fn test_json_data_large_object() {
 }
 
 #[test]
-fn test_inline_css_with_long_selector_list() {
+fn test_style_with_long_selector_list() {
     let css = r#"
         .btn, .btn-primary, .btn-secondary, .btn-success,
         .btn-danger, .btn-warning, .btn-info {
@@ -387,7 +388,7 @@ fn test_inline_css_with_long_selector_list() {
         }
     "#;
 
-    let component = html! { {azumi::inline_css!(css)} };
+    let component = html! { <style>{css}</style> };
     let output = test::render(&component);
     assert!(output.contains(".btn"));
     assert!(output.contains(".btn-danger"));

@@ -11,17 +11,17 @@ error: Azumi: Raw() is not allowed inside html!.
        // For JSON data to JavaScript — use json_data! macro:
        html! { {azumi::json_data!("MY_DATA" = &data)} }
 
-       // For CSS content — use inline_css! macro:
-       html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }
+       // For CSS content — use <style> tag with {variable}:
+       html! { <style>{GLOBAL_CSS}</style> }
 
-       // For JavaScript content — use inline_script! macro:
-       html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }
+       // For JavaScript content — use <script> tag with {variable}:
+       html! { <script>{TRACKING_JS}</script> }
 
        ❌ Wrong — Raw() bypasses all safety:
        html! { @{Raw("...")} }
        html! { @{Raw(format!("..."))} }
 
-       See: AI_GUIDE_FOR_WRITING_AZUMI.md section "Safe Injection Macros"
+       See: AI_GUIDE_FOR_WRITING_AZUMI.md
  --> tests/ui/01-raw-blocked.rs:5:10
   |
 5 |         @{Raw("test")}

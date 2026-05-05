@@ -21,43 +21,37 @@ No runtime errors. No "works on my machine". No surprises.
 
 ## 🚀 v42.0.0 Release Notes
 
-**Azumi v42.0.0** — Safe injection macros (json_data!, inline_css!, inline_script!), unconditional Raw() blocking, ~1,400 tests.
+**Auto-escaping inside html!** — `<style>{var}</style>` and `<script>{var}</script>` are auto-escaped by the `html!` macro. `json_data!` for JSON data injection. Unconditional Raw() blocking, ~1,400 tests.
 
 ### Breaking Changes
-- **Raw() is unconditionally blocked** — ALL usages inside `html!` are compile errors. Use safe injection macros instead.
+- **Raw() is unconditionally blocked** — ALL usages inside `html!` are compile errors. Use auto-escaping tags or `json_data!`.
 - **format! with web patterns blocked** — `format!("<div>{}</div>", x)` inside html! is a compile error.
+- **inline_css! and inline_script! macros removed** — Use `<style>{var}</style>` and `<script>{var}</script>` instead. Content is auto-escaped by the `html!` macro.
 
 ### What's New
-- **json_data!("VAR" = &data)** — Safe JSON data injection for JavaScript, escapes `</script>` (case-insensitive)
-- **inline_css!(CSS_VAR)** — Safe CSS injection, escapes `</style>` (case-insensitive)
-- **inline_script!(JS_VAR)** — Safe JavaScript injection, escapes `</script>` (case-insensitive)
-- **escape_style_content()** — New function for CSS escaping
-- **AZUMI_RULES** — Framework rules array for AI verification
+- **`<style>{var}</style>` auto-escaped** — CSS injection without macros. Escapes `</style>` (case-insensitive).
+- **`<script>{var}</script>` auto-escaped** — JavaScript injection without macros. Escapes `</script>` (case-insensitive).
+- **json_data!("VAR" = &data)** — Safe JSON data injection for JavaScript (macro required — does serde + variable naming).
+- **escape_style_content()** — New function for CSS escaping.
+- **AZUMI_RULES** — Framework rules array for AI verification.
+
+### Migration from v42
+- `inline_css!(CSS_VAR)` → `<style>{CSS_VAR}</style>`
+- `inline_script!(JS_VAR)` → `<script>{JS_VAR}</script>`
+- `json_data!("VAR" = &data)` stays unchanged
 
 ### Migration from v41.x
-- `Raw()` anywhere in `html!` → Use `json_data!`, `inline_css!`, or `inline_script!` macros
+- `Raw()` anywhere in `html!` → Use auto-escaping tags or `json_data!`
 - `format!()` building HTML/CSS/JS inside `html!` → Build outside html! and pass as variable
 - See [AGENTS.md](AGENTS.md) for AI code generation guidelines
 
-### Migration from v26.x → v28
-- `#[azumi::live]` + `#[azumi::live_impl]` now required together for predictions
-- Predictions auto-detected from `#[azumi::live_impl]` — manual `data-predict` is optional
-- See [MIGRATION.md](MIGRATION.md) for full v26 → v27+ upgrade guide
+### Safe Injection Patterns
 
-### Migration from v14.x–v25
-- `Raw("window.location.hash...")` → Use `{session_cleanup_script()}`
-- All framework Components use `{}` syntax, not `@{Raw(...)}`
-- `#[azumi::page]` replaces manual SEO setup
-- `<script src="azumi.js" />` → Use `{azumi_script()}` (macro transformation removed)
-- `AZUMI_SECRET` still required in production
-
-### Safe Injection Macros
-
-| Macro | Purpose | Escapes |
-|-------|---------|---------|
-| `json_data!("VAR" = &data)` | JSON → JavaScript | `</script>` (case-insensitive) |
-| `inline_css!(CSS_VAR)` | CSS injection | `</style>` (case-insensitive) |
-| `inline_script!(JS_VAR)` | JavaScript injection | `</script>` (case-insensitive) |
+| Pattern | Purpose | Escapes |
+|---------|---------|---------|
+| `<style>{CSS_VAR}</style>` | CSS injection | `</style>` (case-insensitive, auto-escaped) |
+| `<script>{JS_VAR}</script>` | JavaScript injection | `</script>` (case-insensitive, auto-escaped) |
+| `{json_data!("VAR" = &data)}` | JSON → JavaScript | `</script>` (case-insensitive) |
 
 **Escape hatches (`#[doc(hidden)]` — internal framework use only):**
 - `Raw()`, `TrustedHtml`, `from_fn()`, `from_fn_once()` — never use these in application code

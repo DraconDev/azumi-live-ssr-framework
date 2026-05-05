@@ -197,7 +197,28 @@ fn parse_style_tag(input: ParseStream) -> Result<Node> {
 
     input.parse::<Token![>]>()?;
 
-    // Parse content until </style>
+    // Check if content is a brace expression: <style>{expr}</style>
+    // If so, parse as an Element with expression children (auto-escaped)
+    if input.peek(Brace) {
+        let expr_node = Node::Expression(input.parse()?);
+        // Expect closing </style>
+        if input.peek(Token![<]) && input.peek2(Token![/]) {
+            input.parse::<Token![<]>()?;
+            input.parse::<Token![/]>()?;
+            parse_html_name(input, false)?;
+            input.parse::<Token![>]>()?;
+        }
+        return Ok(Node::Element(Element {
+            name: "style".to_string(),
+            attrs: vec![],
+            children: vec![expr_node],
+            bind_struct: None,
+            span: start_span,
+            full_span: start_span,
+        }));
+    }
+
+    // Parse content until </style> (style! DSL content)
     let mut content = TokenStream::new();
     while !input.is_empty() {
         // Check for </style>
@@ -449,7 +470,7 @@ impl Parse for Element {
                         && matches!(&attr.value, AttributeValue::Static(v) if v.contains("json"))
                 });
 
-            // Allow scripts with dynamic content (expressions) like inline_script! or json_data!
+            // Allow scripts and styles with dynamic content (expressions) like json_data! or bare {var}
             let has_expression_child = children
                 .iter()
                 .any(|node| matches!(node, Node::Expression(_)));
@@ -916,6 +937,15 @@ fn parse_script_content(input: ParseStream, tag_name: &str) -> Result<Vec<Node>>
             }
         }
 
+        if input.peek(Brace) {
+            // Bare { ... } -> Expression
+            if debug {
+                eprintln!("Found {{ ... }} bare expression!");
+            }
+            nodes.push(Node::Expression(input.parse()?));
+            continue;
+        }
+
         if input.peek(Token![@]) {
             let is_css = is_css_at_rule(input);
             if debug {
@@ -932,11 +962,13 @@ fn parse_script_content(input: ParseStream, tag_name: &str) -> Result<Vec<Node>>
                     }
                     input.parse::<Token![@]>()?;
                     nodes.push(Node::Expression(input.parse()?));
+                    continue;
                 } else {
                     if debug {
                         eprintln!("Found Block (not brace)");
                     }
                     nodes.push(Node::Block(input.parse()?));
+                    continue;
                 }
             } else if debug {
                 eprintln!("IS CSS, treating as text");

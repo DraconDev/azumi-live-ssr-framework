@@ -10,23 +10,23 @@ Azumi is an **AI-first, compiler-validated web framework** with optional optimis
 - **Compile-Time Safety**: Macros catch errors before runtime
 - **Minimal JavaScript**: ~3KB runtime, only when interactivity is needed
 - **Server-Side Truth**: Server always wins, client predictions are optimistic
-- **Named Macros**: `json_data!`, `inline_css!`, `inline_script!` are explicit, searchable, unambiguous
+- **Named Macros**: `json_data!` for JSON data — it does real serde work; variables inside `<style>` and `<script>` tags are auto-escaped by the `html!` macro itself
 
 ---
 
 ## 🚨 Three Golden Rules for AI-Generated Code
 
-1. **NO `Raw()` inside `html!`** — compile error, use safe macros instead
-2. **NO `format!` building web content inside `html!`** — compile error, use safe macros instead
-3. **ALWAYS use safe injection macros** for structured content injection
+1. **NO `Raw()` inside `html!`** — compile error, use safe alternatives
+2. **NO `format!` building web content inside `html!`** — compile error, use safe alternatives
+3. **ALWAYS use `<style>{var}</style>` for CSS, `<script>{var}</script>` for JS, and `json_data!` for JSON data**
 
-### Safe Injection Macros
+### Safe Injection Patterns
 
-| Macro | Use Instead Of |
-|-------|----------------|
-| `json_data!("VAR" = &data)` | `Raw(format!("window.VAR = {};", ...))` |
-| `inline_css!(CSS_VAR)` | `Raw(format!("<style>{}</style>", ...))` |
-| `inline_script!(JS_VAR)` | `Raw("<script>...</script>")` |
+| Pattern | Use Case | Escapes |
+|---------|----------|---------|
+| `<style>{var}</style>` | CSS injection | `</style>` (case-insensitive, auto-escaped by html!) |
+| `<script>{var}</script>` | JavaScript injection | `</script>` (case-insensitive, auto-escaped by html!) |
+| `{json_data!("VAR" = &data)}` | JSON data to JavaScript | `</script>` (macro-level escaping) |
 
 ---
 
@@ -127,8 +127,8 @@ html! {
 | Framework JS | `{azumi_script()}` |
 | Session cleanup | `{session_cleanup_script()}` |
 | JSON to JavaScript | `{azumi::json_data!("VAR" = &data)}` |
-| CSS injection | `{azumi::inline_css!(CSS_VAR)}` |
-| JS injection | `{azumi::inline_script!(JS_VAR)}` |
+| CSS injection | `<style>{CSS_VAR}</style>` (auto-escaped) |
+| JS injection | `<script>{JS_VAR}</script>` (auto-escaped) |
 | Text content | `{value}` (auto-escaped) |
 
 #### Internal Escape Hatches — NEVER USE IN APPLICATION CODE
@@ -145,13 +145,55 @@ The following are `#[doc(hidden)]` — internal framework use only. **AIs should
 > [!IMPORTANT]
 > If you find yourself needing `Raw()` or `TrustedHtml`, you are using Azumi incorrectly. Use the safe injection macros instead.
 
-### 4b. Safe Injection Macros (json_data!, inline_css!, inline_script!)
+### 4b. Safe Injection Patterns (json_data! + auto-escaping tags)
 
-Azumi provides safe macros for injecting data into HTML, CSS, and JavaScript contexts. These replace unsafe patterns like `Raw()`, `format!()`, and manual string concatenation.
+The `html!` macro provides built-in auto-escaping for content inside `<script>` and `<style>` tags. Only `json_data!` requires a dedicated macro (it does serde serialization + variable naming).
 
-#### `json_data!("varname" = &data)` — Safe JSON data injection
+#### `<style>{var}</style>` — Auto-escaped CSS injection
 
-For passing Rust data to JavaScript, use `json_data!`:
+CSS variables inside `<style>` tags are automatically escaped by `html!`:
+
+```rust
+// ✅ CORRECT - Auto-escaped CSS injection
+html! {
+    <style>{THEME_CSS}</style>
+}
+// Renders: <style>.my_class { color: red; }</style>
+
+// ❌ WRONG - format! + Raw bypasses safety
+html! {
+    @{Raw(format!("<style>{}</style>", css))}
+}
+```
+
+**Features:**
+- Auto-escapes `</style>` (case-insensitive: `</style>`, `</Style>`, `</STYLE>`, `</ style>`)
+- No macro needed — the `html!` macro handles escaping
+
+#### `<script>{var}</script>` — Auto-escaped JavaScript injection
+
+JavaScript variables inside `<script>` tags are automatically escaped by `html!`:
+
+```rust
+// ✅ CORRECT - Auto-escaped JS injection
+html! {
+    <script>{TRACKING_JS}</script>
+}
+// Renders: <script>console.log('track');</script>
+
+// ❌ WRONG - Raw with JS bypasses security
+html! {
+    @{Raw("<script>alert('hi')</script>")}
+}
+```
+
+**Features:**
+- Auto-escapes `</script>` (case-insensitive: `</script>`, `</Script>`, `</SCRIPT>`, `</ script>`)
+- No macro needed
+
+#### `json_data!("varname" = &data)` — Safe JSON data injection (macro required)
+
+For passing Rust data to JavaScript, use `json_data!`. This is the only injection macro — it does real work (serde + variable naming):
 
 ```rust
 // ✅ CORRECT - Safe JSON injection with auto-escaping
@@ -172,46 +214,7 @@ html! {
 - Auto-serializes any `serde::Serialize` type
 - Escapes `</script>` to prevent XSS (`</script>` → `<\/script>`)
 - Type-safe at compile time
-
-#### `inline_css!(css_var)` — Safe CSS injection
-
-For CSS that needs to be injected dynamically:
-
-```rust
-// ✅ CORRECT - Safe CSS injection
-html! {
-    {azumi::inline_css!(THEME_CSS)}
-}
-
-// ❌ WRONG - Raw with CSS bypasses scoping
-html! {
-    @{Raw("<style>.btn { color: red; }</style>")}
-}
-```
-
-**Features:**
-- Escapes `</style>` to prevent XSS
-- Integrates with Azumi's CSS scoping
-
-#### `inline_script!(js_var)` — Safe JavaScript injection
-
-For JavaScript that needs to be injected dynamically:
-
-```rust
-// ✅ CORRECT - Safe JS injection
-html! {
-    {azumi::inline_script!(TRACKING_JS)}
-}
-
-// ❌ WRONG - Raw with JS bypasses security
-html! {
-    @{Raw("<script>alert('hi')</script>")}
-}
-```
-
-**Features:**
-- Escapes `</script>` to prevent XSS
-- Used internally by `azumi_script()` and `session_cleanup_script()`
+- Generates the full `<script>` tag including variable assignment
 
 ### 5. CSS Classes MUST Be Defined in `<style>` Block
 
@@ -2781,8 +2784,8 @@ This guide covers all aspects of Azumi development. Use it as your comprehensive
 | `<style>.foo { ... }</style><div>` | `<div class={foo}><style>...</style>` | Style must come after HTML |
 | `<script>alert(1)</script>` | `<script src="/app.js"></script>` | Inline scripts blocked |
 | `Raw(format!("window.__DATA__ = {}", data))` | `json_data!("DATA" = &data)` | Use safe injection macros |
-| `Raw("<style>.btn { color: red; }</style>")` | `<style>.btn { color: "red"; }</style>` or `inline_css!(CSS)` | Use style blocks or safe macros |
-| `Raw("<script>...</script>")` | `inline_script!(JS)` or `azumi_script()` | Use safe injection macros |
+| `Raw("<style>.btn { color: red; }</style>")` | `<style>{CSS}</style>` or style blocks | Auto-escaped inside html! |
+| `Raw("<script>...</script>")` | `<script>{JS}</script>` or `azumi_script()` | Auto-escaped inside html! |
 | `state.counter = 42` (in predict) | `#[azumi::predict("counter = 42")]` on method in `#[azumi::live_impl]` | Manual prediction attribute for complex mutations |
 
 ---

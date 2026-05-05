@@ -15,11 +15,11 @@ error: Azumi: format!() detected building HTML/CSS/JS strings.
        // For JSON data - use json_data! macro:
        html! { {azumi::json_data!("MY_DATA" = &data)} }
 
-       // For CSS - use inline_css! macro:
-       html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }
+       // For CSS - use <style> tag with {variable}:
+       html! { <style>{GLOBAL_CSS}</style> }
 
-       // For JavaScript - use inline_script! macro:
-       html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }
+       // For JavaScript - use <script> tag with {variable}:
+       html! { <script>{TRACKING_JS}</script> }
 
        ❌ Wrong pattern:
 

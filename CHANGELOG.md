@@ -5,6 +5,42 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [46.0.0] - 2026-05-05
+
+### Breaking Changes
+- **`<style>{var}</style>` auto-escaping finalized**: The `html!` macro now properly detects `<style>{expr}</style>` syntax and auto-escapes expression children via `escape_style_content()`.
+- **`parse_script_content` supports bare `{expr}`**: Script and style tags now accept bare `{expr}` expressions (not just `@{expr}`), making the syntax consistent with other html! elements.
+- **Node order enforcement for injected CSS/JS**: `<style>` and `<script>` with expression children are now subject to Script → Content → Style ordering validation.
+
+### Added
+- **Auto-escaping tests**: 16 new tests covering all breakout variants (lowercase, uppercase, titlecase, with space, multiple occurrences, no double-escape).
+- **Documentation fully updated**: AGENTS.md, AI_GUIDE.md, README.md all reflect the bare-tag injection patterns.
+
+### Migration from v45.x
+- No changes needed — v45.x already had the macro removal. This release finalizes the implementation.
+
+## [45.0.0] - 2026-05-05
+
+### Breaking Changes
+- **inline_css! and inline_script! macros removed**: Replaced by built-in auto-escaping.
+
+## [43.0.0] - 2026-05-05
+
+### Breaking Changes
+- **inline_css! and inline_script! macros removed**: These thin wrappers have been replaced by built-in auto-escaping in the `html!` macro. Use `<style>{var}</style>` and `<script>{var}</script>` instead — content is automatically escaped by the `html!` renderer.
+- **Context::Style added**: The html! macro now tracks both `Context::Script` and `Context::Style` to auto-escape expression children.
+- **`<style>` tag parsing updated**: `parse_style_tag` now detects `<style>{expr}</style>` and creates an Element node with expression children (auto-escaped) instead of a StyleBlock.
+- **`parse_script_content` updated**: Now supports bare `{expr}` expressions (not just `@{expr}`) inside `<script>` and `<style>` tags.
+
+### Added
+- **Auto-escaping for `<script>{var}</script>`**: Expression children inside `<script>` tags are automatically passed through `escape_script_content()` by the html! renderer.
+- **Auto-escaping for `<style>{var}</style>`**: Expression children inside `<style>` tags are automatically passed through `escape_style_content()` by the html! renderer.
+
+### Migration from v42.x
+- `{inline_css!(CSS_VAR)}` → `<style>{CSS_VAR}</style>`
+- `{inline_script!(JS_VAR)}` → `<script>{JS_VAR}</script>`
+- `json_data!("VAR" = &data)` stays unchanged (it does real serde + variable naming work)
+
 ## [42.0.0] - 2026-05-05
 
 ### Breaking Changes

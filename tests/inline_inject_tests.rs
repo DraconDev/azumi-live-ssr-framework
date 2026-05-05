@@ -409,7 +409,7 @@ fn test_auto_escape_inside_for_loop() {
     let items = vec!["one", "two"];
     let component = html! {
         <div>
-            @for item in items {
+            @for _item in items {
                 <style>{THEME_CSS}</style>
             }
         </div>
