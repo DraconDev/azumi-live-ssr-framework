@@ -367,15 +367,6 @@ mod local_state_tests {
         pub input_value: String,
     }
 
-    impl Default for LocalCounterState {
-        fn default() -> Self {
-            Self {
-                count: 0,
-                input_value: String::new(),
-            }
-        }
-    }
-
     #[azumi::live]
     #[derive(Default)]
     pub struct ServerOnlyState {
@@ -384,16 +375,6 @@ mod local_state_tests {
         pub scroll_pos: i32,
         #[computed]
         pub full_greeting: String,
-    }
-
-    impl Default for ServerOnlyState {
-        fn default() -> Self {
-            Self {
-                name: String::new(),
-                scroll_pos: 0,
-                full_greeting: String::new(),
-            }
-        }
     }
 
     #[test]
