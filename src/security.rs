@@ -169,8 +169,139 @@ fn sign_state_internal(user_id: Option<&str>, state_json: &str) -> String {
 /// This is considered acceptable as all failures result in rejection,
 /// and distinguishing between specific error types provides minimal
 /// additional information to an attacker.
-pub fn verify_state(signed_state: &str) -> Result<String, String> {
-    verify_state_internal(None, signed_state)
+pub fn verify_state(signed_state: &str) -> Result<String, VerifyStateError> {
+    verify_state_internal_detailed(None, signed_state)
+}
+
+/// Verifies a user-scoped signed state.
+/// Returns the original JSON if valid, or an Err if invalid/expired/user mismatch.
+///
+/// Use this when the state was signed with `sign_state_for_user`.
+pub fn verify_state_for_user(expected_user_id: &str, signed_state: &str) -> Result<String, VerifyStateError> {
+    verify_state_internal_detailed(Some(expected_user_id), signed_state)
+}
+
+fn verify_state_internal(
+    expected_user_id: Option<&str>,
+    signed_state: &str,
+) -> Result<String, VerifyStateError> {
+    verify_state_internal_detailed(expected_user_id, signed_state)
+}
+
+fn verify_state_internal_detailed(
+    expected_user_id: Option<&str>,
+    signed_state: &str,
+) -> Result<String, VerifyStateError> {
+    if signed_state.len() > 100_000 {
+        return Err(VerifyStateError::StateTooLarge {
+            len: signed_state.len(),
+        });
+    }
+
+    let pipe_count = signed_state.matches('|').count();
+    if pipe_count > 10 {
+        return Err(VerifyStateError::TooManyPipes { count: pipe_count });
+    }
+
+    let last_pipe = match signed_state.rfind('|') {
+        Some(idx) => idx,
+        None => return Err(VerifyStateError::MissingPipe),
+    };
+    let second_last_pipe = match signed_state[..last_pipe].rfind('|') {
+        Some(idx) => idx,
+        None => return Err(VerifyStateError::MissingPipe),
+    };
+
+    let payload_with_ts = &signed_state[..last_pipe];
+    let signature_b64 = &signed_state[last_pipe + 1..];
+
+    let timestamp_str = &payload_with_ts[second_last_pipe + 1..];
+    let timestamp: u64 = match timestamp_str.parse() {
+        Ok(t) => t,
+        Err(_) => {
+            return Err(VerifyStateError::TimestampParseFailed {
+                raw: timestamp_str.to_string(),
+            })
+        }
+    };
+
+    let current_time = get_current_timestamp();
+
+    if timestamp == u64::MAX {
+        return Err(VerifyStateError::TimestampMaxValue);
+    }
+
+    if current_time.saturating_sub(timestamp) > MAX_STATE_AGE_SECS {
+        return Err(VerifyStateError::TimestampExpired {
+            ts: timestamp,
+            now: current_time,
+            max_age: MAX_STATE_AGE_SECS,
+        });
+    }
+
+    const ALLOWED_CLOCK_SKEW: u64 = 60;
+    if timestamp > current_time && timestamp - current_time > ALLOWED_CLOCK_SKEW {
+        return Err(VerifyStateError::TimestampFuture {
+            ts: timestamp,
+            now: current_time,
+            skew: ALLOWED_CLOCK_SKEW,
+        });
+    }
+
+    let payload = &payload_with_ts[..second_last_pipe];
+    let (actual_user_id, state_json) = match payload.find(':') {
+        Some(idx) => {
+            let uid = &payload[..idx];
+            let rest = &payload[idx + 1..];
+            if uid
+                .chars()
+                .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
+                && !rest.is_empty()
+                && rest.starts_with('{')
+            {
+                (Some(uid), rest)
+            } else {
+                (None, payload)
+            }
+        }
+        None => (None, payload),
+    };
+
+    if let Some(expected) = expected_user_id {
+        match actual_user_id {
+            Some(actual) if actual == expected => {}
+            _ => {
+                return Err(VerifyStateError::UserIdMismatch {
+                    expected: expected.to_string(),
+                    actual: actual_user_id.unwrap_or("").to_string(),
+                })
+            }
+        }
+    } else if actual_user_id.is_some() {
+        return Err(VerifyStateError::UnexpectedUserId {
+            actual: actual_user_id.unwrap_or("").to_string(),
+        });
+    }
+
+    let secret = get_secret();
+    if secret.is_empty() {
+        panic!("AZUMI_SECRET must not be empty");
+    }
+    let mut mac =
+        HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC can take any size key");
+
+    mac.update(payload.as_bytes());
+    mac.update(&timestamp.to_be_bytes());
+
+    let signature_bytes = match BASE64.decode(signature_b64) {
+        Ok(s) => s,
+        Err(_) => return Err(VerifyStateError::SignatureDecodeFailed),
+    };
+
+    match mac.verify_slice(&signature_bytes) {
+        Ok(()) => Ok(state_json.to_string()),
+        Err(_) => Err(VerifyStateError::HmacVerificationFailed),
+    }
 }
 
 /// Verifies a user-scoped signed state.
