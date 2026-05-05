@@ -4,12 +4,29 @@
 
 ## 🎯 Philosophy & Core Concepts
 
-Azumi is a **compiler-validated web framework** with optional optimistic UI support. Write Rust with compile-time HTML/CSS validation, and add interactivity when needed.
+Azumi is an **AI-first, compiler-validated web framework** with optional optimistic UI support. Named macros over magic syntax. Write Rust with compile-time HTML/CSS validation, and add interactivity when needed.
 
 - **Single Source of Truth**: Rust code is the only source of truth
 - **Compile-Time Safety**: Macros catch errors before runtime
 - **Minimal JavaScript**: ~3KB runtime, only when interactivity is needed
 - **Server-Side Truth**: Server always wins, client predictions are optimistic
+- **Named Macros**: `json_data!`, `inline_css!`, `inline_script!` are explicit, searchable, unambiguous
+
+---
+
+## 🚨 Three Golden Rules for AI-Generated Code
+
+1. **NO `Raw()` inside `html!`** — compile error, use safe macros instead
+2. **NO `format!` building web content inside `html!`** — compile error, use safe macros instead
+3. **ALWAYS use safe injection macros** for structured content injection
+
+### Safe Injection Macros
+
+| Macro | Use Instead Of |
+|-------|----------------|
+| `json_data!("VAR" = &data)` | `Raw(format!("window.VAR = {};", ...))` |
+| `inline_css!(CSS_VAR)` | `Raw(format!("<style>{}</style>", ...))` |
+| `inline_script!(JS_VAR)` | `Raw("<script>...</script>")` |
 
 ---
 
@@ -101,113 +118,32 @@ html! {
 - It shadows the CSS-generated variable, causing confusing bugs
 - The `<style>` block already creates the variable for you
 
-### 4. Use Components First — `TrustedHtml` for Rare Edge Cases
+### 4. Components vs Internal Escape Hatches
 
-**Azumi Components are the primary building blocks.** They render correctly, are type-safe, and integrate with the framework. Use `TrustedHtml` only for pre-sanitized HTML from trusted sources.
-
-#### When Components Are Appropriate
+**Azumi Components are the primary building blocks.** They render correctly, are type-safe, and integrate with the framework.
 
 | Situation | Use This |
 |-----------|----------|
 | Framework JS | `{azumi_script()}` |
 | Session cleanup | `{session_cleanup_script()}` |
-| Any HTML/CSS/JS | Component with proper `<style>` or `<script>` blocks |
+| JSON to JavaScript | `{azumi::json_data!("VAR" = &data)}` |
+| CSS injection | `{azumi::inline_css!(CSS_VAR)}` |
+| JS injection | `{azumi::inline_script!(JS_VAR)}` |
+| Text content | `{value}` (auto-escaped) |
 
-#### When `TrustedHtml` Is Appropriate
+#### Internal Escape Hatches — NEVER USE IN APPLICATION CODE
 
-`TrustedHtml` is for **extreme edge cases only** — embedding pre-sanitized HTML from trusted sources (your own backend, trusted third-party APIs).
+The following are `#[doc(hidden)]` — internal framework use only. **AIs should never generate code using these:**
 
-```rust
-// ✅ CORRECT - TrustedHtml for pre-sanitized HTML
-html! {
-    <div>{TrustedHtml::new(pre_sanitized_html)}</div>
-}
-```
-
-> [!WARNING]
-> **Never use `TrustedHtml` with user input!** User data should always go through proper Azumi escaping.
-
-#### What Is NOT Appropriate
-
-```rust
-// ❌ WRONG - CSS should use <style> blocks
-html! {
-    <style>.foo { color: red; }</style>  // Use <style> block, not TrustedHtml
-}
-
-// ❌ WRONG - User data in TrustedHtml is XSS!
-html! {
-    <div>{TrustedHtml::new(user_comment)}</div>  // XSS vulnerability!
-}
-
-// ❌ WRONG - Dynamic content
-html! {
-    <div>{TrustedHtml::new(&format!("<div>{}</div>", value))}</div>
-}
-```
-
-#### Correct Patterns for Common Needs
-
-**1. For CSS — use `<style>` blocks:**
-
-```rust
-html! {
-    <div class={container}>
-        <style>
-            .container { padding: "1rem"; }
-            .title { color: "blue"; }
-        </style>
-    </div>
-}
-```
-
-**2. For JavaScript — use `<script>` blocks:**
-
-```rust
-html! {
-    <head>
-        <script>
-            console.log("Hello from Azumi!");
-        </script>
-    </head>
-}
-```
-
-**3. For dynamic data in scripts — use `data-*` attributes or JSON:**
-
-```rust
-html! {
-    <div id="app" data-models={serde_json::to_string(&models).unwrap()}>
-        <script>
-            // Read from data attribute
-            const models = JSON.parse(document.getElementById('app').dataset.models);
-        </script>
-    </div>
-}
-```
-
-**4. For inline scripts with constants:**
-
-```rust
-html! {
-    <script>
-        {TrustedHtml::new("console.log('trusted constant');")}
-    </script>
-}
-```
-
-**5. For trusted framework functions:**
-
-```rust
-html! {
-    <head>
-        {azumi_script()}  // ✅ Correct - returns a Component, use {} not @{}
-    </head>
-}
-```
+| Escape Hatch | Why It's Hidden |
+|--------------|----------------|
+| `TrustedHtml` | Bypasses ALL safety guarantees — only for framework internals |
+| `Raw()` | Unconditionally blocked in html! |
+| `from_fn()` | Internal macro expansion only |
+| `from_fn_once()` | Internal macro expansion only |
 
 > [!IMPORTANT]
-> If you find yourself reaching for `TrustedHtml`, ask: "Can I use a Component, `<style>` block, or data attribute instead?" If yes, do that instead. `TrustedHtml` bypasses all of Azumi's safety guarantees.
+> If you find yourself needing `Raw()` or `TrustedHtml`, you are using Azumi incorrectly. Use the safe injection macros instead.
 
 ### 4b. Safe Injection Macros (json_data!, inline_css!, inline_script!)
 
