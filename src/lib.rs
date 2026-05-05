@@ -1,14 +1,14 @@
 pub mod prelude {
     pub use crate::action::Action;
     pub use crate::{
-        action, azumi_script, component, head, html, inline_css, inline_script, json_data, live,
+        action, azumi_script, component, head, html, json_data, live,
         live_impl, page, predict, session_cleanup_script, AzumiScript, Component, escape_css_string,
         from_fn, FnComponent,
     };
 }
 
 pub use azumi_macros::{
-    action, component, head, html, inline_css, inline_script, json_data, live, live_impl, page,
+    action, component, head, html, json_data, live, live_impl, page,
     predict,
 };
 pub mod action;
@@ -70,9 +70,9 @@ pub const AZUMI_RULES: &[&str] = &[
     "Components use Props::builder() pattern",
     "State is HMAC-signed. Set AZUMI_SECRET for production",
     "For JSON data to JS: use json_data!(\"varname\" = &data), NOT format! or Raw()",
-    "For CSS injection: use inline_css!(var), NOT Raw() with <style>",
-    "For JS injection: use inline_script!(var) or azumi_script(), NOT Raw()",
-    "All injection macros escape dangerous sequences (</script>, </style>)",
+    "For CSS injection: use <style>{var}</style>, NOT Raw() with <style>",
+    "For JS injection: use <script>{var}</script>, NOT Raw() with <script> — content is auto-escaped inside html!",
+    "<style>{var}</style> and <script>{var}</script> auto-escape </style> and </script> sequences",
 ];
 
 pub trait Component {
@@ -455,10 +455,10 @@ impl<T: std::fmt::Display> FallbackRender for RenderWrapper<T> {
 /// This wrapper bypasses ALL Azumi escaping protections. It is intended
 /// for internal framework use only (e.g., SEO generation, macro internals).
 ///
-/// **For user code, use the safe injection macros instead:**
+/// **For user code, use the safe alternatives:**
 /// - `json_data!("var" = &data)` for JSON data
-/// - `inline_css!(var)` for CSS content
-/// - `inline_script!(var)` for JavaScript content
+/// - `<style>{var}</style>` for CSS content (auto-escaped inside html!)
+/// - `<script>{var}</script>` for JavaScript content (auto-escaped inside html!)
 /// - `{value}` interpolation for text (auto-escaped)
 ///
 /// **Never use Raw with:**
