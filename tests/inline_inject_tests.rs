@@ -329,3 +329,306 @@ fn test_json_data_does_not_double_escape() {
         "Should not triple-escape already-escaped content"
     );
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Complex JSON Structures
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_json_data_with_nested_objects() {
+    let data = serde_json::json!({
+        "user": {
+            "name": "Alice",
+            "address": {
+                "city": "NYC",
+                "zip": "10001"
+            }
+        }
+    });
+    let component = html! { {azumi::json_data!("DATA" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("Alice"));
+    assert!(output.contains("NYC"));
+    assert!(output.contains("10001"));
+}
+
+#[test]
+fn test_json_data_with_array() {
+    let data = serde_json::json!({"items": [1, 2, 3]});
+    let component = html! { {azumi::json_data!("ARR" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("items"));
+    assert!(output.contains("1"));
+    assert!(output.contains("2"));
+    assert!(output.contains("3"));
+}
+
+#[test]
+fn test_json_data_with_mixed_array() {
+    let data = serde_json::json!({"mixed": [1, "two", true, null]});
+    let component = html! { {azumi::json_data!("MIX" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("1"));
+    assert!(output.contains("two"));
+    assert!(output.contains("true"));
+    assert!(output.contains("null"));
+}
+
+#[test]
+fn test_json_data_with_escaped_strings() {
+    let data = serde_json::json!({"x": "a\"b\\c"});
+    let component = html! { {azumi::json_data!("ESC" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("a"));
+    assert!(output.contains("b"));
+}
+
+#[test]
+fn test_json_data_with_newlines() {
+    let data = serde_json::json!({"x": "line1\nline2"});
+    let component = html! { {azumi::json_data!("NL" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("line1"));
+}
+
+#[test]
+fn test_json_data_empty_object() {
+    let data = serde_json::json!({});
+    let component = html! { {azumi::json_data!("EMPTY" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("{}"));
+}
+
+#[test]
+fn test_json_data_empty_array() {
+    let data = serde_json::json!([]);
+    let component = html! { {azumi::json_data!("EMPTY_ARR" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("[]"));
+}
+
+#[test]
+fn test_json_data_with_float() {
+    let data = serde_json::json!({"pi": 3.14159});
+    let component = html! { {azumi::json_data!("PI" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("3.14159"));
+}
+
+#[test]
+fn test_json_data_with_special_chars_in_key() {
+    let data = serde_json::json!({"key-with-dash": 1});
+    let component = html! { {azumi::json_data!("SPECIAL" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("key-with-dash"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Variable Type Coverage (String vs &str vs &String)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_inline_css_with_string_variable() {
+    let css: String = ".test { color: blue; }".to_string();
+    let component = html! { {azumi::inline_css!(css)} };
+    let output = test::render(&component);
+    assert!(output.contains(".test { color: blue; }"));
+}
+
+#[test]
+fn test_inline_script_with_string_variable() {
+    let js: String = "alert('hi');".to_string();
+    let component = html! { {azumi::inline_script!(js)} };
+    let output = test::render(&component);
+    assert!(output.contains("alert('hi');"));
+}
+
+#[test]
+fn test_inline_css_with_static_str() {
+    static CSS: &str = ".static { font-size: 12px; }";
+    let component = html! { {azumi::inline_css!(CSS)} };
+    let output = test::render(&component);
+    assert!(output.contains(".static { font-size: 12px; }"));
+}
+
+#[test]
+fn test_inline_script_with_static_str() {
+    static JS: &str = "console.log('static');";
+    let component = html! { {azumi::inline_script!(JS)} };
+    let output = test::render(&component);
+    assert!(output.contains("console.log('static');"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Advanced CSS/JS Content
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_inline_css_with_media_query() {
+    let css = "@media (min-width: 768px) { .card { flex-direction: row; } }";
+    let component = html! { {azumi::inline_css!(css)} };
+    let output = test::render(&component);
+    assert!(output.contains("@media (min-width: 768px)"));
+}
+
+#[test]
+fn test_inline_css_with_keyframes() {
+    let css = "@keyframes slide { from { opacity: 0; } to { opacity: 1; } }";
+    let component = html! { {azumi::inline_css!(css)} };
+    let output = test::render(&component);
+    assert!(output.contains("@keyframes slide"));
+}
+
+#[test]
+fn test_inline_css_with_css_variables() {
+    let css = ":root { --primary: #007bff; }";
+    let component = html! { {azumi::inline_css!(css)} };
+    let output = test::render(&component);
+    assert!(output.contains("--primary"));
+}
+
+#[test]
+fn test_inline_script_with_function() {
+    let js = "function init() { console.log('ready'); }";
+    let component = html! { {azumi::inline_script!(js)} };
+    let output = test::render(&component);
+    assert!(output.contains("function init()"));
+}
+
+#[test]
+fn test_inline_script_with_dom_ready() {
+    let js = "document.addEventListener('DOMContentLoaded', () => {});";
+    let component = html! { {azumi::inline_script!(js)} };
+    let output = test::render(&component);
+    assert!(output.contains("DOMContentLoaded"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Control Flow Integration
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_json_data_inside_if_block() {
+    let data = serde_json::json!({"show": true});
+    let show = true;
+    let component = html! {
+        <div>
+            @if show {
+                {azumi::json_data!("DATA" = &data)}
+            }
+        </div>
+    };
+    let output = test::render(&component);
+    assert!(output.contains("DATA"));
+}
+
+#[test]
+fn test_inline_css_inside_for_loop() {
+    let items = vec!["one", "two"];
+    let component = html! {
+        <div>
+            @for item in items {
+                {azumi::inline_css!(THEME_CSS)}
+            }
+        </div>
+    };
+    static THEME_CSS: &str = ".item { color: red; }";
+    let output = test::render(&component);
+    assert!(output.contains(".item { color: red; }"));
+}
+
+#[test]
+fn test_inline_script_inside_match() {
+    let val = 1;
+    let component = html! {
+        <div>
+            @match val {
+                1 => {azumi::inline_script!(SCRIPT_A)}
+                _ => {azumi::inline_script!(SCRIPT_B)}
+            }
+        </div>
+    };
+    static SCRIPT_A: &str = "console.log('one');";
+    static SCRIPT_B: &str = "console.log('other');";
+    let output = test::render(&component);
+    assert!(output.contains("console.log('one')"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Multiple Consecutive Injections
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_three_json_data_macros() {
+    let d1 = serde_json::json!({"a": 1});
+    let d2 = serde_json::json!({"b": 2});
+    let d3 = serde_json::json!({"c": 3});
+    let component = html! {
+        <div>
+            {azumi::json_data!("A" = &d1)}
+            {azumi::json_data!("B" = &d2)}
+            {azumi::json_data!("C" = &d3)}
+        </div>
+    };
+    let output = test::render(&component);
+    assert!(output.contains("A"));
+    assert!(output.contains("B"));
+    assert!(output.contains("C"));
+}
+
+#[test]
+fn test_interleaved_injections() {
+    let css_a = ".a { color: red; }";
+    let js = "console.log('hi');";
+    let css_b = ".b { color: blue; }";
+    let component = html! {
+        <div>
+            {azumi::inline_css!(css_a)}
+            {azumi::inline_script!(js)}
+            {azumi::inline_css!(css_b)}
+        </div>
+    };
+    let output = test::render(&component);
+    assert!(output.contains(".a { color: red; }"));
+    assert!(output.contains("console.log('hi')"));
+    assert!(output.contains(".b { color: blue; }"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HTML Entity Escaping Through JSON
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_json_data_with_html_entities() {
+    let data = serde_json::json!({"html": "<b>bold</b>&amp;&lt;"});
+    let component = html! { {azumi::json_data!("HTML" = &data)} };
+    let output = test::render(&component);
+    assert!(output.contains("bold"));
+    assert!(!output.contains("<b>bold</b>"), "Script tags in JSON value should be escaped");
+}
+
+#[test]
+fn test_json_data_with_img_onerror_xss() {
+    let data = serde_json::json!({"img": "<img src=x onerror=alert(1)>"});
+    let component = html! { {azumi::json_data!("IMG" = &data)} };
+    let output = test::render(&component);
+    assert!(!output.contains("onerror=alert"));
+}
+
+#[test]
+fn test_inline_css_with_style_breakout() {
+    let css = ".test {}</style><script>alert(1)</script>";
+    let component = html! { {azumi::inline_css!(css)} };
+    let output = test::render(&component);
+    assert!(!output.contains("</style><script>"));
+    assert!(output.contains(r"<\/style>"));
+}
+
+#[test]
+fn test_inline_script_with_comment_bypass() {
+    let js = "--></script><script>alert(1)</script>";
+    let component = html! { {azumi::inline_script!(js)} };
+    let output = test::render(&component);
+    assert!(!output.contains("</script><script>"));
+    assert!(output.contains(r"<\/script>"));
+}
