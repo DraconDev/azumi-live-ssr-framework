@@ -298,3 +298,33 @@ fn test_inline_script_does_not_double_escape() {
         "Already-escaped content should stay as-is"
     );
 }
+
+#[test]
+fn test_inline_css_does_not_double_escape() {
+    // Content that's already escaped should NOT be double-escaped
+    let css = r".btn { color: red; }<\/style>";
+    let component = html! {
+        {azumi::inline_css!(css)}
+    };
+    let output = test::render(&component);
+    // Should not turn <\/style> into <\\/style>
+    assert!(
+        output.contains(r"<\/style>"),
+        "Already-escaped content should stay as-is"
+    );
+}
+
+#[test]
+fn test_json_data_does_not_double_escape() {
+    // Content that's already escaped should NOT be double-escaped
+    let data = serde_json::json!({"x": r"a<\/script>b"});
+    let component = html! {
+        {azumi::json_data!("X" = &data)}
+    };
+    let output = test::render(&component);
+    // Should not turn <\/script> into <\\/script>
+    assert!(
+        output.contains(r"<\/script>"),
+        "Already-escaped content should stay as-is"
+    );
+}

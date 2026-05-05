@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Enhanced XSS protection in HTML injection macros by adding case-insensitive style tag validation.
+Added comprehensive XSS protection test cases for inline CSS and JSON data injection
 
 ## Context
-This change builds on recent security improvements to Azumi's XSS protection system. The previous work focused on script tags, and this commit extends coverage to style tags with case-insensitive matching.
+This follows recent security enhancements that completely banned `Raw()` usage and added comprehensive XSS protection for HTML injection macros. The new tests ensure that already-escaped content remains properly escaped when injected through different mechanisms.
 
 ## Completed
-- [x] Added case-insensitive style tag validation in `escape_style_content()`
-- [x] Updated documentation in AGENTS.md to reflect expanded test coverage (22 tests now)
+- [x] Added test for inline CSS injection to prevent double-escaping of already-escaped content
+- [x] Added test for JSON data injection to prevent double-escaping of already-escaped content
 
 ## In Progress
-- [ ] None (this is a focused security enhancement)
+- [x] Comprehensive XSS protection test coverage for different injection scenarios
 
 ## Blockers
-- None (this is a self-contained security improvement)
+- None identified
 
 ## Next Steps
-1. Verify test coverage for all style tag variations
-2. Consider similar enhancements for other HTML tags if needed
+1. Review test coverage for other injection mechanisms
+2. Consider adding fuzz testing for edge cases in content injection
