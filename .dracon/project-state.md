@@ -1,21 +1,24 @@
 # Project State
 
 ## Current Focus
-Update Cargo.toml with dependency changes and version bumps
+Added performance benchmarks for HTML content escaping functions
 
 ## Context
-This change reflects recent dependency updates in the Azumi framework, likely triggered by the ongoing refactoring of HTML content injection patterns and XSS protection enhancements.
+To ensure the recently implemented auto-escaping for `<style>` and `<script>` tags meets performance requirements, especially for large content
 
 ## Completed
-- [x] Updated Cargo.toml to reflect latest dependency versions
-- [x] Incorporated changes from recent Azumi framework updates
+- [x] Added benchmark for small script content escaping
+- [x] Added benchmark for large script content (1.7MB)
+- [x] Added benchmark for small style content escaping
+- [x] Added benchmark for large style content (1.2MB)
+- [x] Added benchmark for content with no closing tags
 
 ## In Progress
-- [x] Dependency resolution and version alignment
+- [x] Performance benchmarking implementation
 
 ## Blockers
-- None identified in this change
+- None identified
 
 ## Next Steps
-1. Verify all dependencies are properly resolved
-2. Continue with ongoing refactoring of HTML content injection patterns
+1. Run benchmarks to validate escaping performance
+2. Optimize escaping functions if performance targets aren't met
