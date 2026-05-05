@@ -1,25 +1,27 @@
 # Project State
 
 ## Current Focus
-Enforce stricter XSS protection by removing `TrustedHtml` and introducing safe injection macros
+Enforce stricter XSS protection by removing `TrustedHtml` and introducing safe injection macros.
 
 ## Context
-The project is addressing XSS vulnerabilities by eliminating unsafe HTML injection patterns and replacing them with compiler-validated macros
+The framework previously allowed unsafe `Raw()` usage and `TrustedHtml` for bypassing XSS protections. This change completely removes these escape hatches and introduces three new safe injection macros (`json_data!`, `inline_css!`, `inline_script!`) to handle dynamic content securely.
 
 ## Completed
-- [x] Removed `TrustedHtml` from public API to enforce safer patterns
-- [x] Added three golden rules for AI-generated code to prevent unsafe patterns
-- [x] Introduced safe injection macros (`json_data!`, `inline_css!`, `inline_script!`)
-- [x] Documented proper patterns for CSS/JS injection
-- [x] Marked internal escape hatches as hidden from public API
+- [x] Removed `TrustedHtml` from public exports
+- [x] Blocked all `Raw()` usage in `html!` macros
+- [x] Added three new safe injection macros:
+  - `json_data!` for JSON data injection
+  - `inline_css!` for CSS injection
+  - `inline_script!` for JavaScript injection
+- [x] Enhanced escaping functions to handle all occurrences of dangerous patterns
+- [x] Updated documentation to reflect the new security model
 
 ## In Progress
-- [ ] Comprehensive test coverage for new injection patterns
+- [x] Comprehensive integration tests for the new macros
 
 ## Blockers
-- Need to verify all existing code uses the new safe macros instead of deprecated patterns
+- None identified
 
 ## Next Steps
-1. Update all framework components to use the new safe injection macros
-2. Add comprehensive test coverage for the new patterns
-3. Document migration path from `TrustedHtml` to safe macros
+1. Update all framework documentation to reflect the new security model
+2. Create migration guides for existing code using `Raw()` or `TrustedHtml`

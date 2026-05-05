@@ -5,6 +5,38 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [42.0.0] - 2026-05-05
+
+### Breaking Changes
+- **Raw() unconditionally blocked**: ALL usages of `Raw()` inside `html!` are now compile errors. Previously, only patterns with JS/CSS/HTML content were blocked. This is a complete ban.
+- **format! with web patterns blocked**: `format!("<div>{}</div>", x)` inside `html!` expressions is now a compile error. Build content outside `html!` and pass as a variable.
+- **TrustedHtml removed from prelude**: `TrustedHtml` is `#[doc(hidden)]` and no longer exported in the prelude. It was only for internal framework use.
+
+### Added
+- **json_data!("VAR" = &data)**: Safe JSON data injection for JavaScript. Auto-serializes with serde_json, escapes `</script>` (case-insensitive: `</script>`, `</Script>`, `</SCRIPT>`, `</ script>`).
+- **inline_css!(CSS_VAR)**: Safe CSS injection. Escapes `</style>` (case-insensitive).
+- **inline_script!(JS_VAR)**: Safe JavaScript injection. Escapes `</script>` (case-insensitive).
+- **escape_style_content()**: New public function for CSS string escaping.
+- **AZUMI_RULES**: Framework rules array for AI verification.
+- **AI_GUIDE_FOR_WRITING_AZUMI.md section reordering**: Safe injection macros now prominently featured as "Three Golden Rules" at the top.
+
+### Changed
+- **escape_script_content() now escapes ALL occurrences**: Previously would stop at first match. Now properly handles multiple `</script>` tags in one payload.
+- **escape_style_content() escapes ALL occurrences**: Same fix as above for CSS.
+- **Documentation updated**: README.md, AI_GUIDE.md, and AGENTS.md all updated to reflect the AI-first philosophy and safe injection macros.
+
+### Migration from v41.x
+- `Raw()` anywhere in `html!` → Use `json_data!`, `inline_css!`, or `inline_script!` macros
+- `format!()` building HTML/CSS/JS inside `html!` → Build content outside `html!` and pass as variable
+- `TrustedHtml::new()` → Should not be needed in application code (internal use only)
+
+### Migration from v26.x → v28
+- `#[azumi::live]` + `#[azumi::live_impl]` now required together for predictions
+- Predictions auto-detected from `#[azumi::live_impl]` — manual `data-predict` is optional
+- See [MIGRATION.md](MIGRATION.md) for full v26 → v27+ upgrade guide
+
+---
+
 ## [34.5.4] - 2026-05-01
 
 ### Fixed
