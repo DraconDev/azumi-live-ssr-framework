@@ -1,21 +1,24 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect dependency changes from recent macro and documentation updates
+Enhanced HTML/CSS/JS content validation in Azumi's procedural macros
 
 ## Context
-Recent additions of safe injection macros and documentation improvements required dependency updates to ensure compatibility with new features.
+This change expands the macro validation to catch more dangerous patterns when building web content strings, particularly focusing on HTML, CSS, and JavaScript injection vulnerabilities.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect dependency changes from procedural macro and documentation updates
+- [x] Expanded format string validation to detect HTML/CSS/JS patterns
+- [x] Added specific checks for common web content patterns (tags, attributes, DOM manipulation)
+- [x] Updated error messages to be more specific about the content types being validated
+- [x] Added documentation for correct safe injection patterns
 
 ## In Progress
-- [x] No active work in progress beyond the Cargo.lock update
+- [ ] No active work in progress shown in the diff
 
 ## Blockers
-- None identified
+- None identified in this change
 
 ## Next Steps
-1. Verify all dependencies are properly resolved
-2. Continue with ongoing documentation and macro development
-```
+1. Verify the new validation catches all common injection patterns
+2. Update related documentation to reflect these changes
+3. Consider adding more specific validation for other content types if needed

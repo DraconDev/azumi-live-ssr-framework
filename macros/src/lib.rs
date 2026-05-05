@@ -355,9 +355,9 @@ fn is_valid_identifier(s: &str) -> bool {
     chars.all(|c| c.is_alphanumeric() || c == '_')
 }
 
-/// Validate that expressions don't use format! to build HTML strings
+/// Validate that expressions don't use format! to build HTML/CSS/JS strings
 /// This is a common AI anti-pattern: using format!("<div>{}</div>", value)
-/// instead of proper html! macro interpolation
+/// instead of proper html! macro interpolation or safe injection macros
 fn validate_format_in_expressions(nodes: &[token_parser::Node]) -> Vec<proc_macro2::TokenStream> {
     let mut errors = vec![];
 
@@ -369,18 +369,30 @@ fn validate_format_in_expressions(nodes: &[token_parser::Node]) -> Vec<proc_macr
                 
                 // Check for format! usage that's building HTML-like strings
                 if normalized.contains("format!") {
-                    let has_html_tags = content_str.contains('<') 
+                    let has_web_content = content_str.contains('<') 
                         || content_str.contains('>')
                         || content_str.contains("</")
                         || content_str.contains("href=")
                         || content_str.contains("class=")
-                        || content_str.contains("style=");
+                        || content_str.contains("style=")
+                        // CSS patterns
+                        || content_str.contains("window.")
+                        || content_str.contains("document.")
+                        || content_str.contains("addEventListener")
+                        || content_str.contains("serde_json::to_string")
+                        || content_str.contains("JSON.parse")
+                        || content_str.contains("innerHTML")
+                        || content_str.contains(".createElement")
+                        || content_str.contains("document.write")
+                        || content_str.contains("document.cookie");
                     
-                    if has_html_tags {
+                    if has_web_content {
                         errors.push(quote_spanned! { expr.span =>
                             compile_error!(
-                                "Azumi: format!() detected building HTML strings.\n\n\
-                                Using format!() to build HTML defeats Azumi's compile-time safety.\n\
+                                "Azumi: format!() detected building HTML/CSS/JS strings.\n\n\
+                                Using format!() to build web content defeats Azumi's compile-time safety.\n\
+                                If you need to format a value for display, do it outside the html! macro\n\
+                                and pass the result as a variable.\n\
                                 \n\
                                 ✅ Correct patterns:\n\
                                 \n\
@@ -391,10 +403,13 @@ fn validate_format_in_expressions(nodes: &[token_parser::Node]) -> Vec<proc_macr
                                 html! { <a href={url}>{label}</a> }\n\
                                 \n\
                                 // For JSON data - use json_data! macro:\n\
-                                html! { {azumi::json_data!("MY_DATA" = &data)} }\n\
+                                html! { {azumi::json_data!(\"MY_DATA\" = &data)} }\n\
                                 \n\
                                 // For CSS - use inline_css! macro:\n\
                                 html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
+                                \n\
+                                // For JavaScript - use inline_script! macro:\n\
+                                html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
                                 \n\
                                 ❌ Wrong pattern:\n\
                                 \n\
