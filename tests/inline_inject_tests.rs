@@ -322,8 +322,6 @@ fn test_json_data_does_not_double_escape() {
         {azumi::json_data!("X" = &data)}
     };
     let output = test::render(&component);
-    eprintln!("OUTPUT: {:?}", output);
-    eprintln!("Has <\\/script>: {}", output.contains(r"<\/script>"));
     // After JSON serialization, backslash is doubled: <\/script> → <\\/script>
     // Just verify the output is reasonable and doesn't contain triple backslash
     assert!(
