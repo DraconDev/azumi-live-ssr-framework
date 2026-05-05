@@ -1,28 +1,20 @@
 # Project State
 
 ## Current Focus
-Enhanced HTML content validation and added safe injection macros for JSON data, CSS, and JavaScript
+Added hidden documentation for internal `from_fn` component constructor
 
 ## Context
-The framework previously allowed unsafe inline JavaScript/CSS through `azumi::Raw()` expressions. This change enforces stricter safety by:
-1. Banning all inline content by default
-2. Providing explicit, validated injection macros
-3. Improving documentation for safe patterns
+This change supports internal library development by marking the `from_fn` component constructor as hidden documentation, preventing it from appearing in public API docs while keeping it accessible for internal use.
 
 ## Completed
-- [x] Updated token parser to reject inline `<script>` and `<style>` tags unless using safe macros
-- [x] Added comprehensive test coverage for JSON data, CSS, and JavaScript injection
-- [x] Enhanced error messages to guide developers to safe injection patterns
-- [x] Added support for Unicode characters in injected content
-- [x] Implemented validation for empty and numeric JSON values
+- [x] Marked `from_fn` as hidden documentation to prevent public API exposure
 
 ## In Progress
-- [x] Implementation of safe injection macros (`json_data!`, `inline_css!`, `inline_script!`)
+- [x] Internal component system implementation
 
 ## Blockers
-- None identified in this commit
+- None identified for this specific change
 
 ## Next Steps
-1. Update documentation to reference the new safe injection patterns
-2. Add examples of migration from Raw() to new macros
-3. Consider adding build-time validation for macro usage
+1. Complete internal component system implementation
+2. Review and document additional internal APIs as needed

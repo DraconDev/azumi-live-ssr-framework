@@ -237,6 +237,7 @@ impl Component for str {
     }
 }
 
+#[doc(hidden)]
 pub fn from_fn<F>(f: F) -> FnComponent<F>
 where
     F: Fn(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
