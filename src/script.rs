@@ -118,6 +118,126 @@ mod tests {
     }
 
     // =========================================================================
+    // escape_style_content — ZERO coverage until now
+    // =========================================================================
+
+    #[test]
+    fn test_escape_style_content_no_closing_tag() {
+        let input = ".my_class { color: red; }";
+        assert_eq!(escape_style_content(input), input, "No closing tag should not change");
+    }
+
+    #[test]
+    fn test_escape_style_content_lowercase() {
+        let input = "</style>";
+        assert_eq!(escape_style_content(input), r"<\/style>", "Should escape lowercase </style>");
+    }
+
+    #[test]
+    fn test_escape_style_content_titlecase() {
+        let input = "</Style>";
+        assert_eq!(escape_style_content(input), r"<\/Style>", "Should escape titlecase </Style>");
+    }
+
+    #[test]
+    fn test_escape_style_content_uppercase() {
+        let input = "</STYLE>";
+        assert_eq!(escape_style_content(input), r"<\/STYLE>", "Should escape uppercase </STYLE>");
+    }
+
+    #[test]
+    fn test_escape_style_content_with_space() {
+        let input = "</ style>";
+        assert_eq!(escape_style_content(input), r"<\/ style>", "Should escape </ style> with space");
+    }
+
+    #[test]
+    fn test_escape_style_content_multiple() {
+        let input = "a</style>b</Style>c";
+        let expected = r"a<\/style>b<\/Style>c";
+        assert_eq!(escape_style_content(input), expected, "Should escape multiple occurrences");
+    }
+
+    #[test]
+    fn test_escape_style_content_partial_no_match() {
+        let input = "<style>";
+        assert_eq!(escape_style_content(input), "<style>", "Opening tag should NOT be escaped");
+    }
+
+    // =========================================================================
+    // Mixed-case / edge-case coverage for both escape functions
+    // =========================================================================
+
+    #[test]
+    fn test_escape_script_mixed_case() {
+        let input = "</ScRiPt>";
+        assert_eq!(escape_script_content(input), r"<\/ScRiPt>");
+    }
+
+    #[test]
+    fn test_escape_style_mixed_case() {
+        let input = "</StYlE>";
+        assert_eq!(escape_style_content(input), r"<\/StYlE>");
+    }
+
+    #[test]
+    fn test_escape_script_null_byte() {
+        let input = "hello\0</script>";
+        let expected = r"hello\0<\/script>";
+        assert_eq!(escape_script_content(input), expected);
+    }
+
+    #[test]
+    fn test_escape_style_null_byte() {
+        let input = "color: red;\0</style>";
+        let expected = r"color: red;\0<\/style>";
+        assert_eq!(escape_style_content(input), expected);
+    }
+
+    #[test]
+    fn test_escape_script_control_chars() {
+        let input = "data\x01\x02</script>";
+        let expected = r"data\x01\x02<\/script>";
+        assert_eq!(escape_script_content(input), expected);
+    }
+
+    #[test]
+    fn test_escape_script_already_escaped_no_double_escape() {
+        let input = r"console.log('<\/script>');";
+        let output = escape_script_content(input);
+        assert!(!output.contains(r"\\\/script"), "Should not double-escape already-escaped");
+        assert_eq!(output, input);
+    }
+
+    #[test]
+    fn test_escape_style_already_escaped_no_double_escape() {
+        let input = r".btn { color: red; }<\/style>";
+        let output = escape_style_content(input);
+        assert!(!output.contains(r"\\\/style"), "Should not double-escape already-escaped");
+        assert_eq!(output, input);
+    }
+
+    #[test]
+    fn test_escape_script_very_large_payload() {
+        let base = "console.log('x');";
+        let repeated: String = base.repeat(100_000);
+        let input = format!("{}{}", repeated, "</script>");
+        let output = escape_script_content(&input);
+        assert!(output.ends_with(r"<\/script>"));
+        assert!(!output.contains("</script>"));
+    }
+
+    #[test]
+    fn test_escape_style_very_large_payload() {
+        let base = ".my_class { color: red; }";
+        let repeated: String = base.repeat(50_000);
+        let input = format!("{}{}", repeated, "</style>");
+        let output = escape_style_content(&input);
+        assert!(output.ends_with(r"<\/style>"));
+        assert!(!output.contains("</style>"));
+    }
+
+    // =========================================================================
     // TrustedHtml
     // =========================================================================
 
