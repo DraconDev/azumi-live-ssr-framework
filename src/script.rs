@@ -382,7 +382,6 @@ mod tests {
         #[test]
         fn prop_escape_script_always_escapes(s in ".*") {
             let output = escape_script_content(&s);
-            // If input contains </script> case variants, output must have them escaped
             let has_unclosed = output.contains("</script>")
                 || output.contains("</Script>")
                 || output.contains("</SCRIPT>")
@@ -401,16 +400,19 @@ mod tests {
             prop_assert!(!has_unclosed, "Output should not contain unescaped closing style tag");
         }
 
-        /// Property: already-escaped content is NOT double-escaped
+        /// Property: escaping an already-escaped string is idempotent
         #[test]
-        fn prop_escape_script_no_double_escape(s in ".*") {
-            let escaped_input = format!("{}\\u003C/script>", s);
-            let output = escape_script_content(&escaped_input);
-            // The already-escaped part should remain unchanged
-            prop_assert!(!output.contains(r"\\/script"), "Should not double-escape");
+        fn prop_escape_idempotent(s in ".*") {
+            let once = escape_script_content(&s);
+            let twice = escape_script_content(&once);
+            prop_assert_eq!(once, twice, "escape_script_content should be idempotent");
+
+            let style_once = escape_style_content(&s);
+            let style_twice = escape_style_content(&style_once);
+            prop_assert_eq!(style_once, style_twice, "escape_style_content should be idempotent");
         }
 
-        /// Property: content without closing tags passes through unchanged
+        /// Property: content without '<' passes through unchanged
         #[test]
         fn prop_escape_passthrough(s in "[^<]*") {
             let script_out = escape_script_content(&s);
