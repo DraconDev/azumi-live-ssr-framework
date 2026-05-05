@@ -767,7 +767,7 @@ fn test_verify_rejects_modified_timestamp() {
     let signed = security::sign_state(r#"{"count":10}"#);
     let parts: Vec<&str> = signed.split('|').collect();
     assert_eq!(parts.len(), 3, "Expected json|timestamp|signature format");
-    let old_timestamp = parts[1];
+    let _old_timestamp = parts[1];
     let original_sig = parts[2];
     let new_timestamp = "9999999999";
     let tampered = format!("{}|{}|{}", parts[0], new_timestamp, original_sig);

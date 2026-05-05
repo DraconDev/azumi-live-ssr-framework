@@ -17,6 +17,7 @@ pub mod context;
 pub mod hot_reload;
 pub mod script;
 pub mod security;
+pub use security::VerifyStateError;
 pub use inventory;
 #[cfg(feature = "devtools")]
 pub mod devtools;

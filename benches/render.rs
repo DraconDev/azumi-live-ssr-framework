@@ -1,4 +1,4 @@
-use azumi::{html, Component};
+use azumi::html;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 fn bench_render_simple_div(c: &mut Criterion) {

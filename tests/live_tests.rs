@@ -359,9 +359,8 @@ fn test_different_states_different_signatures() {
 // ════════════════════════════════════════════════════════════════════════════
 
 mod local_state_tests {
-    use super::*;
-
     #[azumi::live]
+    #[derive(Default)]
     pub struct LocalCounterState {
         pub count: i32,
         #[local]
