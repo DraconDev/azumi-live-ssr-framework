@@ -1,20 +1,23 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Improve code consistency and security documentation in the Azumi framework
 
 ## Context
-This change was triggered by multiple recent dependency updates across the project, including security enhancements, refactoring of context management, and property-based testing improvements.
+The changes address minor formatting inconsistencies in documentation and security examples while maintaining the same functionality.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect recent dependency changes in Azumi framework
+- [x] Standardized attribute syntax in documentation comments (e.g., `#[azumi::live]` → `#[azumi::live]`)
+- [x] Improved security documentation formatting in the example attack scenario
+- [x] Consistent HTML tag formatting in the script generation helper
 
 ## In Progress
-- [x] No active work in progress related to this change
+- [ ] No active work in progress
 
 ## Blockers
-- None identified for this specific change
+- None identified
 
 ## Next Steps
-1. Verify that all dependencies are properly resolved
-2. Ensure the updated lockfile doesn't introduce any compatibility issues
+1. Review for any remaining documentation inconsistencies
+2. Verify security documentation clarity with security team
+```

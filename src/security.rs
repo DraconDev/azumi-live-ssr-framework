@@ -137,7 +137,7 @@ fn sign_state_internal(user_id: Option<&str>, state_json: &str) -> String {
 /// is permitted to perform the requested action on the given state.
 ///
 /// Example attack scenario WITHOUT proper authorization:
-/// ```ignore
+/// ```text
 /// // User A's state contains {role: "user", id: 123}
 /// // User A sends this state to the set_admin action
 /// // HMAC verifies ✓, state is valid

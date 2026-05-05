@@ -101,7 +101,7 @@ pub trait LiveStateMetadata {
 }
 
 /// Marker trait for live state structs
-/// Auto-implemented by #[azumi::live]
+/// Auto-implemented by `#[azumi::live]`
 pub trait LiveState:
     LiveStateMetadata + serde::Serialize + for<'de> serde::de::Deserialize<'de> + Send + Sync + 'static
 {
@@ -383,7 +383,7 @@ impl<T: std::fmt::Display> std::fmt::Display for Escaped<T> {
 
 /// Escape a string for safe inclusion in a CSS property value.
 /// Prevents CSS injection by escaping semicolons, backslashes, braces, quotes, and forward slashes.
-/// Forward slashes are escaped to prevent </style> injection attacks.
+/// Forward slashes are escaped to prevent `</style>` injection attacks.
 pub fn escape_css_string(s: &str) -> String {
     let mut result = String::with_capacity(s.len());
     for c in s.chars() {
@@ -680,7 +680,7 @@ mod tests;
 /// This includes Idiomorph (DOM morphing) and the Azumi coordinator
 pub const AZUMI_JS: &str = include_str!("client.min.js");
 
-/// Helper to generate the <script> tag for the client runtime
+/// Helper to generate the `<script>` tag for the client runtime
 ///
 /// Returns an AzumiScript Component that renders the Azumi client runtime.
 /// Usage: html! { <head> { azumi::azumi_script() } </head> }
