@@ -5,6 +5,33 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [47.0.0] - 2026-05-06
+
+### Added
+- **`#[must_use]` annotations**: 13 functions now warn when their return value is discarded (escape, sign, render, scope helpers).
+- **`VerifyStateError` public error type**: Replaces `Result<String, String>` anti-pattern with a typed enum (`thiserror::Error`). Accessible as `azumi::VerifyStateError`.
+- **`escape_tag_content()` generic function**: Single-pass scanner replaces 4× `.replace()` chain — O(n) performance for all content sizes.
+- **Property-based tests**: 4 proptest properties validate escape functions against random inputs.
+- **Criterion benchmarks**: 3 benchmark suites — `escape`, `render`, `scope_css` — establish baseline for performance tracking.
+- **Architecture documentation**: `docs/architecture.md` covering crate structure, validation pipeline, and rendering flow.
+- **Migration guides**: `docs/migration/v42.md` and `docs/migration/v43.md` document breaking changes.
+- **CI improvements**: Benchmark smoke test job, `AZUMI_SECRET` for release tests, clippy runs on all targets/features.
+
+### Changed
+- **`Context`/`GenerationContext` extracted**: Moved from `macros/src/lib.rs` (1516 lines) to `macros/src/context.rs` (59 lines).
+- **`FnOnceComponent` internals**: Replaced `UnsafeCell` with `RefCell` — eliminates unsafe code, same zero-overhead single-thread behavior.
+- **Doc warnings**: 4 rustdoc warnings fixed (unclosed HTML tags, empty code blocks, unresolved links).
+- **Clippy warnings**: 11 warnings fixed (unused variables, unused imports, manual `Default` impls replaced with `#[derive(Default)]`).
+
+### Documentation
+- `docs/architecture.md` — crate structure, validation pipeline, rendering flow
+- `docs/migration/v42.md` — Raw/format!/TrustedHtml changes
+- `docs/migration/v43.md` — inline_css!/inline_script! removal
+
+### Internal
+- Benchmarks configured with `harness = false` for Criterion
+- Cargo.toml: added `thiserror`, `proptest`, `criterion` dependencies
+
 ## [46.0.0] - 2026-05-05
 
 ### Breaking Changes
