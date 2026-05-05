@@ -377,6 +377,7 @@ mod local_state_tests {
     }
 
     #[azumi::live]
+    #[derive(Default)]
     pub struct ServerOnlyState {
         pub name: String,
         #[local]
