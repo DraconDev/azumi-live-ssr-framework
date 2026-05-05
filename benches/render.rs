@@ -30,6 +30,7 @@ fn bench_render_with_json_data(c: &mut Criterion) {
     let data = serde_json::json!({"count": 42, "name": "test"});
     c.bench_function("render_with_json_data", |b| {
         b.iter(|| {
+            let data = data.clone();
             let component = html! {
                 <div>"Hello"</div>
                 {azumi::json_data!("APP_DATA" = &data)}
