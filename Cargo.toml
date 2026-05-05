@@ -37,3 +37,4 @@ notify = { version = "6.1", optional = true }
 [dev-dependencies]
 azumi = { path = ".", features = ["test-utils"] }
 trybuild = "1.0"
+criterion = { version = "0.5", features = ["html_reports"] }
