@@ -1,25 +1,21 @@
 # Project State
 
 ## Current Focus
-Enforce stricter safety guarantees by completely banning `Raw()` usage in favor of safe injection macros
+Update asset manifest to reorganize static file mappings
 
 ## Context
-The framework previously allowed unsafe `Raw()` usage which could lead to XSS vulnerabilities. This change eliminates all `Raw()` usage in favor of type-safe injection macros to prevent runtime injection vulnerabilities.
+The asset manifest was modified to reorganize the static file mappings, likely to improve organization or caching behavior in the demo application.
 
 ## Completed
-- [x] Added comprehensive documentation for safe injection patterns
-- [x] Implemented compile-time checks to block all `Raw()` usage
-- [x] Added safe injection macros for JSON data, CSS, and JavaScript
-- [x] Updated asset manifest with new file hashes
-- [x] Standardized documentation for all safe injection patterns
+- [x] Reorganized static file mappings in assets_manifest.json
+- [x] Updated Cargo.lock to reflect dependency changes
 
 ## In Progress
-- [x] Framework-wide enforcement of safe injection patterns
+- [x] Asset manifest reorganization
 
 ## Blockers
-- No blockers identified
+- None identified in this commit
 
 ## Next Steps
-1. Verify all framework components use only safe injection macros
-2. Update all documentation examples to use new patterns
-3. Prepare migration guide for existing projects using `Raw()`
+1. Verify asset loading behavior in the demo application
+2. Ensure no broken references after the manifest update
