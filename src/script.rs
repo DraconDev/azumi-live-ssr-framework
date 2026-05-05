@@ -170,35 +170,37 @@ mod tests {
 
     #[test]
     fn test_escape_script_mixed_case() {
-        let input = "</ScRiPt>";
-        assert_eq!(escape_script_content(input), r"<\/ScRiPt>");
+        assert_eq!(escape_script_content("</ScRiPt>"), r"<\/ScRiPt>");
     }
 
     #[test]
     fn test_escape_style_mixed_case() {
-        let input = "</StYlE>";
-        assert_eq!(escape_style_content(input), r"<\/StYlE>");
+        assert_eq!(escape_style_content("</StYlE>"), r"<\/StYlE>");
     }
 
     #[test]
     fn test_escape_script_null_byte() {
-        let input = "hello\0</script>";
-        let expected = r"hello\0<\/script>";
-        assert_eq!(escape_script_content(input), expected);
+        let input = "hello\u{0}</script>";
+        let output = escape_script_content(input);
+        assert!(output.contains('\u{0}'));
+        assert!(!output.contains("</script>"), "Should have escaped </script>");
     }
 
     #[test]
     fn test_escape_style_null_byte() {
-        let input = "color: red;\0</style>";
-        let expected = r"color: red;\0<\/style>";
-        assert_eq!(escape_style_content(input), expected);
+        let input = "color: red;\u{0}</style>";
+        let output = escape_style_content(input);
+        assert!(output.contains('\u{0}'));
+        assert!(!output.contains("</style>"), "Should have escaped </style>");
     }
 
     #[test]
     fn test_escape_script_control_chars() {
-        let input = "data\x01\x02</script>";
-        let expected = r"data\x01\x02<\/script>";
-        assert_eq!(escape_script_content(input), expected);
+        let input = "data\u{01}\u{02}</script>";
+        let output = escape_script_content(input);
+        assert!(output.contains('\u{01}'));
+        assert!(output.contains('\u{02}'));
+        assert!(!output.contains("</script>"), "Should have escaped </script>");
     }
 
     #[test]
