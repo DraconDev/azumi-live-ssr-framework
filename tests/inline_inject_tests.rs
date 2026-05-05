@@ -202,3 +202,99 @@ fn test_format_in_expression_detected() {
     let output = test::render(&component);
     assert!(output.contains("test"));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Case-Insensitive Escaping Tests
+// Browsers accept </SCRIPT>, </Style> — these must be escaped too
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_json_data_escapes_uppercase_script() {
+    let data = serde_json::json!({"x": "</SCRIPT>alert(1)"});
+    let component = html! {
+        {azumi::json_data!("X" = &data)}
+    };
+    let output = test::render(&component);
+    assert!(!output.contains("</SCRIPT>alert"), "Uppercase </SCRIPT> should be escaped");
+    assert!(output.contains(r"<\/SCRIPT>"));
+}
+
+#[test]
+fn test_json_data_escapes_titlecase_script() {
+    let data = serde_json::json!({"x": "</Script>alert(1)"});
+    let component = html! {
+        {azumi::json_data!("X" = &data)}
+    };
+    let output = test::render(&component);
+    assert!(!output.contains("</Script>alert"), "Titlecase </Script> should be escaped");
+    assert!(output.contains(r"<\/Script>"));
+}
+
+#[test]
+fn test_inline_css_escapes_uppercase_style() {
+    let css = ".x { color: red; }</STYLE><script>alert(1)</script>";
+    let component = html! {
+        {azumi::inline_css!(css)}
+    };
+    let output = test::render(&component);
+    assert!(!output.contains("</STYLE><script>"), "Uppercase </STYLE> should be escaped");
+    assert!(output.contains(r"<\/STYLE>"));
+}
+
+#[test]
+fn test_inline_script_escapes_uppercase_script() {
+    let script = "console.log(1);</SCRIPT><script>alert(1)</script>";
+    let component = html! {
+        {azumi::inline_script!(script)}
+    };
+    let output = test::render(&component);
+    assert!(!output.contains("</SCRIPT><script>"), "Uppercase </SCRIPT> should be escaped");
+    assert!(output.contains(r"<\/SCRIPT>"));
+}
+
+#[test]
+fn test_inline_script_escapes_titlecase_script() {
+    let script = "console.log(1);</Script>alert(1)";
+    let component = html! {
+        {azumi::inline_script!(script)}
+    };
+    let output = test::render(&component);
+    assert!(!output.contains("</Script>alert"), "Titlecase </Script> should be escaped");
+    assert!(output.contains(r"<\/Script>"));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Nested Breakout Tests
+// Verify that nested/multiple escaping doesn't double-escape already-safe content
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_json_data_escapes_nested_script() {
+    // Multiple </script> tags in one payload
+    let data = serde_json::json!({"x": "a</script>b</script>c"});
+    let component = html! {
+        {azumi::json_data!("X" = &data)}
+    };
+    let output = test::render(&component);
+    assert!(output.contains(r"<\/script>"), "Both </script> should be escaped");
+    assert_eq!(
+        output.matches(r"<\/script>").count(),
+        2,
+        "Should escape both occurrences"
+    );
+}
+
+#[test]
+fn test_inline_script_does_not_double_escape() {
+    // Content that's already escaped should NOT be double-escaped
+    let script = r"console.log('<\/script>');";
+    let component = html! {
+        {azumi::inline_script!(script)}
+    };
+    let output = test::render(&component);
+    // Should not turn <\/script> into <\\/script>
+    assert!(
+        output.contains(r"<\/script>"),
+        "Already-escaped content should stay as-is"
+    );
+}
