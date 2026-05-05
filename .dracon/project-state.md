@@ -1,23 +1,23 @@
 # Project State
 
 ## Current Focus
-Refactored inline injection macros to eliminate direct `Raw()` usage and enforce stricter XSS protection
+Refactored inline injection patterns to use standard HTML tags instead of custom macros.
 
 ## Context
-This change addresses security concerns by removing the `inline_css!` and `inline_script!` macros that previously used `Raw()` for direct HTML injection. The refactoring implements safer alternatives that properly escape content to prevent XSS vulnerabilities.
+The previous approach used specialized macros (`inline_css!`, `inline_script!`) for injecting CSS and JavaScript, which were being phased out in favor of standard HTML tags with variable interpolation. This change aligns with the framework's stricter XSS protection policies and simplifies the template syntax.
 
 ## Completed
-- [x] Removed `inline_css!` and `inline_script!` macros that used `Raw()`
-- [x] Integrated XSS protection into the main rendering pipeline
-- [x] Added context-aware escaping for script and style content
-- [x] Simplified the macro system by consolidating functionality
+- [x] Replaced `inline_css!` macro with standard `<style>` tag using `{variable}` syntax
+- [x] Replaced `inline_script!` macro with standard `<script>` tag using `{variable}` syntax
+- [x] Updated validation rules to allow expression children in `<style>` tags
+- [x] Improved documentation to reflect the new injection pattern
 
 ## In Progress
-- [x] Comprehensive testing of the new injection handling
+- [x] No active work in progress for this change
 
 ## Blockers
-- None identified
+- None identified for this specific change
 
 ## Next Steps
-1. Verify all existing uses of inline CSS and scripts still work correctly
-2. Update documentation to reflect the new safer injection patterns
+1. Update related documentation and examples
+2. Verify compatibility with existing template patterns

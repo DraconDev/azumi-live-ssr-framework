@@ -456,7 +456,8 @@ impl Parse for Element {
 
             if !(has_src
                 || is_internal
-                || (name == "script" && (is_json_script || has_expression_child)))
+                || (name == "script" && (is_json_script || has_expression_child))
+                || (name == "style" && has_expression_child))
             {
                 let tag_help = if name == "script" {
                     "JavaScript must be external or JSON data:

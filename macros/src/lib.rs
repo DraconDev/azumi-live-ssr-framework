@@ -396,11 +396,11 @@ fn validate_format_in_expressions(nodes: &[token_parser::Node]) -> Vec<proc_macr
                                 // For JSON data - use json_data! macro:\n\
                                 html! { {azumi::json_data!(\"MY_DATA\" = &data)} }\n\
                                 \n\
-                                // For CSS - use inline_css! macro:\n\
-                                html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
+                                // For CSS - use <style> tag with {variable}:\n\
+                                html! { <style>{GLOBAL_CSS}</style> }\n\
                                 \n\
-                                // For JavaScript - use inline_script! macro:\n\
-                                html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
+                                // For JavaScript - use <script> tag with {variable}:\n\
+                                html! { <script>{TRACKING_JS}</script> }\n\
                                 \n\
                                 ❌ Wrong pattern:\n\
                                 \n\
