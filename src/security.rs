@@ -426,7 +426,12 @@ mod tests {
 
     #[test]
     fn test_invalid_base64_signature() {
-        let result = verify_state(r#"{"count": 10}|1234567890|not-valid-base64!!!"#);
+        // Use a recent timestamp so it doesn't expire
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let result = verify_state(&format!(r#"{{"count": 10}}|{}|not-valid-base64!!!"#, now));
         assert!(matches!(result, Err(VerifyStateError::SignatureDecodeFailed)));
     }
 
