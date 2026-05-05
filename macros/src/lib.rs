@@ -1048,21 +1048,8 @@ fn validate_nodes(
     tokens
 }
 
-fn generate_body_with_context(
-    nodes: &[token_parser::Node],
-    ctx: &GenerationContext,
-) -> proc_macro2::TokenStream {
-    let mut instructions = Vec::new();
 
-    for node in nodes {
-        match node {
-            token_parser::Node::Text(text) => {
-                let content = &text.content;
-                if !content.is_empty() {
-                    instructions.push(quote! {
-                        write!(f, "{}", azumi::Escaped(#content))?;
-                    });
-                }
+}
             }
             token_parser::Node::RawText(text) => {
                 let content = &text.content;
