@@ -1,0 +1,31 @@
+error: Azumi: Raw() is not allowed inside html!.
+
+       Raw() bypasses ALL of Azumi's safety guarantees — escaping, CSS scoping,
+       compile-time validation, and security checks.
+
+       ✅ Use Azumi's safe alternatives:
+
+       // For injected text content — use {value} interpolation:
+       html! { <p>{value}</p> }
+
+       // For JSON data to JavaScript — use json_data! macro:
+       html! { {azumi::json_data!("MY_DATA" = &data)} }
+
+       // For CSS content — use inline_css! macro:
+       html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }
+
+       // For JavaScript content — use inline_script! macro:
+       html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }
+
+       // For trusted pre-sanitized HTML — use TrustedHtml:
+       html! { {TrustedHtml::new(pre_sanitized_html)} }
+
+       ❌ Wrong — Raw() bypasses all safety:
+       html! { @{Raw("...")} }
+       html! { @{Raw(format!("..."))} }
+
+       See: AI_GUIDE_FOR_WRITING_AZUMI.md section "Safe Injection Macros"
+ --> tests/ui/01-raw-blocked.rs:5:10
+  |
+5 |         @{Raw("test")}
+  |          ^
