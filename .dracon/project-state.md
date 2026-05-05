@@ -1,25 +1,22 @@
 # Project State
 
 ## Current Focus
-Implement comprehensive XSS protection for HTML content injection by adding a unified escaping function for script and style tags.
+Refactor HTML content escaping patterns to use owned strings for pattern matching
 
 ## Context
-The previous implementation had separate functions for escaping script and style tags, leading to code duplication and inconsistent handling of case variations. This change consolidates the logic into a single, optimized function that handles all case variants (lowercase, titlecase, uppercase, and with space) for both script and style tags.
+The previous implementation used string slices that could lead to lifetime issues when building patterns. This change ensures all pattern strings are owned values, making the code more robust and avoiding potential borrow checker problems.
 
 ## Completed
-- [x] Added `escape_tag_content` function that handles all case variations of closing tags
-- [x] Optimized with single-pass scanning for O(n) performance
-- [x] Pre-allocated result buffer with worst-case capacity estimation
-- [x] Updated `escape_script_content` and `escape_style_content` to delegate to the new function
-- [x] Added comprehensive documentation with examples
+- [x] Converted all pattern strings to owned `String` values
+- [x] Updated pattern matching to use byte representations of owned strings
+- [x] Maintained the same functionality while improving memory safety
 
 ## In Progress
-- [ ] No active work in progress
+- [x] Verification of all HTML escaping scenarios
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Verify performance impact with benchmark tests
-2. Add additional tag types if needed (e.g., textarea)
-```
+1. Verify all HTML escaping scenarios work as expected
+2. Update related documentation if needed

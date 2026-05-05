@@ -14,29 +14,31 @@ use crate::Component;
 /// assert_eq!(css, r".btn { color: red; } <\/style>");
 /// ```
 pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
-    // Pre-allocate with extra capacity for escapes (worst case: every 9 chars is an escape)
-    let mut result = String::with_capacity(content.len() + content.len() / 8);
-    let bytes = content.as_bytes();
     let tag_lower = tag_name.to_lowercase();
     let tag_upper = tag_name.to_uppercase();
     let tag_title = format!("{}{}", &tag_name[..1].to_uppercase(), &tag_name[1..].to_lowercase());
     
-    let patterns: [(&[u8], &str); 4] = [
-        (format!("</{}", tag_lower).as_bytes(), &format!(r"<\/{}", tag_lower)),
-        (format!("</{}", tag_title).as_bytes(), &format!(r"<\/{}", tag_title)),
-        (format!("</{}", tag_upper).as_bytes(), &format!(r"<\/{}", tag_upper)),
-        (format!("</ {}", tag_lower).as_bytes(), &format!(r"<\/{}", tag_lower)),
+    // Build patterns as owned strings so they live long enough
+    let patterns: [(String, String); 4] = [
+        (format!("</{}", tag_lower), format!(r"<\/{}", tag_lower)),
+        (format!("</{}", tag_title), format!(r"<\/{}", tag_title)),
+        (format!("</{}", tag_upper), format!(r"<\/{}", tag_upper)),
+        (format!("</ {}", tag_lower), format!(r"<\/{}", tag_lower)),
     ];
     
+    let mut result = String::with_capacity(content.len() + content.len() / 8);
+    let bytes = content.as_bytes();
     let mut i = 0;
+    
     while i < bytes.len() {
         let mut matched = false;
         
         // Check for </tag> pattern (starts with '<' followed by '/')
         if i + 2 < bytes.len() && bytes[i] == b'<' && bytes[i + 1] == b'/' {
             for (pattern, replacement) in &patterns {
-                let end = i + pattern.len();
-                if end <= bytes.len() && &bytes[i..end] == *pattern {
+                let pattern_bytes = pattern.as_bytes();
+                let end = i + pattern_bytes.len();
+                if end <= bytes.len() && &bytes[i..end] == pattern_bytes {
                     result.push_str(replacement);
                     i = end;
                     matched = true;
