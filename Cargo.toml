@@ -40,3 +40,15 @@ azumi = { path = ".", features = ["test-utils"] }
 trybuild = "1.0"
 criterion = { version = "0.5", features = ["html_reports"] }
 proptest = "1.5"
+
+[[bench]]
+name = "escape"
+harness = false
+
+[[bench]]
+name = "render"
+harness = false
+
+[[bench]]
+name = "scope_css"
+harness = false
