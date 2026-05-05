@@ -1,20 +1,25 @@
 # Project State
 
 ## Current Focus
-Added hidden documentation for internal `from_fn` component constructor
+Enforce stricter safety guarantees by completely banning `Raw()` usage and standardizing safe injection patterns
 
 ## Context
-This change supports internal library development by marking the `from_fn` component constructor as hidden documentation, preventing it from appearing in public API docs while keeping it accessible for internal use.
+The project is implementing stricter security measures for HTML content handling, replacing the unsafe `Raw` type with safer alternatives while maintaining developer convenience.
 
 ## Completed
-- [x] Marked `from_fn` as hidden documentation to prevent public API exposure
+- [x] Removed `Raw` type and its documentation
+- [x] Added hidden documentation for internal component constructor
+- [x] Added `TrustedHtml` type for pre-sanitized HTML injection
+- [x] Standardized safe injection patterns in documentation
+- [x] Added procedural macros for JSON data, CSS, and JavaScript injection
 
 ## In Progress
-- [x] Internal component system implementation
+- [x] Enforcing compile-time errors for `Raw()` usage
 
 ## Blockers
-- None identified for this specific change
+- Need to ensure all existing codebases are updated to use the new safe injection patterns
 
 ## Next Steps
-1. Complete internal component system implementation
-2. Review and document additional internal APIs as needed
+1. Update all codebases to use the new safe injection macros
+2. Add comprehensive documentation for the new injection patterns
+3. Implement runtime validation for format strings in HTML expressions

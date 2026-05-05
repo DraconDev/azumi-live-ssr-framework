@@ -357,9 +357,7 @@ where
 //
 // If you need thread-safety, use FnComponent with Arc<Mutex<T>> or Arc<RwLock<T>>.
 
-/// Create a `FnOnceComponent` from a `FnOnce` closure.
-///
-/// This is the standalone function version of `FnOnceComponent::from_fn_once`.
+#[doc(hidden)]
 pub fn from_fn_once<F>(f: F) -> FnOnceComponent<F>
 where
     F: FnOnce(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
@@ -456,21 +454,19 @@ impl<T: std::fmt::Display> FallbackRender for RenderWrapper<T> {
 /// This wrapper bypasses ALL Azumi escaping protections. It is intended
 /// for internal framework use only (e.g., SEO generation, macro internals).
 ///
-/// **For user code, use `TrustedHtml` instead:**
-/// ```rust,ignore
-/// html! {
-///     <div>{TrustedHtml::new(pre_sanitized_html)}</div>
-/// }
-/// ```
+/// **For user code, use the safe injection macros instead:**
+/// - `json_data!("var" = &data)` for JSON data
+/// - `inline_css!(var)` for CSS content
+/// - `inline_script!(var)` for JavaScript content
+/// - `{value}` interpolation for text (auto-escaped)
 ///
 /// **Never use Raw with:**
 /// - User input (form data, URL parameters, cookies)
 /// - Dynamic content from databases
 /// - Content from external APIs
 ///
-/// If you need to include dynamic data in a script, pass it via data attributes
-/// or form elements, not through Raw.
-///
+/// Raw in html! expressions is now a compile-time error.
+#[doc(hidden)]
 pub struct Raw<T: std::fmt::Display>(pub T);
 
 impl<T: std::fmt::Display> std::fmt::Display for Raw<T> {

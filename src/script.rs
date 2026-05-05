@@ -35,6 +35,11 @@ pub fn session_cleanup_script() -> SessionCleanupScript {
     SessionCleanupScript
 }
 
+/// TrustedHtml — pre-sanitized HTML injection (use sparingly).
+///
+/// Bypasses ALL of Azumi's safety guarantees (escaping, scoping, validation).
+/// Only use for pre-sanitized HTML from known-trusted sources (e.g., markdown renderer output).
+#[doc(hidden)]
 pub struct TrustedHtml(pub String);
 
 impl Component for TrustedHtml {
