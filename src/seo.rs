@@ -1,6 +1,8 @@
 use std::fmt::Write;
 use std::sync::Mutex;
 
+use crate::Component;
+
 /// Escape a string for safe inclusion in an HTML attribute value (double-quoted).
 /// Prevents XSS by escaping `"`, `<`, `>`, `&`, and `'`.
 fn html_attr_escape(s: &str) -> String {
