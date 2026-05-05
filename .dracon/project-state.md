@@ -1,24 +1,21 @@
 # Project State
 
 ## Current Focus
-Refactored HTML content injection patterns to use standard HTML tags instead of macros
+Update Cargo.lock to reflect recent dependency changes in Azumi framework
 
 ## Context
-This change follows recent security refactoring to enforce stricter XSS protection by removing direct `Raw()` usage and `TrustedHtml` from public exports. The test case now verifies safe patterns for JSON injection and auto-escaped CSS/JS injection.
+This change was triggered by a series of refactoring efforts to enforce stricter XSS protection and improve HTML content injection patterns. The updates to the dependency tree ensure the project uses the correct versions of dependencies after these significant code changes.
 
 ## Completed
-- [x] Replaced `json_data!` macro with standard HTML template syntax
-- [x] Replaced `inline_css!` macro with `<style>{var}</style>` pattern
-- [x] Replaced `inline_script!` macro with `<script>{var}</script>` pattern
-- [x] Updated test case to verify new injection patterns
-- [x] Renamed dummy variables from "macros" to "templates" to reflect new patterns
+- [x] Updated Cargo.lock to reflect recent dependency changes
+- [x] Synchronized dependency versions with the current state of the Azumi framework
 
 ## In Progress
-- [x] Test case verification of new injection patterns
+- [ ] No active work in progress related to this change
 
 ## Blockers
-- None identified
+- None - this is a documentation update only
 
 ## Next Steps
-1. Verify all test cases pass with new injection patterns
-2. Update documentation to reflect new HTML template syntax
+1. Verify that all dependencies are properly resolved
+2. Continue with ongoing security and refactoring efforts
