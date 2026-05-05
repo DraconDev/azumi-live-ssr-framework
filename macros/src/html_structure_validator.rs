@@ -3,10 +3,13 @@ use crate::token_parser::Node;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 
-/// Validate Raw usage patterns - ERROR when Raw() is used with suspicious content
+/// Validate Raw usage patterns - ERROR on ANY Raw() in html! expressions.
 ///
-/// Suspicious uses (format!, user data, etc.) are errors.
-/// Known-good uses (azumi_script, trusted constants) are allowed without opt-in.
+/// Raw() bypasses ALL of Azumi's safety guarantees. Use the safe alternatives:
+/// - `json_data!("var" = &data)` for JSON data injection
+/// - `inline_css!(var)` for CSS content
+/// - `inline_script!(var)` for JavaScript content
+/// - Standard `{value}` interpolation for text (auto-escaped)
 pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
     let mut errors = vec![];
 
@@ -19,144 +22,36 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                 let has_raw = normalized_str.contains("Raw(");
 
                 if has_raw {
-                    // Check for CSS patterns inside Raw() - this is always wrong!
-                    // CSS in Raw() bypasses Azumi's scoping, validation, and deduplication
-                    let has_css_pattern = normalized_str.contains("<style")
-                        || normalized_str.contains("</style>")
-                        || normalized_str.contains(".main")
-                        || normalized_str.contains(".container")
-                        || normalized_str.contains("{color:")
-                        || normalized_str.contains("{background:")
-                        || normalized_str.contains("{padding:")
-                        || normalized_str.contains("{margin:")
-                        || normalized_str.contains("{font-size")
-                        || (normalized_str.contains(".")
-                            && normalized_str.contains("{")
-                            && normalized_str.contains(":"));
-
-                    if has_css_pattern {
-                        errors.push(quote_spanned! { expr.span =>
-                            compile_error!(
-                                "Azumi: CSS content detected inside Raw().\n\n\
-                                Raw() is NOT for CSS - it bypasses Azumi's CSS scoping and validation.\n\
-                                \n\
-                                ✅ Correct patterns:\n\
-                                \n\
-                                // For small CSS - use <style> block:\n\
-                                html! {\n\
-                                    <style>\n\
-                                        .my_class { color: \"red\"; }\n\
-                                    </style>\n\
-                                }\n\
-                                \n\
-                                // For external CSS - use inline_css! macro:\n\
-                                html! {\n\
-                                    {azumi::inline_css!(HUB_GLOBAL_CSS)}\n\
-                                }\n\
-                                \n\
-                                ❌ Wrong pattern:\n\
-                                \n\
-                                html! {\n\
-                                    @{Raw(\"<style>.my_class { color: red; }</style>\")}\n\
-                                }\n\
-                                \n\
-                                CSS in Raw() cannot be scoped, validated, or deduplicated by Azumi.\n\
-                                \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Proper CSS Patterns\""
-                            );
-                        });
-                        return;
-                    }
-
-                    // Check for format! inside Raw() - THIS IS ALWAYS WRONG in Azumi
-                    // format! suggests building HTML/CSS/JS dynamically which defeats Azumi's purpose
-                    if normalized_str.contains("format!") {
-                        errors.push(quote_spanned! { expr.span =>
-                            compile_error!(
-                                "Azumi: Raw(format!(...)) detected.\n\n\
-                                Using format! inside Raw() defeats Azumi's compile-time safety.\n\
-                                \n\
-                                ✅ Correct patterns:\n\
-                                \n\
-                                // For HTML content - use html! macro:\n\
-                                html! { <div class={my_class}>\"Hello\"</div> }\n\
-                                \n\
-// For JSON data - use json_data! macro:\n\
-                                html! { {azumi::json_data!("MY_DATA" = &data)} }\n\
-                                \n\
-                                ❌ Wrong pattern:\n\
-                                \n\
-                                @{Raw(format!("<div>{}</div>", value))}\n\
-                                \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md"
-                            );
-                        });
-                        return;
-                    }
-
-                    // Check for JS injection patterns inside Raw()
-                    let has_js_pattern = normalized_str.contains("<script")
-                        || normalized_str.contains("</script>")
-                        || normalized_str.contains("window.")
-                        || normalized_str.contains("document.")
-                        || normalized_str.contains(".addEventListener")
-                        || normalized_str.contains("JSON.parse")
-                        || normalized_str.contains("azumi_script()")
-                        || normalized_str.contains("session_cleanup_script()");
-
-                    if has_js_pattern {
-                        errors.push(quote_spanned! { expr.span =>
-                            compile_error!(
-                                "Azumi: JavaScript content detected inside Raw().\n\n\
-                                Raw() with JS bypasses Azumi's security model.\n\
-                                \n\
-                                ✅ Correct patterns:\n\
-                                \n\
-                                // For inline scripts - use inline_script! macro:\n\
-                                html! {\n\
-                                    {azumi::inline_script!(AI_HUB_COPY_JS)}\n\
-                                }\n\
-                                \n\
-                                // For JSON data - use json_data! macro:\n\
-                                html! {\n\
-                                    {azumi::json_data!("MY_DATA" = &data)}\n\
-                                }\n\
-                                \n\
-                                // For framework scripts - use azumi_script():\n\
-                                html! { {azumi::azumi_script()} }\n\
-                                \n\
-                                ❌ Wrong pattern:\n\
-                                \n\
-                                @{Raw(\"<script>alert('hi')</script>\")}\n\
-                                \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md"
-                            );
-                        });
-                        return;
-                    }
-
-                    // Check for suspicious patterns (XSS vectors)
-                    let is_suspicious = content_str.contains("serde_json::to_string")
-                        || (content_str.contains("user") && content_str.contains("input"))
-                        || (content_str.contains("request") && content_str.contains("body"))
-                        || content_str.contains("cookie");
-
-                    if is_suspicious {
-                        errors.push(quote_spanned! { expr.span =>
-                            compile_error!(
-                                "Azumi: Potentially unsafe Raw() usage detected.\n\n\
-                                Raw() bypasses ALL HTML escaping and can cause XSS.\n\
-                                \n\
-                                This Raw() contains suspicious patterns (user input, etc).\n\
-                                \n\
-                                To fix:\n\
-                                - Use Azumi's built-in escaping: {value} not Raw(value)\n\
-                                - Use data-* attributes for JSON passing\n\
-                                \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md section on Raw()"
-                            );
-                        });
-                    }
+                    errors.push(quote_spanned! { expr.span =>
+                        compile_error!(
+                            "Azumi: Raw() is not allowed inside html!.\n\n\
+                            Raw() bypasses ALL of Azumi's safety guarantees — escaping, CSS scoping, \n\
+                            compile-time validation, and security checks.\n\
+                            \n\
+                            ✅ Use Azumi's safe alternatives:\n\
+                            \n\
+                            // For injected text content — use {value} interpolation:\n\
+                            html! { <p>{value}</p> }\n\
+                            \n\
+                            // For JSON data to JavaScript — use json_data! macro:\n\
+                            html! { {azumi::json_data!(\"MY_DATA\" = &data)} }\n\
+                            \n\
+                            // For CSS content — use inline_css! macro:\n\
+                            html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
+                            \n\
+                            // For JavaScript content — use inline_script! macro:\n\
+                            html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
+                            \n\
+                            // For trusted pre-sanitized HTML — use TrustedHtml:\n\
+                            html! { {TrustedHtml::new(pre_sanitized_html)} }\n\
+                            \n\
+                            ❌ Wrong — Raw() bypasses all safety:\n\
+                            html! { @{Raw(\"...\")} }\n\
+                            html! { @{Raw(format!(\"...\"))} }\n\
+                            \n\
+                            See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Safe Injection Macros\""
+                        );
+                    });
                 }
             }
             Node::Element(elem) => {
@@ -886,8 +781,8 @@ mod tests {
         );
         let error_str = errors[0].to_string();
         assert!(
-            error_str.contains("CSS content detected inside Raw"),
-            "Error should mention CSS detection, got: {}",
+            error_str.contains("Raw() is not allowed"),
+            "Error should mention Raw is not allowed, got: {}",
             error_str
         );
     }
@@ -903,8 +798,8 @@ mod tests {
         );
         let error_str = errors[0].to_string();
         assert!(
-            error_str.contains("CSS content detected inside Raw"),
-            "Error should mention CSS detection, got: {}",
+            error_str.contains("Raw() is not allowed"),
+            "Error should mention Raw is not allowed, got: {}",
             error_str
         );
     }
@@ -942,8 +837,8 @@ mod tests {
         );
         let error_str = errors[0].to_string();
         assert!(
-            error_str.contains("JavaScript content detected"),
-            "Should mention JS detection, got: {}",
+            error_str.contains("Raw() is not allowed"),
+            "Should mention Raw is not allowed, got: {}",
             error_str
         )
     }
@@ -959,8 +854,8 @@ mod tests {
         );
         let error_str = errors[0].to_string();
         assert!(
-            error_str.contains("JavaScript content detected"),
-            "Should mention JS detection, got: {}",
+            error_str.contains("Raw() is not allowed"),
+            "Should mention Raw is not allowed, got: {}",
             error_str
         );
     }
@@ -987,8 +882,8 @@ mod tests {
         );
         let error_str = errors[0].to_string();
         assert!(
-            error_str.contains("Raw(format!(...)) detected"),
-            "Error should mention format! pattern, got: {}",
+            error_str.contains("Raw() is not allowed"),
+            "Error should mention Raw is not allowed, got: {}",
             error_str
         );
     }
@@ -1004,8 +899,8 @@ mod tests {
         );
         let error_str = errors[0].to_string();
         assert!(
-            error_str.contains("JavaScript content detected inside Raw"),
-            "Error should mention JS detection, got: {}",
+            error_str.contains("Raw() is not allowed"),
+            "Error should mention Raw is not allowed, got: {}",
             error_str
         );
     }

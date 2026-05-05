@@ -1,20 +1,24 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect dependency changes from recent macro and documentation improvements
+Enforce stricter safety guarantees by completely banning Raw() usage in html! expressions
 
 ## Context
-The Cargo.lock file was modified to reflect updates in dependencies introduced by recent procedural macro additions and documentation standardization for safe injection patterns in Azumi's HTML macros.
+The previous implementation had complex validation rules for Raw() usage that were difficult to maintain and understand. This change simplifies the validation by completely prohibiting Raw() in favor of safer alternatives.
 
 ## Completed
-- [x] Updated Cargo.lock to synchronize with new dependency versions from macro and documentation changes
+- [x] Removed all specific validation rules for Raw() content patterns
+- [x] Added comprehensive documentation explaining why Raw() is dangerous and what to use instead
+- [x] Standardized error messages to point developers to the safe alternatives
+- [x] Simplified the validation logic to a single check for Raw() presence
 
 ## In Progress
-- [x] No active work in progress beyond the Cargo.lock update
+- [ ] Update all existing codebases to replace Raw() with the new safe injection macros
 
 ## Blockers
-- None; this is an automated dependency resolution update
+- Existing codebases may contain Raw() usage that needs to be migrated
 
 ## Next Steps
-1. Verify that all recent macro and documentation changes are properly reflected in the dependency tree
-2. Prepare for potential integration testing with the updated dependencies
+1. Update all documentation to reflect the new Raw() prohibition
+2. Create migration tools to help developers replace Raw() with safe alternatives
+3. Update the AI_GUIDE_FOR_WRITING_AZUMI.md with detailed migration instructions
