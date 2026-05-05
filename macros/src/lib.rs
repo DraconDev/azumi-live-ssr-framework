@@ -18,9 +18,7 @@ mod token_parser;
 
 use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
-use syn::parse::{Parse, ParseStream, Parser};
 use syn::parse_macro_input;
-use syn::Token;
 
 #[proc_macro]
 pub fn head(input: TokenStream) -> TokenStream {
