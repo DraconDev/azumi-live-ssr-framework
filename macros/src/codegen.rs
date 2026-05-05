@@ -1,0 +1,440 @@
+//! Code generation for the `html!` macro body.
+//!
+//! This module contains `generate_body_with_context`, the core recursive
+//! function that walks the parsed AST (Nodes) and emits `proc_macro2::TokenStream`
+//! instructions for rendering HTML at runtime.
+//!
+//! Extracted from `macros/src/lib.rs` (~400 lines) to keep the main macro
+//! dispatch file focused on validation pipeline orchestration.
+
+use crate::context::{Context, GenerationContext};
+use crate::token_parser;
+use proc_macro2;
+use quote::quote;
+use syn::parse::{Parse, ParseStream};
+
+// ---------------------------------------------------------------------------
+// Helpers for parsing Component arguments
+// ---------------------------------------------------------------------------
+
+pub(crate) struct KeyValueArg {
+    pub(crate) key: syn::Ident,
+    pub(crate) value: syn::Expr,
+}
+
+impl Parse for KeyValueArg {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let key = input.parse()?;
+        input.parse::<syn::Token![=]>()?;
+        let value = input.parse()?;
+        Ok(KeyValueArg { key, value })
+    }
+}
+
+pub(crate) fn parse_args(
+    tokens: proc_macro2::TokenStream,
+) -> syn::Result<Vec<KeyValueArg>> {
+    let parser =
+        syn::punctuated::Punctuated::<KeyValueArg, syn::Token![,]>::parse_terminated;
+    parser.parse2(tokens).map(|p| p.into_iter().collect())
+}
+
+// Resolve component path — components use exact module names (no suffix).
+pub(crate) fn resolve_component_path(path: &syn::Path) -> syn::Path {
+    path.clone()
+}
+
+// Helper for parsing space-separated expressions (e.g. class={expr1 expr2}).
+pub(crate) fn parse_multi_exprs(
+    input: ParseStream,
+) -> syn::Result<Vec<syn::Expr>> {
+    let mut exprs = Vec::new();
+    while !input.is_empty() {
+        exprs.push(input.parse()?);
+    }
+    Ok(exprs)
+}
+
+// ---------------------------------------------------------------------------
+// Core code-generation function
+// ---------------------------------------------------------------------------
+
+/// Recursively generate `write!(f, ...)` instructions for a list of AST nodes.
+///
+/// The `ctx` parameter carries rendering mode (Normal / Script / Style),
+/// CSS scope ID, and valid class/ID sets so that child nodes are generated
+/// in the correct context (e.g., `<script>` children use script escaping).
+pub(crate) fn generate_body_with_context(
+    nodes: &[token_parser::Node],
+    ctx: &GenerationContext,
+) -> proc_macro2::TokenStream {
+    let mut instructions = Vec::new();
+
+    for node in nodes {
+        match node {
+            token_parser::Node::Text(text) => {
+                let content = &text.content;
+                if !content.is_empty() {
+                    instructions.push(quote! {
+                        write!(f, "{}", azumi::Escaped(#content))?;
+                    });
+                }
+            }
+            token_parser::Node::RawText(text) => {
+                let content = &text.content;
+                if !content.is_empty() {
+                    instructions.push(quote! {
+                        write!(f, "{}", #content)?;
+                    });
+                }
+            }
+            token_parser::Node::Element(elem) => {
+                let name = &elem.name;
+
+                instructions.push(quote! {
+                   write!(f, "<{}", #name)?;
+                });
+
+                for attr in &elem.attrs {
+                    let attr_name = &attr.name;
+
+                    // Handle az-* attributes (DSL treated as string)
+                    if attr_name.starts_with("az-") {
+                        // SPECIAL CASE: az-scope should evaluate its value as a Rust expression
+                        if attr_name == "az-scope" {
+                            match &attr.value {
+                                token_parser::AttributeValue::Dynamic(tokens) => {
+                                    // Evaluate the expression and escape for HTML attribute
+                                    instructions.push(quote! {
+                                        let __scope_val: String = #tokens;
+                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&__scope_val))?;
+                                    });
+                                }
+                                token_parser::AttributeValue::Static(val) => {
+                                    instructions.push(quote! {
+                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                    });
+                                }
+                                _ => {}
+                            }
+                            continue;
+                        }
+
+                        // Other az-* attributes (like az-on) are DSL and treated as string literals
+                        match &attr.value {
+                            token_parser::AttributeValue::Dynamic(tokens) => {
+                                let s = tokens.to_string(); // Stringify tokens
+                                instructions.push(quote! {
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#s))?;
+                                });
+                            }
+                            token_parser::AttributeValue::Static(val) => {
+                                instructions.push(quote! {
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                });
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
+                    // Handle on:* attributes (Events) - stringify method access
+                    if attr_name.starts_with("on:") {
+                        match &attr.value {
+                            token_parser::AttributeValue::Dynamic(tokens) => {
+                                // Parse as expression to extracting name, but fallback to stringify
+                                // Try to parse `obj.method` or `method`
+                                let s = if let Ok(expr) = syn::parse2::<syn::Expr>(tokens.clone()) {
+                                    match expr {
+                                        syn::Expr::Field(f) => {
+                                            if let syn::Member::Named(ident) = f.member {
+                                                ident.to_string()
+                                            } else {
+                                                tokens.to_string().replace(" ", "")
+                                            }
+                                        }
+                                        syn::Expr::Path(p) => {
+                                            if let Some(ident) = p.path.get_ident() {
+                                                ident.to_string()
+                                            } else {
+                                                tokens.to_string().replace(" ", "")
+                                            }
+                                        }
+                                        syn::Expr::MethodCall(m) => {
+                                            m.method.to_string()
+                                        }
+                                        _ => tokens.to_string().replace(" ", ""),
+                                    }
+                                } else {
+                                    tokens.to_string().replace(" ", "")
+                                };
+
+                                let event_name =
+                                    attr_name.strip_prefix("on:").unwrap_or(attr_name);
+                                let dsl = format!("{} call {}", event_name, s);
+                                instructions.push(quote! {
+                                    write!(f, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
+                                });
+                            }
+                            token_parser::AttributeValue::Static(val) => {
+                                let event_name =
+                                    attr_name.strip_prefix("on:").unwrap_or(attr_name);
+                                let dsl = format!("{} call {}", event_name, val);
+                                instructions.push(quote! {
+                                    write!(f, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
+                                });
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
+                    if attr_name == "class" {
+                        match &attr.value {
+                            token_parser::AttributeValue::Static(val) => {
+                                instructions.push(quote! {
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                });
+                            }
+                            token_parser::AttributeValue::Dynamic(tokens) => {
+                                let exprs_res =
+                                    syn::parse::Parser::parse2(parse_multi_exprs, tokens.clone());
+                                match exprs_res {
+                                    Ok(exprs) if !exprs.is_empty() => {
+                                        let fmt = vec!["{}"; exprs.len()].join(" ");
+                                        let mut format_args = Vec::new();
+                                        for e in exprs {
+                                            format_args.push(quote! { #e });
+                                        }
+                                        instructions.push(quote! {
+                                            write!(f, " class=\"{}\"", azumi::Escaped(&format!(#fmt, #(#format_args),*)))?;
+                                        });
+                                    }
+                                    _ => {
+                                        instructions.push(quote! {
+                                            write!(f, " class=\"{}\"", azumi::Escaped(&#tokens))?;
+                                        });
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
+                    if attr_name == "style" {
+                        match &attr.value {
+                            token_parser::AttributeValue::StyleDsl(props) => {
+                                instructions
+                                    .push(quote! { write!(f, " style=\"")?; });
+                                for (i, (key, val)) in props.iter().enumerate() {
+                                    if i > 0 {
+                                        instructions
+                                            .push(quote! { write!(f, "; ")?; });
+                                    }
+                                    instructions.push(quote! {
+                                        write!(f, "{}: {}", azumi::Escaped(&#key), azumi::escape_css_string(&#val))?;
+                                    });
+                                }
+                                instructions.push(quote! { write!(f, "\"")?; });
+                            }
+                            _ => match &attr.value {
+                                token_parser::AttributeValue::Static(val) => {
+                                    instructions.push(quote! {
+                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                    });
+                                }
+                                token_parser::AttributeValue::Dynamic(expr) => {
+                                    instructions.push(quote! {
+                                              write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#expr))?;
+                                          });
+                                }
+                                _ => {}
+                            },
+                        }
+                        continue;
+                    } else {
+                        match &attr.value {
+                            token_parser::AttributeValue::Static(val) => {
+                                instructions.push(quote! {
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                });
+                            }
+                            token_parser::AttributeValue::Dynamic(expr) => {
+                                instructions.push(quote! {
+                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#expr))?;
+                                });
+                            }
+                            token_parser::AttributeValue::None => {
+                                instructions.push(quote! {
+                                    write!(f, " {}", #attr_name)?;
+                                });
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                if let Some(sid) = &ctx.scope_id {
+                    instructions.push(quote! {
+                        write!(f, " data-{}=\"{}\"", #sid, #sid)?;
+                    });
+                }
+
+                instructions.push(quote! {
+                   write!(f, ">")?;
+                });
+
+                let child_ctx = ctx.with_mode(if name == "script" {
+                    Context::Script
+                } else if name == "style" {
+                    Context::Style
+                } else {
+                    ctx.mode.clone()
+                });
+                instructions
+                    .push(generate_body_with_context(&elem.children, &child_ctx));
+
+                let void_elements = [
+                    "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
+                    "meta", "param", "source", "track", "wbr",
+                ];
+                if !void_elements.contains(&name.as_str()) {
+                    instructions.push(quote! {
+                        write!(f, "</{}>", #name)?;
+                    });
+                }
+            }
+            token_parser::Node::Expression(expr) => {
+                let tokens = &expr.content;
+                match ctx.mode {
+                    Context::Script => {
+                        instructions.push(quote! {
+                            write!(f, "{}", azumi::escape_script_content(&(#tokens)))?;
+                        });
+                    }
+                    Context::Style => {
+                        instructions.push(quote! {
+                            write!(f, "{}", azumi::escape_style_content(&(#tokens)))?;
+                        });
+                    }
+                    Context::Normal => {
+                        instructions.push(quote! {
+                            azumi::RenderWrapper(&(#tokens)).render_azumi(f)?;
+                        });
+                    }
+                }
+            }
+            token_parser::Node::Fragment(frag) => {
+                instructions.push(generate_body_with_context(&frag.children, ctx));
+            }
+            token_parser::Node::Block(block) => match block {
+                token_parser::Block::If(if_block) => {
+                    let cond = &if_block.condition;
+                    let then_body =
+                        generate_body_with_context(&if_block.then_branch, ctx);
+                    let else_part = if let Some(else_branch) = &if_block.else_branch {
+                        let else_body =
+                            generate_body_with_context(else_branch, ctx);
+                        quote! { else { #else_body } }
+                    } else {
+                        quote! {}
+                    };
+
+                    instructions.push(quote! {
+                        if #cond {
+                            #then_body
+                        } #else_part
+                    });
+                }
+                token_parser::Block::For(for_block) => {
+                    let pat = &for_block.pattern;
+                    let iter = &for_block.iterator;
+                    let body = generate_body_with_context(&for_block.body, ctx);
+
+                    instructions.push(quote! {
+                        for #pat in #iter {
+                            #body
+                        }
+                    });
+                }
+                token_parser::Block::Match(match_block) => {
+                    let expr = &match_block.expr;
+                    let mut arms = Vec::new();
+                    for arm in &match_block.arms {
+                        let pat = &arm.pattern;
+                        let body = generate_body_with_context(&arm.body, ctx);
+                        arms.push(quote! {
+                            #pat => { #body }
+                        });
+                    }
+                    instructions.push(quote! {
+                        match #expr {
+                            #(#arms),*
+                        }
+                    });
+                }
+                token_parser::Block::Call(call_block) => {
+                    let func_path = &call_block.name;
+                    let func_mod_path = resolve_component_path(func_path);
+
+                    let args_list = match parse_args(call_block.args.clone()) {
+                        Ok(a) => a,
+                        Err(e) => {
+                            instructions.push(e.to_compile_error());
+                            Vec::new()
+                        }
+                    };
+
+                    let setters = args_list.iter().map(|arg| {
+                        let key = &arg.key;
+                        let val = &arg.value;
+                        quote! { .#key(#val) }
+                    });
+
+                    let builder_expr = quote! {
+                        #func_mod_path::Props::builder()
+                        #(#setters)*
+                        .build()
+                        .expect("Failed to build props")
+                    };
+
+                    if call_block.children.is_empty() {
+                        instructions.push(quote! {
+                            #func_mod_path::render(#builder_expr).render(f)?;
+                        });
+                    } else {
+                        let children_body =
+                            generate_body_with_context(&call_block.children, ctx);
+                        let children_arg = quote! {
+                            azumi::from_fn_once(move |f| {
+                                #children_body
+                                Ok(())
+                            })
+                        };
+
+                        instructions.push(quote! {
+                            #func_mod_path::render(#builder_expr, #children_arg).render(f)?;
+                        });
+                    }
+                }
+                token_parser::Block::Let(let_block) => {
+                    let pat = &let_block.pattern;
+                    let val = &let_block.value;
+                    instructions.push(quote! {
+                        let #pat = #val;
+                    });
+                }
+                token_parser::Block::Style(_) => {
+                    // Handled in hoisting pass
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+
+    quote! {
+        #(#instructions)*
+    }
+}

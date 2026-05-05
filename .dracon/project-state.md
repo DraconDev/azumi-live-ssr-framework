@@ -1,22 +1,28 @@
 # Project State
 
 ## Current Focus
-Added performance benchmark baselines for version 47.0.0 to track performance metrics across key components.
+Extracted HTML code generation logic from the main macro file to improve modularity and maintainability.
 
 ## Context
-This change captures baseline performance measurements for critical components (escape, render, scope_css) to establish a reference point for future performance comparisons and optimizations.
+The `html!` macro was growing too large, making it harder to maintain and test. This change separates the core code generation logic into its own module to keep the main macro file focused on validation and orchestration.
 
 ## Completed
-- [x] Added benchmark baselines for escape, render, and scope_css components
-- [x] Documented performance metrics for small, medium, and large input cases
-- [x] Included timestamp and benchmarking command for reproducibility
+- [x] Created new `codegen.rs` module with core HTML generation logic
+- [x] Implemented recursive AST traversal for HTML rendering
+- [x] Added context-aware generation for different HTML contexts (normal, script, style)
+- [x] Implemented special handling for az-* attributes and event handlers
+- [x] Added proper escaping for dynamic content
+- [x] Created helper functions for parsing component arguments
 
 ## In Progress
-- [x] Performance baseline documentation for v47.0.0
+- [ ] Testing and validation of the new code generation approach
+- [ ] Integration with existing macro validation pipeline
 
 ## Blockers
-- None identified
+- Need to verify performance impact of the new modular structure
+- Requires updating existing tests to work with the new module structure
 
 ## Next Steps
-1. Compare these baselines against future versions to identify performance regressions
-2. Use these metrics to guide optimization efforts in subsequent releases
+1. Write comprehensive tests for the new code generation module
+2. Update existing macro tests to work with the new structure
+3. Benchmark performance against previous implementation
