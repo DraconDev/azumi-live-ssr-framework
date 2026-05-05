@@ -22,7 +22,7 @@ pub use inventory;
 pub mod devtools;
 
 pub mod seo;
-pub use script::{AzumiScript, escape_script_content, escape_style_content, session_cleanup_script};
+pub use script::{AzumiScript, escape_script_content, escape_style_content, escape_tag_content, session_cleanup_script};
 
 #[cfg(feature = "test-utils")]
 pub mod test;

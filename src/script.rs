@@ -5,12 +5,16 @@ use crate::Component;
 /// Covers all case variants: lowercase, titlecase, uppercase, and with space.
 /// Uses a single-pass scanner for O(n) performance regardless of content size.
 /// 
+/// This is the generic version — use [`escape_script_content`] or [`escape_style_content`]
+/// for the specific cases.
+/// 
 /// # Examples
 /// ```
-/// let js = azumi::escape_tag_content("hello </script> world", "script");
+/// # use azumi::escape_tag_content;
+/// let js = escape_tag_content("hello </script> world", "script");
 /// assert_eq!(js, r"hello <\/script> world");
 /// 
-/// let css = azumi::escape_tag_content(".btn { color: red; } </style>", "style");
+/// let css = escape_tag_content(".btn { color: red; } </style>", "style");
 /// assert_eq!(css, r".btn { color: red; } <\/style>");
 /// ```
 pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
