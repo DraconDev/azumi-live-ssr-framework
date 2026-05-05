@@ -187,7 +187,7 @@ mod tests {
 
     #[test]
     fn test_trusted_html_renders_without_escaping() {
-        let html = crate::TrustedHtml::new("<div>Hello &amp; World</div>");
+        let html = crate::script::TrustedHtml::new("<div>Hello &amp; World</div>");
         let output = crate::render_to_string(&html);
         assert_eq!(
             output, "<div>Hello &amp; World</div>",
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_trusted_html_preserves_script_tags() {
-        let html = crate::TrustedHtml::new("<script>alert('test')</script>");
+        let html = crate::script::TrustedHtml::new("<script>alert('test')</script>");
         let output = crate::render_to_string(&html);
         assert!(
             output.contains("<script>"),

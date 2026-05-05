@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Enforce stricter XSS protection by removing `TrustedHtml` from public exports
+Refactored test cases to use `script::TrustedHtml` instead of direct `TrustedHtml` access.
 
 ## Context
-This change is part of a broader effort to enhance XSS protection in the Azumi framework. Previous commits have already refactored SEO head content generation and introduced stricter XSS protection measures, including comprehensive test coverage for safe injection macros.
+This change aligns with ongoing XSS protection efforts by ensuring tests properly exercise the refactored `TrustedHtml` component within the `script` module.
 
 ## Completed
-- [x] Removed `TrustedHtml` from public exports in `lib.rs`
-- [x] Maintained all other script-related exports for continued functionality
+- [x] Updated test cases to use `crate::script::TrustedHtml` instead of direct `TrustedHtml` access
+- [x] Maintained test functionality while adapting to module structure changes
 
 ## In Progress
-- [x] Ongoing XSS protection enhancements and test coverage improvements
+- [ ] No active work in progress beyond this change
 
 ## Blockers
-- None identified in this specific change
+- None identified
 
 ## Next Steps
-1. Verify that all dependent modules still function correctly without `TrustedHtml`
-2. Continue with comprehensive XSS protection test coverage improvements
+1. Verify all XSS protection tests pass with the new module structure
+2. Ensure no regression in HTML rendering behavior with the refactored component
