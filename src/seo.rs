@@ -136,7 +136,7 @@ pub fn generate_head(
     image: Option<&str>,
     url: Option<&str>,
     type_: Option<&str>,
-) -> crate::Raw<String> {
+) -> HeadContent {
     let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
     let global_for_title = global.clone();
 
