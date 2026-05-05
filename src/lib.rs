@@ -284,7 +284,8 @@ where
 /// |--------|----------------|-------------------|
 /// | Closure trait | `Fn` | `FnOnce` |
 /// | Can move values | No | Yes |
-/// | Can be called multiple times | Yes (same result) | Yes (cached result) |
+/// | Can be called multiple times | Yes (same result) | Yes (cached: first call only) |
+/// | Interior mutability | None | `RefCell` |
 /// | Thread-safe | Depends on captured types | Never |
 ///
 /// # Limitations
@@ -296,8 +297,7 @@ pub struct FnOnceComponent<F>
 where
     F: FnOnce(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
 {
-    closure: std::cell::UnsafeCell<Option<F>>,
-    rendered: std::cell::UnsafeCell<bool>,
+    closure: std::cell::RefCell<Option<F>>,
 }
 
 impl<F> FnOnceComponent<F>
@@ -311,8 +311,7 @@ where
     #[doc(hidden)]
     pub fn from_fn_once(f: F) -> Self {
         FnOnceComponent {
-            closure: std::cell::UnsafeCell::new(Some(f)),
-            rendered: std::cell::UnsafeCell::new(false),
+            closure: std::cell::RefCell::new(Some(f)),
         }
     }
 }
@@ -322,27 +321,10 @@ where
     F: FnOnce(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
 {
     fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // SAFETY: We use UnsafeCell for interior mutability and track
-        // whether we've rendered. Only the first call will invoke the closure.
-        // This is safe because:
-        // 1. OnceCell guarantees single init pattern
-        // 2. The closure is moved out of self on first call
-        // 3. Subsequent calls do nothing (already rendered)
-        let already_rendered = unsafe { *self.rendered.get() };
-        
-        if already_rendered {
-            // Already rendered - children are typically rendered once
-            return Ok(());
-        }
-        
-        // Take ownership of the closure and call it
-        let closure = unsafe { (*self.closure.get()).take() };
-        
-        if let Some(c) = closure {
-            // Mark as rendered before calling (in case of panic, we don't want to retry)
-            unsafe { *self.rendered.get() = true; }
-            
-            // Call the closure with the formatter
+        // Take ownership of the closure (first call) or return (subsequent calls).
+        // RefCell tracks borrow state at runtime, eliminating the need for UnsafeCell.
+        // Mark as consumed before calling (in case of panic, we don't want to retry).
+        if let Some(c) = self.closure.borrow_mut().take() {
             c(f)
         } else {
             Ok(())
@@ -353,8 +335,8 @@ where
 // NOTE: FnOnceComponent does NOT implement Send or Sync.
 // This is intentional because:
 // 1. FnOnce closures may capture non-Send types (like Rc)
-// 2. The internal UnsafeCell mutation is not protected by atomics
-// 3. Calling render() from multiple threads simultaneously is unsafe
+// 2. RefCell is not thread-safe
+// 3. Calling render() from multiple threads simultaneously would panic
 //
 // If you need thread-safety, use FnComponent with Arc<Mutex<T>> or Arc<RwLock<T>>.
 
