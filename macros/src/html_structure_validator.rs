@@ -7,8 +7,8 @@ use quote::{quote, quote_spanned};
 ///
 /// Raw() bypasses ALL of Azumi's safety guarantees. Use the safe alternatives:
 /// - `json_data!("var" = &data)` for JSON data injection
-/// - `inline_css!(var)` for CSS content
-/// - `inline_script!(var)` for JavaScript content
+/// - `<style>{var}</style>` for CSS content (auto-escaped inside html!)
+/// - `<script>{var}</script>` for JavaScript content (auto-escaped inside html!)
 /// - Standard `{value}` interpolation for text (auto-escaped)
 pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
     let mut errors = vec![];
@@ -36,17 +36,17 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 // For JSON data to JavaScript — use json_data! macro:\n\
                                 html! { {azumi::json_data!(\"MY_DATA\" = &data)} }\n\
                                 \n\
-                                // For CSS content — use inline_css! macro:\n\
-                                html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
+                                // For CSS content — use <style> tag with {variable}:\n\
+                                html! { <style>{GLOBAL_CSS}</style> }\n\
                                 \n\
-                                // For JavaScript content — use inline_script! macro:\n\
-                                html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
+                                // For JavaScript content — use <script> tag with {variable}:\n\
+                                html! { <script>{TRACKING_JS}</script> }\n\
                                 \n\
                                 ❌ Wrong — Raw() bypasses all safety:\n\
                                 html! { @{Raw(\"...\")} }\n\
                                 html! { @{Raw(format!(\"...\"))} }\n\
                                 \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Safe Injection Macros\""
+                                See: AI_GUIDE_FOR_WRITING_AZUMI.md"
                             );
                     });
                 }

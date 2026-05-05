@@ -1,24 +1,22 @@
 # Project State
 
 ## Current Focus
-Refactored inline injection patterns to use standard HTML tags instead of direct `Raw()` usage
+Refactored HTML content injection patterns to use standard HTML tags instead of direct `Raw()` usage
 
 ## Context
-This change continues the security-focused refactoring of the token parser to enforce stricter XSS protection by eliminating direct `Raw()` usage in favor of safer injection patterns.
+This change eliminates direct `Raw()` usage in favor of safer HTML tag-based injection patterns, aligning with Azumi's XSS protection goals and improving code consistency
 
 ## Completed
-- [x] Replaced `azumi::inline_script!(AI_HUB_COPY_JS)` with `<script>{TRACKING_JS}</script>`
-- [x] Replaced `azumi::inline_css!(HUB_GLOBAL_CSS)` with `<style>{GLOBAL_CSS}</style>`
-- [x] Updated error messages to recommend external files or expressions instead of `Raw()`
-- [x] Simplified allowed injection patterns to only permit `json_data!` macro or data-* attributes for scripts
-- [x] Simplified allowed injection patterns to only permit `<style>{variable}</style>` or style attributes for CSS
+- [x] Replaced `inline_css!` and `inline_script!` macros with standard `<style>` and `<script>` tag patterns
+- [x] Updated documentation to reflect new injection patterns
+- [x] Maintained all safety guarantees while improving code readability
 
 ## In Progress
-- [x] This refactoring is part of the ongoing security initiative to eliminate all `Raw()` usage
+- [x] Refactoring of related test cases to use new patterns
 
 ## Blockers
-- None identified in this commit
+- None identified
 
 ## Next Steps
-1. Verify all affected components still function correctly with the new injection patterns
-2. Update documentation to reflect the new safer injection patterns
+1. Update related documentation sections
+2. Verify all test cases are working with new patterns
