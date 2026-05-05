@@ -48,8 +48,10 @@ pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
         }
         
         if !matched {
-            result.push(bytes[i] as char);
-            i += 1;
+            // Safely handle multi-byte UTF-8 characters
+            let ch = content[i..].chars().next().unwrap_or('\u{FFFD}');
+            result.push(ch);
+            i += ch.len_utf8();
         }
     }
     
