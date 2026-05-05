@@ -13,23 +13,31 @@ html! {
 }
 ```
 
-**Azumi** is a **compile-time validated web framework** for Rust. Your CSS classes, HTML structure, accessibility, and UI logic — all verified before a single byte hits production.
+**Azumi** is an **AI-first, compile-time validated web framework** for Rust. Your CSS classes, HTML structure, accessibility, and UI logic — all verified before a single byte hits production. Built for AI code generation first, with named macros that are explicit, searchable, and unambiguous.
 
 No runtime errors. No "works on my machine". No surprises.
 
 ---
 
-## 🚀 v34.5.4 Release Notes
+## 🚀 v42.0.0 Release Notes
 
-**Azumi v34.5.4** — Strict numeric regex, depth-tracked nested ternary parser, `||` operator in expressions, parenthetical grouping in evaluators, `property` attribute support for OpenGraph meta tags, and full test suite at 420 tests.
+**Azumi v42.0.0** — Safe injection macros (json_data!, inline_css!, inline_script!), unconditional Raw() blocking, ~1,400 tests.
 
-### What's New in v34.5.4
+### Breaking Changes
+- **Raw() is unconditionally blocked** — ALL usages inside `html!` are compile errors. Use safe injection macros instead.
+- **format! with web patterns blocked** — `format!("<div>{}</div>", x)` inside html! is a compile error.
 
 ### What's New
-- **TrustedHtml Component**: User-facing escape hatch for pre-sanitized HTML from trusted sources
-- **SessionCleanupScript**: Framework Component for OAuth session token cleanup
-- **Stricter Raw() validation**: JS/CSS patterns blocked at compile time
-- **azumi_script()**: Returns Component (not String), properly renders without escaping
+- **json_data!("VAR" = &data)** — Safe JSON data injection for JavaScript, escapes `</script>` (case-insensitive)
+- **inline_css!(CSS_VAR)** — Safe CSS injection, escapes `</style>` (case-insensitive)
+- **inline_script!(JS_VAR)** — Safe JavaScript injection, escapes `</script>` (case-insensitive)
+- **escape_style_content()** — New function for CSS escaping
+- **AZUMI_RULES** — Framework rules array for AI verification
+
+### Migration from v41.x
+- `Raw()` anywhere in `html!` → Use `json_data!`, `inline_css!`, or `inline_script!` macros
+- `format!()` building HTML/CSS/JS inside `html!` → Build outside html! and pass as variable
+- See [AGENTS.md](AGENTS.md) for AI code generation guidelines
 
 ### Migration from v26.x → v28
 - `#[azumi::live]` + `#[azumi::live_impl]` now required together for predictions
@@ -38,34 +46,21 @@ No runtime errors. No "works on my machine". No surprises.
 
 ### Migration from v14.x–v25
 - `Raw("window.location.hash...")` → Use `{session_cleanup_script()}`
-- `Raw(trusted_html)` → Use `{TrustedHtml::new(html)}` (legacy; prefer safe macros)
 - All framework Components use `{}` syntax, not `@{Raw(...)}`
 - `#[azumi::page]` replaces manual SEO setup
 - `<script src="azumi.js" />` → Use `{azumi_script()}` (macro transformation removed)
 - `AZUMI_SECRET` still required in production
 
-### Raw() Validation — ALL Raw() is Blocked
+### Safe Injection Macros
 
-**Any use of `Raw()` inside `html!` is now a compile error.** Use the safe injection macros instead:
+| Macro | Purpose | Escapes |
+|-------|---------|---------|
+| `json_data!("VAR" = &data)` | JSON → JavaScript | `</script>` (case-insensitive) |
+| `inline_css!(CSS_VAR)` | CSS injection | `</style>` (case-insensitive) |
+| `inline_script!(JS_VAR)` | JavaScript injection | `</script>` (case-insensitive) |
 
-| Pattern | Fix |
-|---------|-----|
-| `@{}` `Raw(format!(...))` | Use `json_data!`, `inline_css!`, or `inline_script!` macros |
-| `@{}` `Raw("<script>...</script>")` | Use `{azumi::inline_script!(VAR)}` |
-| `@{}` `Raw("<style>...</style>")` | Use `{azumi::inline_css!(VAR)}` or `<style>` block |
-| `@{}` `Raw(format!("..."))` with HTML/CSS/JS | Build content outside html!, pass as variable |
-| `style="..."` (static) | Use `style={--var: value}` |
-| `class="..."` (static) | Use `class={variable_name}` |
-
-**Safe injection macros (the only way):**
-- `{azumi::json_data!("VAR" = &data)}` — JSON data to JavaScript
-- `{azumi::inline_css!(CSS_VAR)}` — CSS content injection
-- `{azumi::inline_script!(JS_VAR)}` — JavaScript content injection
-- `{value}` — Auto-escaped text interpolation
-- `{azumi_script()}` — Framework JS Component
-- `{session_cleanup_script()}` — Session cleanup Component
-
-**Note:** `Raw()`, `TrustedHtml`, and `from_fn()` are `#[doc(hidden)]` — internal framework use only.
+**Escape hatches (`#[doc(hidden)]` — internal framework use only):**
+- `Raw()`, `TrustedHtml`, `from_fn()`, `from_fn_once()` — never use these in application code
 
 ---
 
