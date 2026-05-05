@@ -48,7 +48,7 @@ pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
         }
         
         if !matched {
-            result.push(content[i]);
+            result.push(bytes[i] as char);
             i += 1;
         }
     }
