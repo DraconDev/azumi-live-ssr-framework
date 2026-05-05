@@ -1,10 +1,20 @@
 use crate::Component;
 
-fn escape_script_content(js: &str) -> String {
+/// Escape `</script>` in JavaScript strings (case-insensitive) to prevent XSS.
+/// Covers: </script>, </Script>, </SCRIPT>, </ script>
+pub fn escape_script_content(js: &str) -> String {
     js.replace("</script>", r"<\/script>")
         .replace("</Script>", r"<\/Script>")
         .replace("</SCRIPT>", r"<\/SCRIPT>")
         .replace("</ script>", r"<\/ script>")
+}
+
+/// Escape `</style>` in CSS strings (case-insensitive) to prevent XSS.
+/// Covers: </style>, </Style>, </STYLE>
+pub fn escape_style_content(css: &str) -> String {
+    css.replace("</style>", r"<\/style>")
+        .replace("</Style>", r"<\/Style>")
+        .replace("</STYLE>", r"<\/STYLE>")
 }
 
 pub struct AzumiScript;
