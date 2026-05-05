@@ -141,7 +141,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
       - name: Run benchmarks (smoke test)
-        run: cargo bench -- --quick --warm-up-time 1 --measurement-time 1 | tail -20
+        run: cargo bench -- --warm-up-time 1 --measurement-time 1 2>&1 | tail -20
 
   audit:
     name: Security Audit
