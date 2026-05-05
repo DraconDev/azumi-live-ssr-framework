@@ -1,23 +1,22 @@
 # Project State
 
 ## Current Focus
-Enhanced XSS protection test coverage with additional negative test cases for raw and formatted content
+Enhanced XSS protection test coverage for Azumi's Raw() usage
 
 ## Context
-This change expands the test suite to verify comprehensive XSS protection across different content types and injection scenarios, following recent security improvements to the framework.
+The changes add comprehensive test cases to prevent unsafe Raw() usage in Azumi's HTML templating system, which bypasses all security protections.
 
 ## Completed
-- [x] Added 2 new negative test cases for raw content injection scenarios
-- [x] Added 2 new negative test cases for formatted content injection scenarios
-- [x] Added 1 new positive test case for safe macro usage
-- [x] Updated Cargo.lock to reflect dependency changes
+- [x] Added test case for Raw() inside if-blocks
+- [x] Added detailed error message explaining Raw() security risks
+- [x] Documented safe alternatives to Raw() usage
 
 ## In Progress
-- [x] Comprehensive XSS protection test coverage across multiple content types
+- [x] Comprehensive XSS protection test coverage
 
 ## Blockers
-- None identified in this commit
+- None identified
 
 ## Next Steps
-1. Verify all new test cases pass in CI
-2. Review test coverage for additional edge cases
+1. Review and merge the new test cases
+2. Update documentation to reflect these security measures
