@@ -304,28 +304,6 @@ fn verify_state_internal_detailed(
     }
 }
 
-/// Verifies a user-scoped signed state.
-/// Returns the original JSON if valid, or an Err if invalid/expired/user mismatch.
-///
-/// Use this when the state was signed with `sign_state_for_user`.
-pub fn verify_state_for_user(expected_user_id: &str, signed_state: &str) -> Result<String, String> {
-    verify_state_internal(Some(expected_user_id), signed_state)
-}
-
-fn verify_state_internal(
-    expected_user_id: Option<&str>,
-    signed_state: &str,
-) -> Result<String, String> {
-    match verify_state_internal_detailed(expected_user_id, signed_state) {
-        Ok(v) => Ok(v),
-        Err(e) => {
-            #[cfg(debug_assertions)]
-            eprintln!("[azumi] State verification failed: {:?}", e);
-            Err("Invalid state".to_string())
-        }
-    }
-}
-
 /// Error type for state verification failures.
 ///
 /// Provides detailed information about why a signed state failed verification.
