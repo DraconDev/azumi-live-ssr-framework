@@ -26,7 +26,7 @@ fn test_complete_page_with_all_macros() {
                 <title>"Test Page"</title>
             </head>
             <body>
-                <div class="container">
+                <div class={"container"}>
                     <h1>"Welcome"</h1>
                     {azumi::inline_css!(css)}
                     {azumi::inline_script!(js)}
@@ -63,7 +63,7 @@ fn test_macro_siblings_with_regular_html() {
                 {azumi::inline_css!(css)}
                 {azumi::json_data!("ARTICLE" = &data)}
                 {azumi::inline_script!(js)}
-                <div class="widget">"Widget content"</div>
+                <div class={"widget"}>"Widget content"</div>
             </aside>
         </main>
     };
@@ -195,9 +195,11 @@ fn test_inline_script_with_dom_ready() {
         });
     "#;
 
+    let app_id = "app";
+
     let component = html! {
         <body>
-            <div id="app">"Loading..."</div>
+            <div id={app_id}>"Loading..."</div>
             {azumi::inline_script!(js)}
         </body>
     };
@@ -222,9 +224,12 @@ fn test_inline_css_with_component_scoped() {
         }
     "#;
 
+    let card_class = "profile-card";
+    let avatar_class = "profile-card__avatar";
+
     let component = html! {
-        <div class="profile-card">
-            <img class="profile-card__avatar" src="/avatar.png" alt="Avatar" />
+        <div class={card_class}>
+            <img class={avatar_class} src="/avatar.png" alt="Avatar" />
             <span>"Username"</span>
             {azumi::inline_css!(css)}
         </div>
