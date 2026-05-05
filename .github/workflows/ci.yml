@@ -77,7 +77,7 @@ jobs:
       - name: Build release
         run: cargo build --release
       - name: Test release
-        run: cargo test --release
+        run: AZUMI_SECRET=ci-release-test-secret-do-not-use-in-prod cargo test --release
 
   test-js:
     name: JavaScript Tests
