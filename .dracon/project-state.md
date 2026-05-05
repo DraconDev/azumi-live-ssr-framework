@@ -1,21 +1,23 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Refactored inline injection macros to eliminate direct `Raw()` usage and enforce stricter XSS protection
 
 ## Context
-This change was triggered by multiple recent refactoring and security enhancements in the XSS protection system, particularly the removal of `TrustedHtml` and stricter enforcement of safe injection patterns.
+This change addresses security concerns by removing the `inline_css!` and `inline_script!` macros that previously used `Raw()` for direct HTML injection. The refactoring implements safer alternatives that properly escape content to prevent XSS vulnerabilities.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect dependency changes from recent XSS protection refactoring
-- [x] Synchronized dependency versions with current framework state
+- [x] Removed `inline_css!` and `inline_script!` macros that used `Raw()`
+- [x] Integrated XSS protection into the main rendering pipeline
+- [x] Added context-aware escaping for script and style content
+- [x] Simplified the macro system by consolidating functionality
 
 ## In Progress
-- [ ] Verification of dependency compatibility with new XSS protection mechanisms
+- [x] Comprehensive testing of the new injection handling
 
 ## Blockers
-- None identified at this stage
+- None identified
 
 ## Next Steps
-1. Verify that all dependencies are compatible with the new XSS protection system
-2. Prepare for potential dependency updates that may be required by the stricter injection patterns
+1. Verify all existing uses of inline CSS and scripts still work correctly
+2. Update documentation to reflect the new safer injection patterns

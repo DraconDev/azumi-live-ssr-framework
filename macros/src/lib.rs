@@ -66,16 +66,6 @@ pub fn json_data(input: TokenStream) -> TokenStream {
     inline_inject::expand_json_data(input)
 }
 
-#[proc_macro]
-pub fn inline_css(input: TokenStream) -> TokenStream {
-    inline_inject::expand_inline_css(input)
-}
-
-#[proc_macro]
-pub fn inline_script(input: TokenStream) -> TokenStream {
-    inline_inject::expand_inline_script(input)
-}
-
 // Helpers for parsing Component arguments
 struct KeyValueArg {
     key: syn::Ident,
@@ -586,6 +576,7 @@ fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 enum Context {
     Normal,
     Script,
+    Style,
 }
 
 #[derive(Clone, Debug)]
@@ -1356,6 +1347,8 @@ token_parser::AttributeValue::Static(val) => {
 
                 let child_ctx = ctx.with_mode(if name == "script" {
                     Context::Script
+                } else if name == "style" {
+                    Context::Style
                 } else {
                     ctx.mode.clone()
                 });
@@ -1373,9 +1366,23 @@ token_parser::AttributeValue::Static(val) => {
             }
             token_parser::Node::Expression(expr) => {
                 let tokens = &expr.content;
-                instructions.push(quote! {
-                    azumi::RenderWrapper(&(#tokens)).render_azumi(f)?;
-                });
+                match ctx.mode {
+                    Context::Script => {
+                        instructions.push(quote! {
+                            write!(f, "{}", azumi::escape_script_content(&(#tokens)))?;
+                        });
+                    }
+                    Context::Style => {
+                        instructions.push(quote! {
+                            write!(f, "{}", azumi::escape_style_content(&(#tokens)))?;
+                        });
+                    }
+                    Context::Normal => {
+                        instructions.push(quote! {
+                            azumi::RenderWrapper(&(#tokens)).render_azumi(f)?;
+                        });
+                    }
+                }
             }
             token_parser::Node::Fragment(frag) => {
                 instructions.push(generate_body_with_context(&frag.children, ctx));
