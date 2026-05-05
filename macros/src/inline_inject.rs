@@ -34,8 +34,8 @@ pub fn expand_json_data(input: TokenStream) -> TokenStream {
                 Ok(s) => s,
                 Err(e) => panic!("json_data! failed to serialize: {}", e),
             };
-            // Escape </script> to prevent XSS
-            let __escaped = __json_value.replace("</script>", "<\\/script>");
+            // Escape </script> to prevent XSS (case-insensitive)
+            let __escaped = azumi::escape_script_content(&__json_value);
             azumi::from_fn_once(move |f| {
                 write!(f, "<script>{} = {};</script>", #target, __escaped)?;
                 Ok(())
@@ -86,8 +86,8 @@ pub fn expand_inline_css(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         {
             let __css = #value;
-            // Escape </style> to prevent XSS
-            let __escaped = __css.replace("</style>", "<\\/style>");
+            // Escape </style> to prevent XSS (case-insensitive)
+            let __escaped = azumi::escape_style_content(&__css);
             azumi::from_fn_once(move |f| {
                 write!(f, "<style>{}</style>", __escaped)?;
                 Ok(())
