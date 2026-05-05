@@ -573,12 +573,7 @@ fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 
 
 
-#[derive(Clone, PartialEq, Debug)]
-enum Context {
-    Normal,
-    Script,
-    Style,
-}
+use context::{Context, GenerationContext};
 
 #[derive(Clone, Debug)]
 struct GenerationContext {

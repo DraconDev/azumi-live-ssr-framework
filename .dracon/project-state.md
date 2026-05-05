@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Added `PartialEq` derivation to `Context` enum for equality comparisons.
+Refactored context management by moving the `Context` enum to a shared module.
 
 ## Context
-The `Context` enum was previously missing `PartialEq` implementation, which is needed for equality comparisons between context types. This change enables proper comparison operations in code that uses the `Context` enum.
+The `Context` enum was previously defined in the macros module but is now being shared across the codebase for consistent HTML rendering modes and CSS scoping.
 
 ## Completed
-- [x] Added `PartialEq` to `Context` enum to enable equality comparisons
-- [x] Removed redundant `Debug` re-derivation (already present)
+- [x] Moved `Context` enum to shared `context` module
+- [x] Removed redundant `Context` enum definition in macros module
 
 ## In Progress
-- [ ] None
+- [x] Updating dependent code to use the new shared `Context` enum
 
 ## Blockers
-- None
+- None identified
 
 ## Next Steps
-1. Verify no runtime behavior changes occurred due to this change
-2. Update any tests that might rely on context comparisons
+1. Update all references to `Context` in the codebase to use the shared version
+2. Verify consistent behavior across all HTML rendering modes
