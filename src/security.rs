@@ -181,13 +181,6 @@ pub fn verify_state_for_user(expected_user_id: &str, signed_state: &str) -> Resu
     verify_state_internal_detailed(Some(expected_user_id), signed_state)
 }
 
-fn verify_state_internal(
-    expected_user_id: Option<&str>,
-    signed_state: &str,
-) -> Result<String, VerifyStateError> {
-    verify_state_internal_detailed(expected_user_id, signed_state)
-}
-
 fn verify_state_internal_detailed(
     expected_user_id: Option<&str>,
     signed_state: &str,
