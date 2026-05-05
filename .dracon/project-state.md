@@ -1,23 +1,24 @@
 # Project State
 
 ## Current Focus
-Refactored inline injection patterns to use standard HTML tags instead of custom macros.
+Refactored inline injection patterns to use standard HTML tags instead of direct `Raw()` usage
 
 ## Context
-The previous approach used specialized macros (`inline_css!`, `inline_script!`) for injecting CSS and JavaScript, which were being phased out in favor of standard HTML tags with variable interpolation. This change aligns with the framework's stricter XSS protection policies and simplifies the template syntax.
+This change continues the security-focused refactoring of the token parser to enforce stricter XSS protection by eliminating direct `Raw()` usage in favor of safer injection patterns.
 
 ## Completed
-- [x] Replaced `inline_css!` macro with standard `<style>` tag using `{variable}` syntax
-- [x] Replaced `inline_script!` macro with standard `<script>` tag using `{variable}` syntax
-- [x] Updated validation rules to allow expression children in `<style>` tags
-- [x] Improved documentation to reflect the new injection pattern
+- [x] Replaced `azumi::inline_script!(AI_HUB_COPY_JS)` with `<script>{TRACKING_JS}</script>`
+- [x] Replaced `azumi::inline_css!(HUB_GLOBAL_CSS)` with `<style>{GLOBAL_CSS}</style>`
+- [x] Updated error messages to recommend external files or expressions instead of `Raw()`
+- [x] Simplified allowed injection patterns to only permit `json_data!` macro or data-* attributes for scripts
+- [x] Simplified allowed injection patterns to only permit `<style>{variable}</style>` or style attributes for CSS
 
 ## In Progress
-- [x] No active work in progress for this change
+- [x] This refactoring is part of the ongoing security initiative to eliminate all `Raw()` usage
 
 ## Blockers
-- None identified for this specific change
+- None identified in this commit
 
 ## Next Steps
-1. Update related documentation and examples
-2. Verify compatibility with existing template patterns
+1. Verify all affected components still function correctly with the new injection patterns
+2. Update documentation to reflect the new safer injection patterns

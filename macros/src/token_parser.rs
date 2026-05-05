@@ -464,23 +464,23 @@ impl Parse for Element {
   ✅ <script src=\"/static/app.js\" />
   ✅ <script type=\"application/json\">{{ data }}</script>
   ✅ <script>{ azumi::json_data!(\"MY_DATA\" = &data) }</script>
-  ✅ <script>{ azumi::inline_script!(AI_HUB_COPY_JS) }</script>
+  ✅ <script>{TRACKING_JS}</script>
   ❌ <script>const x = 42;</script>
 
-For data: use json_data! macro, inline_script! macro, or data-* attributes"
+For data: use json_data! macro or data-* attributes"
                 } else {
                     "CSS must be external:
   ✅ <style src=\"components/card.css\" />  (auto-scoped)
-  ✅ <style>{ azumi::inline_css!(HUB_GLOBAL_CSS) }</style>
+  ✅ <style>{GLOBAL_CSS}</style>
   ❌ <style>.card { padding: 2em; }</style>
 
-For dynamic styles: use inline_css! macro or style attribute with expressions"
+For dynamic styles: use <style>{variable}</style> or style attribute with expressions"
                 };
 
                 return Err(Error::new(
                     if let Some(joined) = start_span.join(name_span) { joined } else { name_span },
                     format!(
-                                "Inline <{}> tags not allowed in Azumi\n\n{}\n\nUse the safe injection macros instead of Raw(). See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Safe Injection Macros\".",
+                                "Inline <{}> tags not allowed in Azumi\n\n{}\n\nUse external files or {{expression}} instead of Raw(). See: AI_GUIDE_FOR_WRITING_AZUMI.md.",
                         name, tag_help
                     ),
                 ));
