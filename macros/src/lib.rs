@@ -713,12 +713,12 @@ fn generate_body(
                 valid_classes.clone(),
                 valid_ids.clone(),
             );
-            (generate_body_with_context(&working_nodes, &ctx), injected)
+            (codegen::generate_body_with_context(&working_nodes, &ctx), injected)
         } else {
             let mut temp_nodes = nodes.to_vec();
             let injected = inject_css_into_head(&mut temp_nodes, &css_to_inject);
             (
-                generate_body_with_context(&temp_nodes, &GenerationContext::normal()),
+                codegen::generate_body_with_context(&temp_nodes, &GenerationContext::normal()),
                 injected,
             )
         };
@@ -732,7 +732,7 @@ fn generate_body(
             }
         }
     } else {
-        generate_body_with_context(nodes, &GenerationContext::normal())
+        codegen::generate_body_with_context(nodes, &GenerationContext::normal())
     }
 }
 
@@ -1263,7 +1263,7 @@ token_parser::AttributeValue::Static(val) => {
                 } else {
                     ctx.mode.clone()
                 });
-                instructions.push(generate_body_with_context(&elem.children, &child_ctx));
+                instructions.push(codegen::generate_body_with_context(&elem.children, &child_ctx));
 
                 let void_elements = [
                     "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
@@ -1296,15 +1296,15 @@ token_parser::AttributeValue::Static(val) => {
                 }
             }
             token_parser::Node::Fragment(frag) => {
-                instructions.push(generate_body_with_context(&frag.children, ctx));
+                instructions.push(codegen::generate_body_with_context(&frag.children, ctx));
             }
             token_parser::Node::Block(block) => {
                 match block {
                     token_parser::Block::If(if_block) => {
                         let cond = &if_block.condition;
-                        let then_body = generate_body_with_context(&if_block.then_branch, ctx);
+                        let then_body = codegen::generate_body_with_context(&if_block.then_branch, ctx);
                         let else_part = if let Some(else_branch) = &if_block.else_branch {
-                            let else_body = generate_body_with_context(else_branch, ctx);
+                            let else_body = codegen::generate_body_with_context(else_branch, ctx);
                             quote! { else { #else_body } }
                         } else {
                             quote! {}
@@ -1319,7 +1319,7 @@ token_parser::AttributeValue::Static(val) => {
                     token_parser::Block::For(for_block) => {
                         let pat = &for_block.pattern;
                         let iter = &for_block.iterator;
-                        let body = generate_body_with_context(&for_block.body, ctx);
+                        let body = codegen::generate_body_with_context(&for_block.body, ctx);
 
                         instructions.push(quote! {
                             for #pat in #iter {
@@ -1332,7 +1332,7 @@ token_parser::AttributeValue::Static(val) => {
                         let mut arms = Vec::new();
                         for arm in &match_block.arms {
                             let pat = &arm.pattern;
-                            let body = generate_body_with_context(&arm.body, ctx);
+                            let body = codegen::generate_body_with_context(&arm.body, ctx);
                             arms.push(quote! {
                                 #pat => { #body }
                             });
@@ -1376,7 +1376,7 @@ token_parser::AttributeValue::Static(val) => {
                             });
                         } else {
                             let children_body =
-                                generate_body_with_context(&call_block.children, ctx);
+                                codegen::generate_body_with_context(&call_block.children, ctx);
                             // Wrap children in a component-compatible closure
                             // IMPORTANT: Use `from_fn_once` here instead of `from_fn` because
                             // children closures may capture owned values (via `move`) that were

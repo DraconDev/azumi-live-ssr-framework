@@ -1,21 +1,22 @@
 # Project State
 
 ## Current Focus
-Refactored HTML code generation logic by removing redundant text node handling
+Refactored HTML code generation logic by moving it to a separate module.
 
 ## Context
-The previous implementation had duplicate code for handling text nodes in HTML generation, which was cleaned up to improve maintainability.
+This change was prompted by the need to improve code organization and maintainability. The previous implementation had HTML generation logic scattered throughout the macro file, making it harder to maintain and test.
 
 ## Completed
-- [x] Removed redundant text node handling code
-- [x] Simplified HTML generation logic
+- [x] Extracted HTML code generation logic into a new `codegen` module
+- [x] Updated all calls to the generation functions to use the new module path
+- [x] Maintained all existing functionality while improving code structure
 
 ## In Progress
-- [x] Ongoing refactoring of HTML generation logic
+- [ ] No active work in progress beyond this refactoring
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Complete the HTML generation refactoring
-2. Verify the changes don't affect output formatting
+1. Verify all tests pass with the new module structure
+2. Consider additional refactoring opportunities in the macro codebase
