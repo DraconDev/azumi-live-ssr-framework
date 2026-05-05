@@ -201,7 +201,7 @@ fn test_json_data_empty_array() {
 
 #[test]
 fn test_json_data_with_float() {
-    let data = serde_json::json!({"pi": 3.14159});
+    let data = serde_json::json!({"pi": std::f64::consts::PI});
     let component = html! { {azumi::json_data!("PI" = &data)} };
     let output = test::render(&component);
     assert!(output.contains("3.14159"));
