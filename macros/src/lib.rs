@@ -375,7 +375,8 @@ fn validate_format_in_expressions(nodes: &[token_parser::Node]) -> Vec<proc_macr
                         || content_str.contains("href=")
                         || content_str.contains("class=")
                         || content_str.contains("style=")
-                        // CSS patterns
+                        // CSS patterns ({{ is format! escape for literal { in CSS)
+                        || content_str.contains("{{")
                         || content_str.contains("window.")
                         || content_str.contains("document.")
                         || content_str.contains("addEventListener")
