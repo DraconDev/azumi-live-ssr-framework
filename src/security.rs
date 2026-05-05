@@ -171,7 +171,6 @@ fn sign_state_internal(user_id: Option<&str>, state_json: &str) -> String {
 /// This is considered acceptable as all failures result in rejection,
 /// and distinguishing between specific error types provides minimal
 /// additional information to an attacker.
-#[must_use]
 pub fn verify_state(signed_state: &str) -> Result<String, VerifyStateError> {
     verify_state_internal_detailed(None, signed_state)
 }
@@ -180,7 +179,6 @@ pub fn verify_state(signed_state: &str) -> Result<String, VerifyStateError> {
 /// Returns the original JSON if valid, or an Err if invalid/expired/user mismatch.
 ///
 /// Use this when the state was signed with `sign_state_for_user`.
-#[must_use]
 pub fn verify_state_for_user(expected_user_id: &str, signed_state: &str) -> Result<String, VerifyStateError> {
     verify_state_internal_detailed(Some(expected_user_id), signed_state)
 }

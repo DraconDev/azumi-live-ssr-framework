@@ -1,24 +1,24 @@
 # Project State
 
 ## Current Focus
-Added benchmarking workflow to CI pipeline
+Added comprehensive architecture documentation and security-focused migration guides
 
 ## Context
-To ensure performance remains stable as new features are added, we need to track benchmark results across commits. This change adds a basic benchmarking job to the CI pipeline that runs a quick smoke test of all benchmarks.
+The project is implementing stricter security patterns and documentation to prevent common web vulnerabilities while maintaining developer productivity.
 
 ## Completed
-- [x] Added new `bench` job to CI workflow
-- [x] Configured caching for cargo dependencies
-- [x] Added benchmark execution with time constraints
-- [x] Included output truncation to focus on relevant results
+- [x] Added detailed architecture documentation explaining the validation pipeline, rendering flow, and auto-escaping mechanisms
+- [x] Created migration guides for v42 and v43, documenting breaking changes in security patterns
+- [x] Removed `Raw()` usage in HTML templates to enforce safer defaults
+- [x] Blocked `format!()` usage with web patterns inside HTML templates
+- [x] Removed `TrustedHtml` from public API to prevent unsafe bypasses
 
 ## In Progress
-- [x] Basic benchmarking setup is complete
+- [ ] Finalizing v43 migration guide with additional security patterns
 
 ## Blockers
-- Need to define specific benchmarks to track performance metrics
-- Requires decision on how to handle benchmark result comparisons
+- Need to verify all migration paths work with existing applications
 
 ## Next Steps
-1. Define core benchmarks to track performance metrics
-2. Implement benchmark result comparison and reporting
+1. Complete v43 migration guide documentation
+2. Add integration tests for the new security patterns
