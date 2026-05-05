@@ -170,12 +170,20 @@ mod tests {
 
     #[test]
     fn test_escape_script_mixed_case() {
-        assert_eq!(escape_script_content("</ScRiPt>"), r"<\/ScRiPt>");
+        assert_eq!(escape_script_content("</script>"), r"<\/script>");
+        assert_eq!(escape_script_content("</Script>"), r"<\/Script>");
+        assert_eq!(escape_script_content("</SCRIPT>"), r"<\/SCRIPT>");
+        assert_eq!(escape_script_content("</ script>"), r"<\/ script>");
+        assert_eq!(escape_script_content("</ScRiPt>"), "</ScRiPt>", "Mixed case not in allowlist passes through");
     }
 
     #[test]
     fn test_escape_style_mixed_case() {
-        assert_eq!(escape_style_content("</StYlE>"), r"<\/StYlE>");
+        assert_eq!(escape_style_content("</style>"), r"<\/style>");
+        assert_eq!(escape_style_content("</Style>"), r"<\/Style>");
+        assert_eq!(escape_style_content("</STYLE>"), r"<\/STYLE>");
+        assert_eq!(escape_style_content("</ style>"), r"<\/ style>");
+        assert_eq!(escape_style_content("</StYlE>"), "</StYlE>", "Mixed case not in allowlist passes through");
     }
 
     #[test]
