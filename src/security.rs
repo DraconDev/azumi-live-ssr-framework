@@ -8,6 +8,7 @@ use thiserror::Error;
 
 type HmacSha256 = Hmac<Sha256>;
 
+#[cfg(debug_assertions)]
 const DEFAULT_SECRET: &str = "azumi-dev-secret-do-not-use-in-prod";
 const MAX_STATE_AGE_SECS: u64 = 3600; // 1 hour max age for signed state
 
