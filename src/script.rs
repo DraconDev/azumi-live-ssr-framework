@@ -17,6 +17,7 @@ use crate::Component;
 /// let css = escape_tag_content(".btn { color: red; } </style>", "style");
 /// assert_eq!(css, r".btn { color: red; } <\/style>");
 /// ```
+#[must_use]
 pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
     let tag_lower = tag_name.to_lowercase();
     let tag_upper = tag_name.to_uppercase();
@@ -65,6 +66,7 @@ pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
 /// Escape `</script>` in JavaScript strings (case-insensitive) to prevent XSS.
 /// 
 /// Delegates to [`escape_tag_content`] with tag_name="script".
+#[must_use]
 pub fn escape_script_content(js: &str) -> String {
     escape_tag_content(js, "script")
 }
@@ -72,6 +74,7 @@ pub fn escape_script_content(js: &str) -> String {
 /// Escape `</style>` in CSS strings (case-insensitive) to prevent XSS.
 /// 
 /// Delegates to [`escape_tag_content`] with tag_name="style".
+#[must_use]
 pub fn escape_style_content(css: &str) -> String {
     escape_tag_content(css, "style")
 }
@@ -100,6 +103,7 @@ impl Component for SessionCleanupScript {
     }
 }
 
+#[must_use]
 pub fn session_cleanup_script() -> SessionCleanupScript {
     SessionCleanupScript
 }

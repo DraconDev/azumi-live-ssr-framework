@@ -238,6 +238,7 @@ impl Component for str {
     }
 }
 
+#[must_use]
 #[doc(hidden)]
 pub fn from_fn<F>(f: F) -> FnComponent<F>
 where
@@ -342,6 +343,7 @@ where
 // If you need thread-safety, use FnComponent with Arc<Mutex<T>> or Arc<RwLock<T>>.
 
 #[doc(hidden)]
+#[must_use]
 pub fn from_fn_once<F>(f: F) -> FnOnceComponent<F>
 where
     F: FnOnce(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
@@ -349,6 +351,7 @@ where
     FnOnceComponent::from_fn_once(f)
 }
 
+#[must_use]
 pub fn render_to_string<C: Component + ?Sized>(component: &C) -> String {
     struct DisplayWrapper<'a, C: Component + ?Sized>(&'a C);
     impl<'a, C: Component + ?Sized> std::fmt::Display for DisplayWrapper<'a, C> {
@@ -384,6 +387,7 @@ impl<T: std::fmt::Display> std::fmt::Display for Escaped<T> {
 /// Escape a string for safe inclusion in a CSS property value.
 /// Prevents CSS injection by escaping semicolons, backslashes, braces, quotes, and forward slashes.
 /// Forward slashes are escaped to prevent `</style>` injection attacks.
+#[must_use]
 pub fn escape_css_string(s: &str) -> String {
     let mut result = String::with_capacity(s.len());
     for c in s.chars() {
@@ -468,6 +472,7 @@ impl<T: std::fmt::Display> Component for Raw<T> {
 /// Compute a deterministic scope ID from source position (line, column).
 /// Used by both the proc-macro and the hot reload watcher to guarantee
 /// that scope IDs match at compile time and runtime.
+#[must_use]
 pub fn compute_scope_id(line: usize, col: usize) -> String {
     use fnv::FnvHasher;
     use std::hash::{Hash, Hasher};
@@ -479,6 +484,7 @@ pub fn compute_scope_id(line: usize, col: usize) -> String {
 
 /// Transform CSS selectors to include scope attribute
 /// All CSS is automatically scoped - no escape hatches!
+#[must_use]
 pub fn scope_css(css: &str, scope_id: &str) -> String {
     let scope_attr = format!("[data-{}]", scope_id);
     let mut iter = css.chars().peekable();
@@ -687,6 +693,7 @@ pub const AZUMI_JS: &str = include_str!("client.min.js");
 ///
 /// This is a Component, not a String. Use {azumi_script()} syntax (not @{azumi_script()})
 /// to render it directly without escaping.
+#[must_use]
 pub fn azumi_script() -> AzumiScript {
     AzumiScript
 }

@@ -1,21 +1,34 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Enhance security and API consistency by adding `#[must_use]` annotations to public functions
 
 ## Context
-This change was prompted by several recent dependency updates and refactorings in the Azumi framework, including security enhancements, context management improvements, and test infrastructure changes.
+The changes add `#[must_use]` annotations to public functions to improve API safety by making it clear when return values must be used. This prevents accidental discarding of important return values that could lead to security vulnerabilities or incorrect behavior.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect current dependency versions and resolutions
+- [x] Added `#[must_use]` to `from_fn` in lib.rs
+- [x] Added `#[must_use]` to `from_fn_once` in lib.rs
+- [x] Added `#[must_use]` to `render_to_string` in lib.rs
+- [x] Added `#[must_use]` to `escape_css_string` in lib.rs
+- [x] Added `#[must_use]` to `compute_scope_id` in lib.rs
+- [x] Added `#[must_use]` to `scope_css` in lib.rs
+- [x] Added `#[must_use]` to `azumi_script` in lib.rs
+- [x] Added `#[must_use]` to `escape_tag_content` in script.rs
+- [x] Added `#[must_use]` to `escape_script_content` in script.rs
+- [x] Added `#[must_use]` to `escape_style_content` in script.rs
+- [x] Added `#[must_use]` to `session_cleanup_script` in script.rs
+- [x] Added `#[must_use]` to `sign_state` in security.rs
+- [x] Added `#[must_use]` to `sign_state_for_user` in security.rs
+- [x] Added `#[must_use]` to `verify_state` in security.rs
+- [x] Added `#[must_use]` to `verify_state_for_user` in security.rs
 
 ## In Progress
-- [x] No active work in progress related to this change
+- [x] All `#[must_use]` annotations have been added
 
 ## Blockers
-- None identified for this specific change
+- None
 
 ## Next Steps
-1. Verify that all dependencies are properly resolved and compatible
-2. Continue with other ongoing framework improvements
-```
+1. Verify all annotated functions are actually meant to be `#[must_use]`
+2. Update documentation to reflect the new API safety guarantees
