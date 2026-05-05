@@ -403,13 +403,9 @@ mod local_state_tests {
     #[test]
     fn test_local_scope_empty_when_no_local_fields() {
         #[azumi::live]
+        #[derive(Default)]
         pub struct NoLocalState {
             pub value: i32,
-        }
-        impl Default for NoLocalState {
-            fn default() -> Self {
-                Self { value: 0 }
-            }
         }
         let state = NoLocalState { value: 5 };
         let local = state.to_local_scope();
@@ -419,20 +415,12 @@ mod local_state_tests {
     #[test]
     fn test_computed_fields_not_serialized() {
         #[azumi::live]
+        #[derive(Default)]
         pub struct ComputedState {
             pub first: String,
             pub last: String,
             #[computed]
             pub full: String,
-        }
-        impl Default for ComputedState {
-            fn default() -> Self {
-                Self {
-                    first: String::new(),
-                    last: String::new(),
-                    full: String::new(),
-                }
-            }
         }
         let state = ComputedState {
             first: "John".to_string(),
