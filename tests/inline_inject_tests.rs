@@ -316,15 +316,21 @@ fn test_inline_css_does_not_double_escape() {
 
 #[test]
 fn test_json_data_does_not_double_escape() {
-    // Content that's already escaped should NOT be double-escaped
+    // Content that's already escaped should NOT be double-escaped by our function
     let data = serde_json::json!({"x": r"a<\/script>b"});
     let component = html! {
         {azumi::json_data!("X" = &data)}
     };
     let output = test::render(&component);
-    // Should not turn <\/script> into <\\/script>
+    // JSON serializes backslash as \\, so <\/script> becomes <\\/script> in output
+    // This is correct JSON behavior — verify our escape didn't add a third backslash
     assert!(
         output.contains(r"<\/script>"),
-        "Already-escaped content should stay as-is"
+        "Output should contain escaped script tag (JSON doubles the backslash)"
+    );
+    // Should NOT contain triple-backslash pattern (would indicate double escaping)
+    assert!(
+        !output.contains(r"<\\\/script>"),
+        "Should not triple-escape already-escaped content"
     );
 }
