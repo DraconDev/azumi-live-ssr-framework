@@ -23,34 +23,31 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
 
                 if has_raw {
                     errors.push(quote_spanned! { expr.span =>
-                        compile_error!(
-                            "Azumi: Raw() is not allowed inside html!.\n\n\
-                            Raw() bypasses ALL of Azumi's safety guarantees — escaping, CSS scoping, \n\
-                            compile-time validation, and security checks.\n\
-                            \n\
-                            ✅ Use Azumi's safe alternatives:\n\
-                            \n\
-                            // For injected text content — use {value} interpolation:\n\
-                            html! { <p>{value}</p> }\n\
-                            \n\
-                            // For JSON data to JavaScript — use json_data! macro:\n\
-                            html! { {azumi::json_data!(\"MY_DATA\" = &data)} }\n\
-                            \n\
-                            // For CSS content — use inline_css! macro:\n\
-                            html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
-                            \n\
-                            // For JavaScript content — use inline_script! macro:\n\
-                            html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
-                            \n\
-                            // For trusted pre-sanitized HTML — use TrustedHtml:\n\
-                            html! { {TrustedHtml::new(pre_sanitized_html)} }\n\
-                            \n\
-                            ❌ Wrong — Raw() bypasses all safety:\n\
-                            html! { @{Raw(\"...\")} }\n\
-                            html! { @{Raw(format!(\"...\"))} }\n\
-                            \n\
-                            See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Safe Injection Macros\""
-                        );
+                            compile_error!(
+                                "Azumi: Raw() is not allowed inside html!.\n\n\
+                                Raw() bypasses ALL of Azumi's safety guarantees — escaping, CSS scoping, \n\
+                                compile-time validation, and security checks.\n\
+                                \n\
+                                ✅ Use Azumi's safe alternatives:\n\
+                                \n\
+                                // For injected text content — use {value} interpolation:\n\
+                                html! { <p>{value}</p> }\n\
+                                \n\
+                                // For JSON data to JavaScript — use json_data! macro:\n\
+                                html! { {azumi::json_data!(\"MY_DATA\" = &data)} }\n\
+                                \n\
+                                // For CSS content — use inline_css! macro:\n\
+                                html! { {azumi::inline_css!(HUB_GLOBAL_CSS)} }\n\
+                                \n\
+                                // For JavaScript content — use inline_script! macro:\n\
+                                html! { {azumi::inline_script!(AI_HUB_COPY_JS)} }\n\
+                                \n\
+                                ❌ Wrong — Raw() bypasses all safety:\n\
+                                html! { @{Raw(\"...\")} }\n\
+                                html! { @{Raw(format!(\"...\"))} }\n\
+                                \n\
+                                See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Safe Injection Macros\""
+                            );
                     });
                 }
             }

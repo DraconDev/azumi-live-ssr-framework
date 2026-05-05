@@ -308,6 +308,7 @@ where
     ///
     /// The closure will be invoked on the first call to `render()`.
     /// Subsequent calls will be no-ops (return Ok(())).
+    #[doc(hidden)]
     pub fn from_fn_once(f: F) -> Self {
         FnOnceComponent {
             closure: std::cell::UnsafeCell::new(Some(f)),

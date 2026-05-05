@@ -1,22 +1,22 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Enhance Azumi's XSS protection by completely banning `Raw()` usage in HTML macros
 
 ## Context
-This change was triggered by multiple recent security and feature enhancements in the Azumi framework, particularly around XSS protection and comprehensive compile-time validation.
+This change follows recent security-focused commits that strengthened Azumi's XSS protection mechanisms. The `Raw()` injection method was identified as a critical vulnerability point that bypassed all safety guarantees.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect dependency changes from recent procedural macro and XSS protection enhancements
-- [x] Ensured all recent security and feature additions are properly versioned in the dependency tree
+- [x] Removed `Raw()` usage from HTML structure validation
+- [x] Updated error message to clearly explain security risks
+- [x] Added hidden documentation marker for internal component constructor
 
 ## In Progress
-- [ ] No active work in progress beyond this Cargo.lock update
+- [x] Comprehensive compile-time validation for XSS protection
 
 ## Blockers
-- None identified for this specific change
+- None identified in this commit
 
 ## Next Steps
-1. Continue with ongoing security and feature development in the Azumi framework
-2. Monitor for any additional dependency changes that may require lockfile updates
-```
+1. Verify all safe injection alternatives are properly documented
+2. Ensure all existing codebases using `Raw()` are migrated to safer alternatives
