@@ -2,6 +2,7 @@ use crate::Component;
 
 /// Escape `</script>` in JavaScript strings (case-insensitive) to prevent XSS.
 /// Covers: </script>, </Script>, </SCRIPT>, </ script>
+/// ALL occurrences are escaped (not just the first).
 pub fn escape_script_content(js: &str) -> String {
     js.replace("</script>", r"<\/script>")
         .replace("</Script>", r"<\/Script>")
@@ -11,6 +12,7 @@ pub fn escape_script_content(js: &str) -> String {
 
 /// Escape `</style>` in CSS strings (case-insensitive) to prevent XSS.
 /// Covers: </style>, </Style>, </STYLE>, </ style>
+/// ALL occurrences are escaped (not just the first).
 pub fn escape_style_content(css: &str) -> String {
     css.replace("</style>", r"<\/style>")
         .replace("</Style>", r"<\/Style>")
