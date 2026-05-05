@@ -273,6 +273,29 @@ mod tests {
         assert!(output.contains("<script>"), "TrustedHtml should preserve script tags");
     }
 
+    #[test]
+    fn test_trusted_html_empty_string() {
+        let html = TrustedHtml::new("");
+        let output = test::render(&html);
+        assert_eq!(output, "", "Empty TrustedHtml should render nothing");
+    }
+
+    #[test]
+    fn test_trusted_html_with_html_entities() {
+        let html = TrustedHtml::new("&lt;div&gt;Test&lt;/div&gt;");
+        let output = test::render(&html);
+        assert!(output.contains("&lt;div&gt;Test&lt;/div&gt;"), "TrustedHtml should not double-escape entities");
+    }
+
+    #[test]
+    fn test_trusted_html_complex_html() {
+        let complex = r#"<div class="container"><h1>Title</h1><p>Paragraph with <a href="/link">link</a></p></div>"#;
+        let html = TrustedHtml::new(complex);
+        let output = test::render(&html);
+        assert!(output.contains(r#"class="container""#), "Should preserve attributes");
+        assert!(output.contains("<h1>Title</h1>"), "Should preserve nested elements");
+    }
+
     // =========================================================================
     // SessionCleanupScript
     // =========================================================================
