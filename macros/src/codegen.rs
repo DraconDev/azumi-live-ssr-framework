@@ -11,7 +11,7 @@ use crate::context::{Context, GenerationContext};
 use crate::token_parser;
 use proc_macro2;
 use quote::quote;
-use syn::parse::{Parse, ParseStream};
+use syn::parse::{Parse, ParseStream, Parser};
 
 // ---------------------------------------------------------------------------
 // Helpers for parsing Component arguments

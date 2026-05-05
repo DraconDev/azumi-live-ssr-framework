@@ -1,21 +1,22 @@
 # Project State
 
 ## Current Focus
-Removed unused imports from the macros library to reduce compilation dependencies.
+Refactored code generation imports and usage in the macros library
 
 ## Context
-This change was prompted by ongoing refactoring efforts to clean up the macros library after extracting HTML code generation logic to separate modules.
+The changes simplify the code generation logic by removing unused imports and adjusting import statements to reduce compilation overhead and improve maintainability.
 
 ## Completed
-- [x] Removed unused `syn::parse` imports from `macros/src/lib.rs`
+- [x] Removed unused `Context` import from `macros/src/lib.rs`
+- [x] Added `Parser` import to `macros/src/codegen.rs` for parsing functionality
 - [x] Updated Cargo.lock to reflect dependency changes
 
 ## In Progress
-- [x] Cleaning up remaining unused imports and dependencies
+- [ ] None
 
 ## Blockers
-- None identified
+- None
 
 ## Next Steps
-1. Review and remove any remaining unused imports
-2. Verify that the macros library still compiles and functions correctly
+1. Verify no functionality was broken by the import changes
+2. Consider if additional refactoring of the code generation logic is needed

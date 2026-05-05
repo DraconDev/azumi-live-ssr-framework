@@ -66,7 +66,7 @@ pub fn json_data(input: TokenStream) -> TokenStream {
     inline_inject::expand_json_data(input)
 }
 
-use context::{Context, GenerationContext};
+use context::GenerationContext;
 
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
@@ -540,7 +540,7 @@ fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 
 
 
-use context::{Context, GenerationContext};
+use context::GenerationContext;
 
 fn collect_all_styles(nodes: &[token_parser::Node]) -> (String, String) {
     let mut global_css = String::new();
