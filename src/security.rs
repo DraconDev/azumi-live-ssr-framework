@@ -571,50 +571,41 @@ mod tests {
 
     #[test]
     fn test_invalid_base64_signature() {
-        // Now all errors return "Invalid state"
         let result = verify_state(r#"{"count": 10}|1234567890|not-valid-base64!!!"#);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid state");
+        assert!(matches!(result, Err(VerifyStateError::SignatureDecodeFailed)));
     }
 
     #[test]
     fn test_missing_separator() {
-        // Now all errors return "Invalid state"
         let result = verify_state(r#"{"count": 10}"#);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid state");
+        assert!(matches!(result, Err(VerifyStateError::MissingPipe)));
     }
 
     #[test]
     fn test_expired_state_fails() {
-        // Create state with timestamp of 0 (epoch)
         let json = r#"{"count": 10}"#;
         let expired = format!("{}|0|invalid", json);
         let result = verify_state(&expired);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid state");
+        assert!(matches!(result, Err(VerifyStateError::TimestampExpired { .. })));
     }
 
     #[test]
     fn test_state_too_large_fails() {
         let json = "x".repeat(100_001);
         let result = verify_state(&json);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "Invalid state");
+        assert!(matches!(result, Err(VerifyStateError::StateTooLarge { .. })));
     }
 
     #[test]
     fn test_future_timestamp_rejected() {
         use std::time::{SystemTime, UNIX_EPOCH};
-        // Create a state with a timestamp 120 seconds in the future
         let current = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_secs())
             .unwrap_or(0);
-        let future_timestamp = current + 120; // 120 seconds in future
+        let future_timestamp = current + 120;
 
         let json = r#"{"count": 10}"#;
-        // Manually construct a state with a future timestamp
         let mut mac = HmacSha256::new_from_slice(b"azumi-dev-secret-do-not-use-in-prod").unwrap();
         mac.update(json.as_bytes());
         mac.update(&future_timestamp.to_be_bytes());
@@ -623,10 +614,9 @@ mod tests {
 
         let result = verify_state(&future_state);
         assert!(
-            result.is_err(),
+            matches!(result, Err(VerifyStateError::TimestampFuture { .. })),
             "Future timestamp beyond clock skew should be rejected"
         );
-        assert_eq!(result.unwrap_err(), "Invalid state");
     }
 
     #[test]
