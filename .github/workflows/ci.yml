@@ -30,11 +30,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Run tests
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run tests (all features)
         run: cargo test --all-features
 
-      - name: Run clippy
-        run: cargo clippy -- -D warnings
+      - name: Run tests (release)
+        run: cargo test --release --all-features
 
   test-macros:
     name: Macro Tests
