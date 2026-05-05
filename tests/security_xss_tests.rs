@@ -27,6 +27,7 @@ fn test_inline_script_escapes_closing_script_tag() {
     let js = "console.log('hi');</script>";
     let component = html! { {azumi::inline_script!(js)} };
     let output = test::render(&component);
+    eprintln!("OUTPUT: {:?}", output);
     assert!(!output.contains("</script>"), "Closing script tag should be escaped");
     assert!(output.contains(r"<\/script>"));
 }
