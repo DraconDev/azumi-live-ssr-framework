@@ -1,3 +1,4 @@
+mod codegen;
 mod component;
 mod accessibility_validator;
 mod action;
@@ -67,39 +68,7 @@ pub fn json_data(input: TokenStream) -> TokenStream {
     inline_inject::expand_json_data(input)
 }
 
-// Helpers for parsing Component arguments
-struct KeyValueArg {
-    key: syn::Ident,
-    value: syn::Expr,
-}
-
-impl Parse for KeyValueArg {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let key = input.parse()?;
-        input.parse::<Token![=]>()?;
-        let value = input.parse()?;
-        Ok(KeyValueArg { key, value })
-    }
-}
-
-fn parse_args(tokens: proc_macro2::TokenStream) -> syn::Result<Vec<KeyValueArg>> {
-    let parser = syn::punctuated::Punctuated::<KeyValueArg, Token![,]>::parse_terminated;
-    parser.parse2(tokens).map(|p| p.into_iter().collect())
-}
-
-// Resolve component path - components use exact module names (no suffix)
-fn resolve_component_path(path: &syn::Path) -> syn::Path {
-    path.clone()
-}
-
-// Helper for parsing space-separated expressions (e.g. class={expr1 expr2})
-fn parse_multi_exprs(input: ParseStream) -> syn::Result<Vec<syn::Expr>> {
-    let mut exprs = Vec::new();
-    while !input.is_empty() {
-        exprs.push(input.parse()?);
-    }
-    Ok(exprs)
-}
+use context::{Context, GenerationContext};
 
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
