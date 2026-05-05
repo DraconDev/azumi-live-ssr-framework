@@ -23,7 +23,7 @@ pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
         (format!("</{}", tag_lower), format!(r"<\/{}", tag_lower)),
         (format!("</{}", tag_title), format!(r"<\/{}", tag_title)),
         (format!("</{}", tag_upper), format!(r"<\/{}", tag_upper)),
-        (format!("</ {}", tag_lower), format!(r"<\/{}", tag_lower)),
+        (format!("</ {}", tag_lower), format!(r"<\/ {}", tag_lower)),
     ];
     
     let mut result = String::with_capacity(content.len() + content.len() / 8);
