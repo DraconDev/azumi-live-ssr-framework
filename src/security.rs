@@ -4,6 +4,7 @@ use sha2::Sha256;
 use std::env;
 use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
+use thiserror::Error;
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -194,19 +195,71 @@ fn verify_state_internal(
     }
 }
 
-#[derive(Debug)]
-#[allow(dead_code)]
-enum VerifyError {
-    StateTooLarge { len: usize },
-    TooManyPipes { count: usize },
+/// Error type for state verification failures.
+///
+/// Provides detailed information about why a signed state failed verification.
+/// Use `.to_string()` or `{:#}` for a human-readable description.
+///
+/// # Security Note
+///
+/// The `Display` implementation returns a generic "Invalid state" message
+/// to avoid leaking internal details to clients. The `Debug` implementation
+/// (`{:#?}`) provides detailed diagnostic information for troubleshooting
+/// during development.
+#[derive(Error, Debug)]
+pub enum VerifyStateError {
+    #[error("Invalid state")]
+    StateTooLarge {
+        /// The length of the signed state in bytes
+        len: usize,
+    },
+    #[error("Invalid state")]
+    TooManyPipes {
+        /// Number of '|' separators found
+        count: usize,
+    },
+    #[error("Invalid state")]
     MissingPipe,
-    TimestampParseFailed { raw: String },
-    TimestampFuture { ts: u64, now: u64, skew: u64 },
-    TimestampExpired { ts: u64, now: u64, max_age: u64 },
+    #[error("Invalid state")]
+    TimestampParseFailed {
+        /// The raw timestamp string that couldn't be parsed
+        raw: String,
+    },
+    #[error("Invalid state")]
+    TimestampFuture {
+        /// The timestamp in the state
+        ts: u64,
+        /// Current system time
+        now: u64,
+        /// Allowed clock skew in seconds
+        skew: u64,
+    },
+    #[error("Invalid state")]
+    TimestampExpired {
+        /// The timestamp in the state
+        ts: u64,
+        /// Current system time
+        now: u64,
+        /// Maximum allowed age in seconds
+        max_age: u64,
+    },
+    #[error("Invalid state")]
     TimestampMaxValue,
-    UserIdMismatch { expected: String, actual: String },
-    UnexpectedUserId { actual: String },
+    #[error("Invalid state")]
+    UserIdMismatch {
+        /// The expected user ID
+        expected: String,
+        /// The actual user ID found in the state
+        actual: String,
+    },
+    #[error("Invalid state")]
+    UnexpectedUserId {
+        /// The user ID that was unexpectedly present
+        actual: String,
+    },
+    #[error("Invalid state")]
     SignatureDecodeFailed,
+    #[error("Invalid state")]
     HmacVerificationFailed,
 }
 
