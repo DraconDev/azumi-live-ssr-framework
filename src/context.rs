@@ -77,6 +77,16 @@ thread_local! {
 ///
 /// This is intentional: each thread has its own `PAGE_META`, so developers must ensure
 /// guards do not cross thread boundaries.
+///
+/// # Migration Path
+///
+/// To make this async-safe, `tokio::task_local!` should replace `thread_local!` for
+/// `PAGE_META`. This requires:
+/// 1. Changing `PageMetaState` from `Rc<AtomicU32>` to `Arc<AtomicU32>`
+/// 2. Adapting the guard's `Drop` to use `tokio::task_local!` scope API
+/// 3. The inner `RefCell` type does NOT need to be `Send` (tokio::task_local supports !Send)
+/// 
+/// This is a planned improvement but requires careful testing across async boundaries.
 #[derive(Clone)]
 #[allow(dead_code)]
 pub struct PageMetaGuard(PageMetaState);

@@ -1,21 +1,22 @@
 # Project State
 
 ## Current Focus
-Removed redundant property-based test for content escaping idempotency
+Add migration path documentation for making `PAGE_META` async-safe using `tokio::task_local!`
 
 ## Context
-The test was previously refactored to ensure proper escaping behavior, but the idempotency check was redundant since the core escaping logic already guarantees this property.
+The current implementation uses `thread_local!` for `PAGE_META`, which is not async-safe. This change documents the migration path to use `tokio::task_local!` instead, including required type changes and considerations.
 
 ## Completed
-- [x] Removed redundant idempotency test for script content escaping
-- [x] Removed redundant idempotency test for style content escaping
+- [x] Documented migration steps for async safety
+- [x] Specified type changes needed (`Rc<AtomicU32>` → `Arc<AtomicU32>`)
+- [x] Clarified `RefCell` usage remains compatible with `tokio::task_local!`
 
 ## In Progress
-- [x] No active work in progress
+- [ ] Implementation of the migration (pending careful testing across async boundaries)
 
 ## Blockers
-- None
+- Requires verification that the migration doesn't introduce race conditions in async contexts
 
 ## Next Steps
-1. Review other test cases for potential redundancy
-2. Ensure all remaining tests maintain proper coverage of escaping behavior
+1. Implement the migration according to documented steps
+2. Add comprehensive tests for async safety
