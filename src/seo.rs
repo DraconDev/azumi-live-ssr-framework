@@ -282,10 +282,26 @@ pub fn generate_head(
         }
     }
 
-    crate::Raw(html)
+    // Return the built HTML string wrapped in a Component
+    HeadContent(html)
 }
 
-pub fn render_automatic_seo() -> crate::Raw<String> {
+/// Public wrapper for SEO head content. Returned by `generate_head()`.
+pub struct HeadContent(pub String);
+
+impl Component for HeadContent {
+    fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::fmt::Display for HeadContent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+pub fn render_automatic_seo() -> HeadContent {
     generate_head("", None, None, None, None)
 }
 
