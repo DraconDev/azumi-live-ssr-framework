@@ -134,8 +134,8 @@ pub fn expand_inline_script(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         {
             let __script = #value;
-            // Escape </script> to prevent XSS
-            let __escaped = __script.replace("</script>", "<\\/script>");
+            // Escape </script> to prevent XSS (case-insensitive)
+            let __escaped = azumi::escape_script_content(&__script);
             azumi::from_fn_once(move |f| {
                 write!(f, "<script>{}</script>", __escaped)?;
                 Ok(())
