@@ -10,11 +10,12 @@ pub fn escape_script_content(js: &str) -> String {
 }
 
 /// Escape `</style>` in CSS strings (case-insensitive) to prevent XSS.
-/// Covers: </style>, </Style>, </STYLE>
+/// Covers: </style>, </Style>, </STYLE>, </ style>
 pub fn escape_style_content(css: &str) -> String {
     css.replace("</style>", r"<\/style>")
         .replace("</Style>", r"<\/Style>")
         .replace("</STYLE>", r"<\/STYLE>")
+        .replace("</ style>", r"<\/ style>")
 }
 
 pub struct AzumiScript;

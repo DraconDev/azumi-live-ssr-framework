@@ -1,22 +1,21 @@
 # Project State
 
 ## Current Focus
-Enhance Azumi's XSS protection by completely banning `Raw()` usage in HTML macros
+Enhanced XSS protection in HTML injection macros by adding case-insensitive style tag validation.
 
 ## Context
-This change follows recent security-focused commits that strengthened Azumi's XSS protection mechanisms. The `Raw()` injection method was identified as a critical vulnerability point that bypassed all safety guarantees.
+This change builds on recent security improvements to Azumi's XSS protection system. The previous work focused on script tags, and this commit extends coverage to style tags with case-insensitive matching.
 
 ## Completed
-- [x] Removed `Raw()` usage from HTML structure validation
-- [x] Updated error message to clearly explain security risks
-- [x] Added hidden documentation marker for internal component constructor
+- [x] Added case-insensitive style tag validation in `escape_style_content()`
+- [x] Updated documentation in AGENTS.md to reflect expanded test coverage (22 tests now)
 
 ## In Progress
-- [x] Comprehensive compile-time validation for XSS protection
+- [ ] None (this is a focused security enhancement)
 
 ## Blockers
-- None identified in this commit
+- None (this is a self-contained security improvement)
 
 ## Next Steps
-1. Verify all safe injection alternatives are properly documented
-2. Ensure all existing codebases using `Raw()` are migrated to safer alternatives
+1. Verify test coverage for all style tag variations
+2. Consider similar enhancements for other HTML tags if needed

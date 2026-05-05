@@ -93,7 +93,7 @@ azumi/
 │   ├── test/mod.rs                     # Test utilities (render, assert_selector)
 │   └── context.rs                      # Page metadata context
 ├── tests/
-│   ├── inline_inject_tests.rs          # 15 tests for safe injection macros
+│   ├── inline_inject_tests.rs          # 22 tests for safe injection macros
 │   ├── ai_lint_tests.rs                # AI-first validation tests
 │   └── ... (36 other test files)
 ├── client/
