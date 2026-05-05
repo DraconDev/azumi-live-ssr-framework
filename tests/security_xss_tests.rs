@@ -53,6 +53,7 @@ fn test_inline_script_escapes_multiple_script_tags() {
     let js = "a</script>b</script>c";
     let component = html! { {azumi::inline_script!(js)} };
     let output = test::render(&component);
+    eprintln!("MULTI SCRIPT OUTPUT: {:?}", output);
     assert!(!output.contains("</script>"), "Closing script tag should be escaped");
     assert_eq!(output.matches(r"<\/script>").count(), 2, "Both script tags should be escaped");
 }
