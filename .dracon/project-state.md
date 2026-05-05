@@ -1,24 +1,21 @@
 # Project State
 
 ## Current Focus
-Enforce stricter safety guarantees by completely banning Raw() usage in html! expressions
+Update Cargo.lock to reflect dependency changes from recent macro and documentation updates
 
 ## Context
-The previous implementation had complex validation rules for Raw() usage that were difficult to maintain and understand. This change simplifies the validation by completely prohibiting Raw() in favor of safer alternatives.
+Recent additions of safe injection macros and documentation improvements required dependency updates to ensure compatibility with new features.
 
 ## Completed
-- [x] Removed all specific validation rules for Raw() content patterns
-- [x] Added comprehensive documentation explaining why Raw() is dangerous and what to use instead
-- [x] Standardized error messages to point developers to the safe alternatives
-- [x] Simplified the validation logic to a single check for Raw() presence
+- [x] Updated Cargo.lock to reflect dependency changes from procedural macro and documentation updates
 
 ## In Progress
-- [ ] Update all existing codebases to replace Raw() with the new safe injection macros
+- [x] No active work in progress beyond the Cargo.lock update
 
 ## Blockers
-- Existing codebases may contain Raw() usage that needs to be migrated
+- None identified
 
 ## Next Steps
-1. Update all documentation to reflect the new Raw() prohibition
-2. Create migration tools to help developers replace Raw() with safe alternatives
-3. Update the AI_GUIDE_FOR_WRITING_AZUMI.md with detailed migration instructions
+1. Verify all dependencies are properly resolved
+2. Continue with ongoing documentation and macro development
+```
