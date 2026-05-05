@@ -575,47 +575,6 @@ fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 
 use context::{Context, GenerationContext};
 
-#[derive(Clone, Debug)]
-struct GenerationContext {
-    mode: Context,
-    scope_id: Option<String>,
-    valid_classes: std::collections::HashSet<String>,
-    valid_ids: std::collections::HashSet<String>,
-}
-
-impl GenerationContext {
-    fn normal() -> Self {
-        Self {
-            mode: Context::Normal,
-            scope_id: None,
-            valid_classes: std::collections::HashSet::new(),
-            valid_ids: std::collections::HashSet::new(),
-        }
-    }
-
-    fn with_scope(
-        scope_id: String,
-        valid_classes: std::collections::HashSet<String>,
-        valid_ids: std::collections::HashSet<String>,
-    ) -> Self {
-        Self {
-            mode: Context::Normal,
-            scope_id: Some(scope_id),
-            valid_classes,
-            valid_ids,
-        }
-    }
-
-    fn with_mode(&self, mode: Context) -> Self {
-        Self {
-            mode,
-            scope_id: self.scope_id.clone(),
-            valid_classes: self.valid_classes.clone(),
-            valid_ids: self.valid_ids.clone(),
-        }
-    }
-}
-
 fn collect_all_styles(nodes: &[token_parser::Node]) -> (String, String) {
     let mut global_css = String::new();
     let mut scoped_css = String::new();
