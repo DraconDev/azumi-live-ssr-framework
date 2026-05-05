@@ -1,28 +1,21 @@
 # Project State
 
 ## Current Focus
-Enforce strict XSS protection by blocking all `Raw()` usage and introducing safe injection macros.
+Removed `TrustedHtml` from public exports to enforce stricter XSS protection.
 
 ## Context
-Previous commits focused on comprehensive XSS protection testing. This change makes XSS protection mandatory by:
-1. Blocking all `Raw()` usage in `html!` macros
-2. Providing safe injection macros for JSON, CSS, and JavaScript
-3. Adding case-insensitive escaping for injection patterns
+This change aligns with recent security work to eliminate all `Raw()` usage and enforce strict XSS protection. The `TrustedHtml` type was previously exposed but is no longer needed after refactoring.
 
 ## Completed
-- [x] Blocked all `Raw()` usage in `html!` macros
-- [x] Added `json_data!`, `inline_css!`, and `inline_script!` macros
-- [x] Implemented case-insensitive escaping for injection patterns
-- [x] Updated documentation with migration instructions
-- [x] Added framework rules array for AI verification
+- [x] Removed `TrustedHtml` from public exports to prevent unsafe HTML injection
+- [x] Maintained all other public exports for backward compatibility
 
 ## In Progress
-- [x] Comprehensive XSS protection enforcement
+- [x] Ongoing XSS protection test coverage improvements
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Update all framework components to use safe injection macros
-2. Add migration examples for common patterns
-3. Expand test coverage for edge cases
+1. Verify no breaking changes in dependent projects
+2. Update documentation to reflect the stricter XSS protection policy

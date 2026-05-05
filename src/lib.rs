@@ -3,7 +3,7 @@ pub mod prelude {
     pub use crate::{
         action, azumi_script, component, head, html, inline_css, inline_script, json_data, live,
         live_impl, page, predict, session_cleanup_script, AzumiScript, Component, escape_css_string,
-        from_fn, FnComponent, TrustedHtml,
+        from_fn, FnComponent,
     };
 }
 
