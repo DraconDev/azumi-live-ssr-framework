@@ -540,8 +540,6 @@ fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 
 
 
-use context::GenerationContext;
-
 fn collect_all_styles(nodes: &[token_parser::Node]) -> (String, String) {
     let mut global_css = String::new();
     let mut scoped_css = String::new();
