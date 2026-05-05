@@ -449,7 +449,7 @@ impl Parse for Element {
                         && matches!(&attr.value, AttributeValue::Static(v) if v.contains("json"))
                 });
 
-            // Allow scripts with dynamic content (expressions) like {azumi::Raw(...)}
+            // Allow scripts with dynamic content (expressions) like inline_script! or json_data!
             let has_expression_child = children
                 .iter()
                 .any(|node| matches!(node, Node::Expression(_)));
@@ -462,22 +462,24 @@ impl Parse for Element {
                     "JavaScript must be external or JSON data:
   ✅ <script src=\"/static/app.js\" />
   ✅ <script type=\"application/json\">{{ data }}</script>
-  ✅ <script>@{azumi::Raw(\"console.log(1)\")}</script>
+  ✅ <script>{ azumi::json_data!(\"MY_DATA\" = &data) }</script>
+  ✅ <script>{ azumi::inline_script!(AI_HUB_COPY_JS) }</script>
   ❌ <script>const x = 42;</script>
 
-For data: use data-* attributes or JSON script blocks"
+For data: use json_data! macro, inline_script! macro, or data-* attributes"
                 } else {
                     "CSS must be external:
   ✅ <style src=\"components/card.css\" />  (auto-scoped)
+  ✅ <style>{ azumi::inline_css!(HUB_GLOBAL_CSS) }</style>
   ❌ <style>.card { padding: 2em; }</style>
 
-For dynamic styles: use style attribute with expressions"
+For dynamic styles: use inline_css! macro or style attribute with expressions"
                 };
 
                 return Err(Error::new(
                     if let Some(joined) = start_span.join(name_span) { joined } else { name_span },
                     format!(
-                                "Inline <{}> tags not allowed in Azumi\n\n{}\n\nNote: the escape hatch is explicit expressions only (`@{{azumi::Raw(...)}}`) and should be used sparingly.\n\nWhy? External files get full IDE support (linting, autocomplete, error checking).",
+                                "Inline <{}> tags not allowed in Azumi\n\n{}\n\nUse the safe injection macros instead of Raw(). See: AI_GUIDE_FOR_WRITING_AZUMI.md section \"Safe Injection Macros\".",
                         name, tag_help
                     ),
                 ));

@@ -1,22 +1,28 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect dependency changes from recent procedural macro enhancements
+Enhanced HTML content validation and added safe injection macros for JSON data, CSS, and JavaScript
 
 ## Context
-Recent additions of procedural macros for safe HTML content injection (JSON, CSS, JavaScript) required dependency updates to support new validation and expansion functionality.
+The framework previously allowed unsafe inline JavaScript/CSS through `azumi::Raw()` expressions. This change enforces stricter safety by:
+1. Banning all inline content by default
+2. Providing explicit, validated injection macros
+3. Improving documentation for safe patterns
 
 ## Completed
-- [x] Updated Cargo.lock to reflect dependency changes from procedural macro enhancements
-- [x] Ensured all dependencies are properly versioned for the new macro features
+- [x] Updated token parser to reject inline `<script>` and `<style>` tags unless using safe macros
+- [x] Added comprehensive test coverage for JSON data, CSS, and JavaScript injection
+- [x] Enhanced error messages to guide developers to safe injection patterns
+- [x] Added support for Unicode characters in injected content
+- [x] Implemented validation for empty and numeric JSON values
 
 ## In Progress
-- [ ] Verifying that all dependent crates are compatible with the new macro versions
+- [x] Implementation of safe injection macros (`json_data!`, `inline_css!`, `inline_script!`)
 
 ## Blockers
-- None identified at this stage
+- None identified in this commit
 
 ## Next Steps
-1. Verify that all dependent crates are compatible with the updated dependencies
-2. Prepare for integration testing of the new macro features
-```
+1. Update documentation to reference the new safe injection patterns
+2. Add examples of migration from Raw() to new macros
+3. Consider adding build-time validation for macro usage
