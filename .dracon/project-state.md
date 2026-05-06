@@ -1,23 +1,21 @@
 # Project State
 
 ## Current Focus
-Removal of bind validation and format validation logic from the macros library
+Refactored CSS validation logic in the macro to improve separation of concerns
 
 ## Context
-This change follows a series of refactoring commits that moved these validation features into dedicated modules. The current commit removes the remaining implementation code from the main macros library file, completing the separation of concerns.
+This change follows the recent refactoring of CSS injection and validation logic into dedicated modules. The goal is to improve maintainability and testability of the macro's CSS processing functionality.
 
 ## Completed
-- [x] Removed bind validation logic including `collect_bind_checks` and `collect_input_names` functions
-- [x] Removed format validation logic including `validate_format_in_expressions` function
-- [x] Removed identifier validation helper `is_valid_identifier`
-- [x] Cleaned up the main macros library file by removing 238 lines of validation code
+- [x] Removed CSS validation logic from the macro's main function
+- [x] Updated Cargo.lock to reflect dependency changes
 
 ## In Progress
-- [ ] None - this represents the final cleanup of the refactoring
+- [x] Refactoring of CSS validation logic into a dedicated module
 
 ## Blockers
-- None - this is a straightforward cleanup of previously refactored code
+- Need to ensure all CSS validation scenarios are properly covered in the new module
 
 ## Next Steps
-1. Update documentation to reflect the new module structure
-2. Verify all tests pass with the refactored validation modules
+1. Complete the CSS validation module implementation
+2. Update tests to verify the new validation approach

@@ -236,7 +236,8 @@ fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 
 fn generate_body(
     nodes: &[token_parser::Node],
-    let css_validation_errors = css_validator::validate_component_css(nodes);
+    span: Option<(usize, usize)>,
+) -> proc_macro2::TokenStream {
     if !css_validation_errors.is_empty() {
         return css_validation_errors;
     }
