@@ -207,6 +207,7 @@ fn is_vec_type(ty: &syn::Type) -> bool {
 }
 
 /// Generate field serialization code based on the type
+#[allow(dead_code)]
 fn generate_field_serialization(
     field_name: &syn::Ident,
     field_type: &syn::Type,

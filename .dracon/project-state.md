@@ -1,24 +1,20 @@
 # Project State
 
 ## Current Focus
-Added utility functions for schema processing in the macros crate
+Added dead code annotation to a field serialization utility function
 
 ## Context
-The changes prepare the schema processing infrastructure by adding helper functions that will be used to extract and validate schema attributes during code generation.
+This change was made as part of ongoing work to improve schema processing utilities in the macros crate. The function was identified as potentially unused but needed to remain in the codebase for future reference or potential reuse.
 
 ## Completed
-- [x] Added `extract_schema_type` to extract schema type from attributes
-- [x] Added `should_skip_field` to check if a field should be skipped
-- [x] Added `extract_field_name` to extract custom field names
-- [x] Added `is_option_type` to check for Option<T> types
-- [x] Added `is_vec_type` to check for Vec<T> types
+- [x] Added `#[allow(dead_code)]` attribute to `generate_field_serialization` function to mark it as intentionally unused
 
 ## In Progress
-- [x] Implementation of schema processing utilities
+- [ ] No active work in progress related to this change
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Implement schema processing logic using these utilities
-2. Integrate with existing schema derivation macros
+1. Review other potentially unused functions in the schema module
+2. Consider removing truly dead code in a separate refactoring pass
