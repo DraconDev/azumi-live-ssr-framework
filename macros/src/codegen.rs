@@ -378,7 +378,6 @@ pub(crate) fn generate_body_with_context(
                                 });
                             }
                             _ => {}
-                        }
                     }
                 }
 
