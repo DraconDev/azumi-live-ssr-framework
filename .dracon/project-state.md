@@ -1,24 +1,21 @@
 # Project State
 
 ## Current Focus
-Added CSS injection capability into HTML head elements during template processing
+Refactored bind validation checks into a dedicated module for better organization.
 
 ## Context
-This change enables dynamic CSS injection at compile-time by providing a function to insert CSS text into the first `<head>` element found in the parsed HTML node tree. This supports runtime styling customization while maintaining compile-time validation.
+The code was part of the compile-time validation system for form bindings. Moving the validation logic to a dedicated module improves maintainability and separation of concerns.
 
 ## Completed
-- [x] Added `inject_css_into_head` function to recursively search for `<head>` elements
-- [x] Implemented insertion of CSS text as raw text node at beginning of head
-- [x] Added support for nested element structures and conditional blocks
-- [x] Included proper span preservation for error reporting
+- [x] Moved `collect_bind_checks` function to `validators` module
+- [x] Updated import path to reference the new module location
 
 ## In Progress
-- [x] CSS injection functionality implementation
+- [ ] No active work in progress
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Add unit tests for CSS injection scenarios
-2. Integrate with existing style processing pipeline
-3. Document usage patterns for template authors
+1. Verify all existing validation tests still pass
+2. Consider adding unit tests for the new module structure

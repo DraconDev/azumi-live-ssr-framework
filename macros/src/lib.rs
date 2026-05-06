@@ -84,7 +84,7 @@ pub fn html(input: TokenStream) -> TokenStream {
 
     // 3. Generate bind validation checks
     let mut validation_checks = Vec::new();
-    collect_bind_checks(&nodes, &mut validation_checks);
+    validators::collect_bind_checks(&nodes, &mut validation_checks);
 
     let expanded = quote! {
         {
