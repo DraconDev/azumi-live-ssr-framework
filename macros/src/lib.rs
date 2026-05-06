@@ -565,7 +565,7 @@ fn generate_body(
 
         let (body_content, css_injected) = if let Some(sid) = &scope_id {
             let mut working_nodes = nodes.to_vec();
-            let injected = inject_css_into_head(&mut working_nodes, &css_to_inject);
+            let injected = style_processing::inject_css_into_head(&mut working_nodes, &css_to_inject);
             let ctx = GenerationContext::with_scope(
                 sid.clone(),
                 valid_classes.clone(),

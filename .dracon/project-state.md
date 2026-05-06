@@ -1,14 +1,14 @@
 # Project State
 
 ## Current Focus
-Refactored format validation logic to use a dedicated validators module.
+Refactored CSS injection logic to use a dedicated module for better organization.
 
 ## Context
-This change was prompted by the ongoing refactoring effort to improve code organization and maintainability. The format validation logic was previously inline in the macros library, which is being gradually moved to dedicated modules.
+This change was prompted by the ongoing refactoring of style processing logic (see recent commits). The goal is to improve code organization and maintainability by moving related functionality into a dedicated module.
 
 ## Completed
-- [x] Moved format validation function to validators module
-- [x] Updated import path to reference the new module location
+- [x] Moved `inject_css_into_head` function to `style_processing` module
+- [x] Updated function call to use the new module path
 
 ## In Progress
 - [ ] No active work in progress
@@ -17,5 +17,5 @@ This change was prompted by the ongoing refactoring effort to improve code organ
 - None identified
 
 ## Next Steps
-1. Verify all format validation tests pass with the new module structure
-2. Continue refactoring other related validation logic to follow the same pattern
+1. Verify all CSS injection functionality remains unchanged
+2. Update related tests to reflect the module structure change
