@@ -1,8 +1,8 @@
 {
-  "/static/photo.jpg": "/assets/photo.0819482d.jpg",
-  "/static/test_logo.png": "/assets/test_logo.7ef6366f.png",
-  "/static/idiomorph.js": "/assets/idiomorph.f81ba57d.js",
-  "/static/hero.jpg": "/assets/hero.825c02d7.jpg",
   "/static/nature.jpg": "/assets/nature.71348cb3.jpg",
-  "/static/azumi.js": "/assets/azumi.1580cf4b.js"
+  "/static/hero.jpg": "/assets/hero.825c02d7.jpg",
+  "/static/test_logo.png": "/assets/test_logo.7ef6366f.png",
+  "/static/photo.jpg": "/assets/photo.0819482d.jpg",
+  "/static/azumi.js": "/assets/azumi.1580cf4b.js",
+  "/static/idiomorph.js": "/assets/idiomorph.f81ba57d.js"
 }
