@@ -1,20 +1,20 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Reorganized static asset mappings in the demo assets manifest
 
 ## Context
-This change updates the dependency lockfile to incorporate recent modifications in the Azumi framework, ensuring version consistency across the project.
+The change was prompted by a refactoring of the macro system's module organization, which required updating the asset manifest to maintain consistent static asset mappings.
 
 ## Completed
-- [x] Updated Cargo.lock with latest dependency versions from Azumi framework
+- [x] Reordered static asset mappings in `assets_manifest.json` to match the refactored module structure
 
 ## In Progress
-- [x] Dependency synchronization with Azumi framework updates
+- [x] Verification of asset references in the demo application
 
 ## Blockers
-- None identified for this specific change
+- None identified
 
 ## Next Steps
-1. Verify all dependencies are properly resolved
-2. Test the project with the updated dependencies
+1. Verify all static assets are correctly referenced in the demo application
+2. Update related documentation if needed
