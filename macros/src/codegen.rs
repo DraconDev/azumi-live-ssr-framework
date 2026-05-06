@@ -55,6 +55,114 @@ pub(crate) fn parse_multi_exprs(
 }
 
 // ---------------------------------------------------------------------------
+// Scope ID helpers
+// ---------------------------------------------------------------------------
+
+pub(crate) fn first_node_span(nodes: &[token_parser::Node]) -> Option<(usize, usize)> {
+    fn find_span(node: &token_parser::Node) -> Option<(usize, usize)> {
+        match node {
+            token_parser::Node::Element(elem) => {
+                let loc = elem.span.start();
+                Some((loc.line, loc.column))
+            }
+            token_parser::Node::Text(text) => {
+                let loc = text.span.start();
+                Some((loc.line, loc.column))
+            }
+            token_parser::Node::RawText(text) => {
+                let loc = text.span.start();
+                Some((loc.line, loc.column))
+            }
+            token_parser::Node::Expression(expr) => {
+                let loc = expr.span.start();
+                Some((loc.line, loc.column))
+            }
+            token_parser::Node::Fragment(frag) => {
+                for child in &frag.children {
+                    if let Some(span) = find_span(child) {
+                        return Some(span);
+                    }
+                }
+                None
+            }
+            token_parser::Node::Block(block) => match block {
+                token_parser::Block::If(if_block) => {
+                    if let Some(span) = first_node_span(&if_block.then_branch) {
+                        return Some(span);
+                    }
+                    if let Some(else_branch) = &if_block.else_branch {
+                        if let Some(span) = first_node_span(else_branch) {
+                            return Some(span);
+                        }
+                    }
+                    let loc = if_block.span.start();
+                    Some((loc.line, loc.column))
+                }
+                token_parser::Block::For(for_block) => {
+                    if let Some(span) = first_node_span(&for_block.body) {
+                        return Some(span);
+                    }
+                    let loc = for_block.span.start();
+                    Some((loc.line, loc.column))
+                }
+                token_parser::Block::Match(match_block) => {
+                    for arm in &match_block.arms {
+                        if let Some(span) = first_node_span(&arm.body) {
+                            return Some(span);
+                        }
+                    }
+                    let loc = match_block.span.start();
+                    Some((loc.line, loc.column))
+                }
+                token_parser::Block::Call(call_block) => {
+                    if let Some(span) = first_node_span(&call_block.children) {
+                        return Some(span);
+                    }
+                    let loc = call_block.span.start();
+                    Some((loc.line, loc.column))
+                }
+                token_parser::Block::Let(let_block) => {
+                    let loc = let_block.span.start();
+                    Some((loc.line, loc.column))
+                }
+                token_parser::Block::Style(style_block) => {
+                    let loc = style_block.span.start();
+                    Some((loc.line, loc.column))
+                }
+                token_parser::Block::Component(comp_block) => {
+                    let loc = comp_block.span.start();
+                    Some((loc.line, loc.column))
+                }
+            },
+            token_parser::Node::Comment(comment) => {
+                let loc = comment.span.start();
+                Some((loc.line, loc.column))
+            }
+            token_parser::Node::Doctype(doctype) => {
+                let loc = doctype.span.start();
+                Some((loc.line, loc.column))
+            }
+        }
+    }
+
+    for node in nodes {
+        if let Some(span) = find_span(node) {
+            return Some(span);
+        }
+    }
+    None
+}
+
+pub(crate) fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
+    use fnv::FnvHasher;
+    use std::hash::{Hash, Hasher};
+    let mut hasher = FnvHasher::default();
+    line.hash(&mut hasher);
+    col.hash(&mut hasher);
+    format!("s{:x}", hasher.finish())
+}
+
+// ---------------------------------------------------------------------------
 // Core code-generation function
 // ---------------------------------------------------------------------------
 
