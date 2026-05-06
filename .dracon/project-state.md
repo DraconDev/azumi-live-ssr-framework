@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Removal of CSS injection logic from the main macro module
 
 ## Context
-This change was triggered by multiple refactoring and feature additions across the CSS validation, injection, and scoping modules. The updates ensure all dependencies are properly versioned and resolved.
+This change continues the ongoing refactoring effort to improve code organization by separating CSS-related functionality into dedicated modules. The CSS injection logic was previously part of the main macro module but has been moved to a separate module for better maintainability and separation of concerns.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect recent dependency changes
-- [x] Synchronized dependency versions with framework changes
+- [x] Removed the `inject_css_into_head` function and its associated code from the main macro module
+- [x] Removed the `validators` module declaration that was no longer needed
 
 ## In Progress
-- [x] Dependency resolution and version synchronization
+- [ ] None (this is a completed refactoring step)
 
 ## Blockers
-- None reported for this specific change
+- None (this change is complete)
 
 ## Next Steps
-1. Verify all dependencies are properly resolved
-2. Continue with ongoing refactoring and testing efforts
+1. Verify that the CSS injection functionality continues to work correctly after the refactoring
+2. Ensure all tests pass with the updated module structure
