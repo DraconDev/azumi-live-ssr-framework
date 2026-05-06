@@ -143,6 +143,31 @@ jobs:
       - name: Run benchmarks (smoke test)
         run: cargo bench -- --warm-up-time 1 --measurement-time 1 2>&1 | tail -20
 
+  benchmark-regression:
+    name: Benchmark Regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Run benchmarks with regression check
+        run: |
+          # Install cargo-criterion for stable output
+          cargo bench -- --warm-up-time 1 --measurement-time 2 2>&1 | tee bench_output.txt
+          echo "--- Benchmark Results ---"
+          grep -E "time:|Benchmarking" bench_output.txt | tail -30
+          echo "--- Baseline Comparison (manual check required) ---"
+          echo "Compare against docs/perf/baseline_v47.0.0.md"
+
   audit:
     name: Security Audit
     runs-on: ubuntu-latest

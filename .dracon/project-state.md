@@ -1,22 +1,23 @@
 # Project State
 
 ## Current Focus
-docs(scope): update architecture documentation to reflect recent macro refactoring
+Added benchmark regression testing to CI pipeline
 
 ## Context
-The recent refactoring of the HTML macro system required updating the architecture documentation to accurately reflect the new module structure and responsibilities.
+To ensure performance doesn't degrade between versions, we need to track benchmark results and compare against known baselines.
 
 ## Completed
-- [x] Added module responsibility table showing codegen.rs as a dedicated module
-- [x] Updated code generation section to specify the module name
-- [x] Maintained the rendering flow documentation while adding module details
+- [x] Added new `benchmark-regression` job to CI pipeline
+- [x] Implemented benchmark execution with stable output format
+- [x] Added baseline comparison documentation step
+- [x] Configured caching for faster benchmark runs
 
 ## In Progress
-- [x] Architecture documentation now accurately reflects the current macro implementation
+- [ ] Manual verification of benchmark results against baseline
 
 ## Blockers
-- None
+- Need to establish initial baseline measurements for comparison
 
 ## Next Steps
-1. Verify documentation matches the current code structure
-2. Update any related documentation that may reference the macro system
+1. Run initial benchmarks and document results in `docs/perf/baseline_v47.0.0.md`
+2. Automate baseline comparison in future CI runs
