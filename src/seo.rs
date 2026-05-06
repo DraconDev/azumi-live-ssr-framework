@@ -216,8 +216,11 @@ pub fn generate_head(
         let _ = write!(html, r#"<link rel="canonical" href="{}">"#, url);
     }
 
+    eprintln!("DEBUG generate_head: global = {:?}", global.is_some());
     if let Some(ref g) = global {
+        eprintln!("DEBUG: global is Some, og = {:?}", g.open_graph.is_some());
         if let Some(ref og) = g.open_graph {
+            eprintln!("DEBUG: og block entered");
             let _ = write!(
                 html,
                 r#"<meta property="og:title" content="{}">"#,
