@@ -77,7 +77,7 @@ pub fn html(input: TokenStream) -> TokenStream {
     asset_rewriter::rewrite_nodes(&mut nodes);
 
     // 1. Process styles (hoist <style> tags)
-    let (style_bindings, _scoped_css, _global_css) = process_styles(&nodes);
+    let (style_bindings, _scoped_css, _global_css) = style_processing::process_styles(&nodes);
 
     // 2. Generate HTML string construction code
     let html_construction = generate_nodes(&nodes);
