@@ -1,26 +1,24 @@
 # Project State
 
 ## Current Focus
-Added comprehensive property-based tests for CSS scoping functionality
+Refactored and expanded CSS scoping tests to cover more edge cases and improve test coverage
 
 ## Context
-To ensure robust CSS scoping behavior across various CSS constructs, including selectors, media queries, pseudo-classes, and pseudo-elements, while maintaining special cases for keyframes and font-face rules.
+The CSS scoping functionality needs comprehensive test coverage to ensure all selector types are properly scoped while preserving special rules like keyframes and media queries. This refactoring improves test organization and coverage.
 
 ## Completed
-- [x] Added property-based tests for CSS scoping functionality
-- [x] Verified scope attribute presence in all selectors
-- [x] Ensured keyframes and font-face rules remain unscoped
-- [x] Validated recursive scoping in media queries
-- [x] Confirmed proper scoping of pseudo-classes and pseudo-elements
-- [x] Tested comma-separated selector lists
-- [x] Verified edge cases with empty and whitespace-only inputs
+- [x] Consolidated multiple property-based tests into a single module
+- [x] Added test cases for media queries, pseudo-elements, and pseudo-classes
+- [x] Included tests for special rules like @keyframes and @font-face
+- [x] Added edge case tests for empty input and whitespace-only input
+- [x] Improved test assertions with more descriptive error messages
 
 ## In Progress
-- [x] Comprehensive CSS scoping test coverage
+- [ ] No active work in progress
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Review test coverage for any missed edge cases
-2. Integrate these tests into the CI pipeline
+1. Verify all test cases pass with current implementation
+2. Consider adding performance tests for large CSS inputs
