@@ -117,7 +117,7 @@ pub fn html(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-fn process_styles(nodes: &[token_parser::Node]) -> (proc_macro2::TokenStream, String, String) {
+mod style_processing;
     let mut bindings = proc_macro2::TokenStream::new();
     let mut scoped_css = String::new();
     let mut global_css = String::new();
