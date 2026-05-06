@@ -769,7 +769,7 @@ fn inject_css_into_head(nodes: &mut Vec<token_parser::Node>, css: &str) -> bool 
     false
 }
 
-fn validate_nodes(
+mod validators;
     nodes: &[token_parser::Node],
     valid_classes: &std::collections::HashSet<String>,
     valid_ids: &std::collections::HashSet<String>,
