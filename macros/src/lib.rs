@@ -497,7 +497,7 @@ fn generate_body(
         return tokens;
     }
 
-    let format_warnings = validate_format_in_expressions(nodes);
+    let format_warnings = validators::validate_format_in_expressions(nodes);
     if !format_warnings.is_empty() {
         let mut tokens = proc_macro2::TokenStream::new();
         for warn in format_warnings {

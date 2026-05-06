@@ -1,13 +1,13 @@
 # Project State
 
 ## Current Focus
-Refactored bind validation checks into a dedicated module for better organization.
+Refactored format validation logic to use a dedicated validators module.
 
 ## Context
-The code was part of the compile-time validation system for form bindings. Moving the validation logic to a dedicated module improves maintainability and separation of concerns.
+This change was prompted by the ongoing refactoring effort to improve code organization and maintainability. The format validation logic was previously inline in the macros library, which is being gradually moved to dedicated modules.
 
 ## Completed
-- [x] Moved `collect_bind_checks` function to `validators` module
+- [x] Moved format validation function to validators module
 - [x] Updated import path to reference the new module location
 
 ## In Progress
@@ -17,5 +17,5 @@ The code was part of the compile-time validation system for form bindings. Movin
 - None identified
 
 ## Next Steps
-1. Verify all existing validation tests still pass
-2. Consider adding unit tests for the new module structure
+1. Verify all format validation tests pass with the new module structure
+2. Continue refactoring other related validation logic to follow the same pattern
