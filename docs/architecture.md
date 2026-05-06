@@ -87,14 +87,14 @@ Attribute Validation  →  Accessibility Validation  →  Code Generation
 
 | Module | Lines | Responsibility |
 |--------|-------|---------------|
-| `lib.rs` | ~360 | Proc macro entry points + validation pipeline orchestration |
-| `codegen.rs` | ~440 | `generate_body_with_context` — recursive HTML render instruction generation |
-| `validators.rs` | ~290 | `validate_nodes` — attribute/class/HTML/accessibility validation |
-| `style_processing.rs` | ~160 | `process_styles` + `collect_all_styles` — CSS hoisting and extraction |
-| `token_parser.rs` | ~900 | HTML tokenizer, syn-based Parse implementations |
-| `html_structure_validator.rs` | ~500 | HTML nesting rules, table/list/form validation |
-| `accessibility_validator.rs` | ~200 | ARIA roles, img alt, button content, iframe titles |
-| `style.rs` | ~1,200 | CSS DSL parser, property validation, minification |
+| `lib.rs` | 253 | Proc macro entry points + validation pipeline orchestration |
+| `codegen.rs` | 546 | `generate_body_with_context`, `first_node_span`, `azumi_scope_id_from_span` |
+| `validators.rs` | 542 | `validate_nodes`, `collect_bind_checks`, `validate_format_in_expressions` |
+| `style_processing.rs` | 201 | `process_styles`, `collect_all_styles`, `inject_css_into_head` |
+| `token_parser.rs` | 1,345 | HTML tokenizer, syn-based Parse implementations |
+| `html_structure_validator.rs` | 1,325 | HTML nesting rules, table/list/form validation |
+| `accessibility_validator.rs` | 504 | ARIA roles, img alt, button content, iframe titles |
+| `style.rs` | 1,213 | CSS DSL parser, property validation, minification |
 
 ### `validate_nodes` Parameters
 
