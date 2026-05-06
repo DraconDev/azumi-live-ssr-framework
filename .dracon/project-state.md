@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Refactored HTML validation logic by extracting it into a separate module.
+Refactored style validation logic by moving it to a dedicated module.
 
 ## Context
-The comprehensive HTML validation system was recently added, but the implementation was monolithic. This change improves maintainability by separating validation logic into its own module.
+This change was prompted by ongoing refactoring efforts to improve code organization and maintainability. The style validation logic was previously part of the main macro file, which was growing in complexity.
 
 ## Completed
-- [x] Extracted HTML validation logic into `validators.rs` module
-- [x] Maintained existing functionality while improving code organization
+- [x] Moved style validation logic from `macros/src/lib.rs` to `validators::validate_nodes`
+- [x] Maintained existing functionality while improving code structure
 
 ## In Progress
-- [x] Module extraction and basic validation functionality
+- [ ] No active work in progress
 
 ## Blockers
-- None identified - this is a clean refactoring
+- None identified
 
 ## Next Steps
-1. Verify all validation cases still work as expected
-2. Consider adding unit tests for the new module
+1. Verify no regression in style validation behavior
+2. Continue refactoring other related components

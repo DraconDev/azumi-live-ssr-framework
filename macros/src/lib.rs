@@ -648,7 +648,7 @@ fn generate_body(
     let (valid_classes, valid_ids) = crate::css::extract_selectors(&scoped_css);
 
     let style_validation_errors =
-        validate_nodes(nodes, &valid_classes, &valid_ids, !scoped_css.is_empty());
+        validators::validate_nodes(nodes, &valid_classes, &valid_ids, !scoped_css.is_empty());
     if !style_validation_errors.is_empty() {
         return style_validation_errors;
     }
