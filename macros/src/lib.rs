@@ -1,9 +1,17 @@
+mod accessibility_validator;
+mod action;
+mod asset_rewriter;
 mod codegen;
+mod component;
 mod context;
 mod css;
 mod css_validator;
+mod head;
 mod html_structure_validator;
 mod inline_inject;
+mod live;
+mod page;
+mod schema;
 mod style;
 mod style_processing;
 mod token_parser;
