@@ -4,20 +4,19 @@
 docs(scope): update architecture documentation to reflect recent macro refactoring
 
 ## Context
-The recent refactoring of the macros library's validation and code generation components required corresponding updates to the architecture documentation to maintain accuracy.
+The recent refactoring of the HTML macro system required updating the architecture documentation to accurately reflect the new module structure and responsibilities.
 
 ## Completed
-- [x] updated `codegen.rs` documentation to specify `generate_body_with_context` function
-- [x] added `validators.rs` documentation for `validate_nodes` function
-- [x] documented `style_processing.rs` module with `process_styles` and `collect_all_styles` functions
-- [x] clarified `lib.rs` documentation to emphasize validation pipeline orchestration
+- [x] Added module responsibility table showing codegen.rs as a dedicated module
+- [x] Updated code generation section to specify the module name
+- [x] Maintained the rendering flow documentation while adding module details
 
 ## In Progress
-- [ ] review and update any remaining architecture diagrams affected by these changes
+- [x] Architecture documentation now accurately reflects the current macro implementation
 
 ## Blockers
-- none identified
+- None
 
 ## Next Steps
-1. verify documentation matches current implementation
-2. ensure all recent refactoring changes are properly reflected in the architecture docs
+1. Verify documentation matches the current code structure
+2. Update any related documentation that may reference the macro system

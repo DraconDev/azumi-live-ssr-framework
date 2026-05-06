@@ -81,7 +81,20 @@ Attribute Validation  →  Accessibility Validation  →  Code Generation
 6. **Class/ID Validation** — Classes must be defined in `<style>` blocks as snake_case
 7. **HTML Structure Rules** — Tables, lists, forms, headings, paragraphs nesting rules
 8. **Attribute Validation** — Valid HTML5 attributes, `data-*`, `aria-*`, `on:*` events
-9. **Code Generation** — Generates Rust expressions that construct HTML at runtime
+9. **Code Generation** (`codegen.rs`) — Generates Rust expressions that construct HTML at runtime
+
+## Module Responsibilities
+
+| Module | Lines | Responsibility |
+|--------|-------|---------------|
+| `lib.rs` | ~630 | Proc macro entry points, validation pipeline orchestration |
+| `codegen.rs` | ~440 | `generate_body_with_context` — recursive HTML render instruction generation |
+| `validators.rs` | ~290 | `validate_nodes` — attribute/class/HTML/accessibility validation |
+| `style_processing.rs` | ~160 | `process_styles` + `collect_all_styles` — CSS hoisting and extraction |
+| `token_parser.rs` | ~900 | HTML tokenizer, syn-based Parse implementations |
+| `html_structure_validator.rs` | ~500 | HTML nesting rules, table/list/form validation |
+| `accessibility_validator.rs` | ~200 | ARIA roles, img alt, button content, iframe titles |
+| `style.rs` | ~1,200 | CSS DSL parser, property validation, minification |
 
 ## Rendering Flow
 
