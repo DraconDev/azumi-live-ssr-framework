@@ -18,7 +18,7 @@ mod token_parser;
 mod validators;
 
 use proc_macro::TokenStream;
-use quote::{quote, quote_spanned};
+use quote::quote;
 use syn::parse_macro_input;
 
 #[proc_macro]

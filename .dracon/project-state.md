@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Reorganized static asset mappings in the demo assets manifest and removed unused quote import in macros
 
 ## Context
-The Cargo.lock file was modified to synchronize with updated dependencies in the Azumi framework. This is part of ongoing maintenance to ensure consistent dependency versions across the project.
+The changes were made to improve the organization of static asset mappings in the demo application and to clean up unused dependencies in the macro system.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect recent dependency changes in Azumi framework
+- [x] Reorganized static asset mappings in assets_manifest.json for better maintainability
+- [x] Removed unused `quote_spanned` import from macros/src/lib.rs
 
 ## In Progress
-- [x] No active work in progress related to this change
+- [x] No active work in progress beyond these changes
 
 ## Blockers
-- None
+- None identified for these specific changes
 
 ## Next Steps
-1. Verify that all dependencies are properly resolved
-2. Continue with other ongoing refactoring and documentation work
-```
+1. Verify the updated asset mappings work correctly in the demo application
+2. Review any potential impact on asset loading in production environments
