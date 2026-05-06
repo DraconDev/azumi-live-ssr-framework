@@ -1,21 +1,20 @@
 # Project State
 
 ## Current Focus
-Reorganized static asset mappings in the demo assets manifest and removed unused quote import in macros
+Update Cargo.lock to reflect recent dependency changes in Azumi framework
 
 ## Context
-The changes were made to improve the organization of static asset mappings in the demo application and to clean up unused dependencies in the macro system.
+This change updates the dependency lockfile to ensure all dependencies are properly versioned after recent modifications to the framework's module organization and CSS validation logic.
 
 ## Completed
-- [x] Reorganized static asset mappings in assets_manifest.json for better maintainability
-- [x] Removed unused `quote_spanned` import from macros/src/lib.rs
+- [x] Updated Cargo.lock to reflect current dependency versions
 
 ## In Progress
-- [x] No active work in progress beyond these changes
+- [x] Dependency resolution and version synchronization
 
 ## Blockers
-- None identified for these specific changes
+- None reported in this commit
 
 ## Next Steps
-1. Verify the updated asset mappings work correctly in the demo application
-2. Review any potential impact on asset loading in production environments
+1. Verify all dependencies are properly resolved
+2. Continue with ongoing refactoring of CSS validation logic
