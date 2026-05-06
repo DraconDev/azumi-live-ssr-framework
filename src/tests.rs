@@ -205,4 +205,112 @@ mod tests {
             output
         );
     }
+
+    // ============================================================================
+    // Property-Based Tests for scope_css
+    // ============================================================================
+
+    #[cfg(test)]
+    mod scope_css_proptest {
+        use crate::scope_css;
+
+        /// Property: Every class selector gets the scope attribute appended
+        #[test]
+        fn prop_scope_css_appends_attribute() {
+            let css = ".btn { color: red; } .card { padding: 1rem; }";
+            let scoped = scope_css(css, "sabc");
+            assert!(scoped.contains(".btn[data-sabc]"), "Class selector should get scope attribute. Got: {}", scoped);
+            assert!(scoped.contains(".card[data-sabc]"), "Class selector should get scope attribute. Got: {}", scoped);
+        }
+
+        /// Property: Keyframes content is NOT scoped (copied verbatim)
+        #[test]
+        fn prop_scope_css_keyframes_untouched() {
+            let css = "@keyframes slide { from { transform: translateX(0); } to { transform: translateX(100%); } }";
+            let scoped = scope_css(css, "sxyz");
+            // The keyframes selector and its inner content should not be modified
+            assert!(scoped.contains("@keyframes slide"), "Keyframes rule should be preserved");
+            assert!(scoped.contains("from { transform: translateX(0); }"), "Keyframes content should not be scoped");
+        }
+
+        /// Property: Media queries are recursively scoped
+        #[test]
+        fn prop_scope_css_media_query_scoped() {
+            let css = "@media (min-width: 768px) { .sidebar { width: 250px; } }";
+            let scoped = scope_css(css, "s123");
+            assert!(scoped.contains("@media (min-width: 768px)"), "Media query should be preserved");
+            assert!(scoped.contains(".sidebar[data-s123]"), "Inner selectors should be scoped");
+        }
+
+        /// Property: Pseudo-elements (::after, ::before) get scoped correctly
+        #[test]
+        fn prop_scope_css_pseudo_element() {
+            let css = ".btn::after { content: '>'; }";
+            let scoped = scope_css(css, "spseudo");
+            assert!(scoped.contains(".btn[data-spseudo]::after"), "Pseudo-element should come after scope attribute. Got: {}", scoped);
+        }
+
+        /// Property: Pseudo-classes (:hover, :focus) get scoped correctly
+        #[test]
+        fn prop_scope_css_pseudo_class() {
+            let css = ".btn:hover { color: blue; }";
+            let scoped = scope_css(css, "shover");
+            assert!(scoped.contains(".btn[data-shover]:hover"), "Pseudo-class should come after scope attribute. Got: {}", scoped);
+        }
+
+        /// Property: Multiple comma-separated selectors all get scoped
+        #[test]
+        fn prop_scope_css_multiple_selectors() {
+            let css = ".btn, .link, .card { margin: 0; }";
+            let scoped = scope_css(css, "smulti");
+            assert!(scoped.contains(".btn[data-smulti], .link[data-smulti], .card[data-smulti]"), "All selectors should be scoped. Got: {}", scoped);
+        }
+
+        /// Property: Attribute selectors are preserved and scoped
+        #[test]
+        fn prop_scope_css_attribute_selector() {
+            let css = "input[type='text'] { border: 1px solid; }";
+            let scoped = scope_css(css, "sattr");
+            assert!(scoped.contains("input[type='text'][data-sattr]"), "Attribute selector should be scoped. Got: {}", scoped);
+        }
+
+        /// Property: Descendant combinators are scoped on the last simple selector
+        #[test]
+        fn prop_scope_css_descendant_combinator() {
+            let css = ".parent .child { color: red; }";
+            let scoped = scope_css(css, "sdesc");
+            assert!(scoped.contains(".parent .child[data-sdesc]"), "Descendant selector should scope the last part. Got: {}", scoped);
+        }
+
+        /// Property: ID selectors are scoped
+        #[test]
+        fn prop_scope_css_id_selector() {
+            let css = "#header { font-size: 2rem; }";
+            let scoped = scope_css(css, "sid");
+            assert!(scoped.contains("#header[data-sid]"), "ID selector should be scoped. Got: {}", scoped);
+        }
+
+        /// Property: Empty CSS produces empty output
+        #[test]
+        fn prop_scope_css_empty() {
+            let scoped = scope_css("", "sempty");
+            assert_eq!(scoped, "", "Empty CSS should produce empty output");
+        }
+
+        /// Property: @font-face is not scoped (has no selectors to scope)
+        #[test]
+        fn prop_scope_css_font_face() {
+            let css = "@font-face { src: url('font.woff2'); }";
+            let scoped = scope_css(css, "sfont");
+            assert!(scoped.contains("@font-face"), "@font-face should be preserved");
+        }
+
+        /// Property: Nested media queries are recursively scoped
+        #[test]
+        fn prop_scope_css_nested_media() {
+            let css = "@media screen { @media (min-width: 100px) { .deep { color: red; } } }";
+            let scoped = scope_css(css, "snest");
+            assert!(scoped.contains(".deep[data-snest]"), "Nested media query content should be scoped");
+        }
+    }
 }
