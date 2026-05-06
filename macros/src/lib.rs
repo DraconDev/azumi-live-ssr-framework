@@ -110,8 +110,6 @@ pub fn html(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-mod style_processing;
-
 fn generate_nodes(nodes: &[token_parser::Node]) -> proc_macro2::TokenStream {
     let body = generate_body(nodes, first_node_span(nodes));
     quote! {
