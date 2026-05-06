@@ -4,17 +4,18 @@
 Added dead code annotation to a field serialization utility function
 
 ## Context
-This change was made as part of ongoing work to improve schema processing utilities in the macros crate. The function was identified as potentially unused but needed to remain in the codebase for future reference or potential reuse.
+This change was prompted by the need to mark a utility function as potentially unused while maintaining its implementation for future use or potential refactoring.
 
 ## Completed
-- [x] Added `#[allow(dead_code)]` attribute to `generate_field_serialization` function to mark it as intentionally unused
+- [x] Added `#[allow(dead_code)]` annotation to `derive_schema` function in `macros/src/schema.rs`
+- [x] Updated Cargo.lock to reflect dependency changes
 
 ## In Progress
-- [ ] No active work in progress related to this change
+- [x] No active work in progress beyond this change
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Review other potentially unused functions in the schema module
-2. Consider removing truly dead code in a separate refactoring pass
+1. Verify the function remains functional with the annotation
+2. Consider potential future uses of the function
