@@ -159,3 +159,43 @@ fn collect_styles_recursive(
         }
     }
 }
+
+/// Inject CSS text into the first `<head>` element found in the node tree.
+///
+/// Returns `true` if a `<head>` was found and modified, `false` otherwise.
+#[allow(clippy::ptr_arg)]
+#[allow(clippy::collapsible_match)]
+pub(crate) fn inject_css_into_head(nodes: &mut Vec<token_parser::Node>, css: &str) -> bool {
+    for node in nodes.iter_mut() {
+        match node {
+            token_parser::Node::Element(elem) => {
+                if elem.name == "head" {
+                    let content = css.to_string();
+                    let text_node = token_parser::Node::RawText(token_parser::Text {
+                        content,
+                        span: elem.span,
+                    });
+                    elem.children.insert(0, text_node);
+                    return true;
+                }
+                if inject_css_into_head(&mut elem.children, css) {
+                    return true;
+                }
+            }
+            token_parser::Node::Fragment(frag) => {
+                if inject_css_into_head(&mut frag.children, css) {
+                    return true;
+                }
+            }
+            token_parser::Node::Block(token_parser::Block::If(if_block)) => {
+                if inject_css_into_head(&mut if_block.then_branch, css) {
+                    return true;
+                } else if let Some(else_branch) = &mut if_block.else_branch {
+                    inject_css_into_head(else_branch, css);
+                }
+            }
+            _ => {}
+        }
+    }
+    false
+}
