@@ -1,23 +1,21 @@
 # Project State
 
 ## Current Focus
-docs(architecture): document validation parameter naming convention for scoped CSS selectors
+Reorganized static asset mappings in the demo assets manifest
 
 ## Context
-The architecture documentation needed clarification on how scoped CSS selectors are validated within the component system. The `valid_classes` and `valid_ids` parameters in `validate_nodes` were introduced to enforce allowlist validation against component-scoped styles.
+The changes reorganize the static asset mappings in the demo application to improve maintainability and consistency in asset references.
 
 ## Completed
-- [x] documented the purpose of `valid_classes` and `valid_ids` parameters
-- [x] clarified that these are allowlists for validation, not arbitrary data structures
-- [x] linked to the CSS selector extraction mechanism in `crate::css::extract_selectors`
+- [x] Reorganized static asset mappings in `assets_manifest.json` to group related assets together
+- [x] Updated `Cargo.lock` to reflect recent dependency changes
 
 ## In Progress
-- [ ] none
+- [x] No active work in progress beyond the completed changes
 
 ## Blockers
-- none
+- None identified
 
 ## Next Steps
-1. Review for consistency with other documentation sections
-2. Verify that this matches the actual implementation behavior
-```
+1. Verify the updated asset mappings work correctly in the demo application
+2. Ensure all static assets are properly referenced in the application code
