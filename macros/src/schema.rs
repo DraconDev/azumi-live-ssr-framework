@@ -115,6 +115,7 @@ pub fn derive_schema(input: TokenStream) -> TokenStream {
 }
 
 /// Extract schema type from #[schema(type = "...")] attribute
+#[allow(dead_code)]
 fn extract_schema_type(attrs: &[syn::Attribute], default: String) -> String {
     let mut schema_type = default;
 
@@ -139,6 +140,7 @@ fn extract_schema_type(attrs: &[syn::Attribute], default: String) -> String {
 }
 
 /// Check if field has #[schema(skip)]
+#[allow(dead_code)]
 fn should_skip_field(attrs: &[syn::Attribute]) -> bool {
     let mut skip = false;
 
@@ -158,6 +160,7 @@ fn should_skip_field(attrs: &[syn::Attribute]) -> bool {
 }
 
 /// Extract custom field name from #[schema(name = "...")]
+#[allow(dead_code)]
 fn extract_field_name(attrs: &[syn::Attribute]) -> Option<String> {
     let mut name = None;
 
@@ -182,6 +185,7 @@ fn extract_field_name(attrs: &[syn::Attribute]) -> Option<String> {
 }
 
 /// Check if a syn::Type is an Option<T>
+#[allow(dead_code)]
 fn is_option_type(ty: &syn::Type) -> bool {
     if let syn::Type::Path(type_path) = ty {
         if let Some(seg) = type_path.path.segments.last() {
@@ -192,6 +196,7 @@ fn is_option_type(ty: &syn::Type) -> bool {
 }
 
 /// Check if a syn::Type is a Vec<T>
+#[allow(dead_code)]
 fn is_vec_type(ty: &syn::Type) -> bool {
     if let syn::Type::Path(type_path) = ty {
         if let Some(seg) = type_path.path.segments.last() {

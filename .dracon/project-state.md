@@ -1,21 +1,24 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Added utility functions for schema processing in the macros crate
 
 ## Context
-The Cargo.lock file was modified to synchronize with updated dependencies in the Azumi framework. This ensures the project uses the correct versions of all dependencies.
+The changes prepare the schema processing infrastructure by adding helper functions that will be used to extract and validate schema attributes during code generation.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect recent dependency changes in Azumi framework
+- [x] Added `extract_schema_type` to extract schema type from attributes
+- [x] Added `should_skip_field` to check if a field should be skipped
+- [x] Added `extract_field_name` to extract custom field names
+- [x] Added `is_option_type` to check for Option<T> types
+- [x] Added `is_vec_type` to check for Vec<T> types
 
 ## In Progress
-- [x] No active work in progress related to this change
+- [x] Implementation of schema processing utilities
 
 ## Blockers
-- None
+- None identified
 
 ## Next Steps
-1. Verify that all dependencies are properly resolved
-2. Continue with other development tasks
-```
+1. Implement schema processing logic using these utilities
+2. Integrate with existing schema derivation macros
