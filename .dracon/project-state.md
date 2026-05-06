@@ -1,25 +1,28 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Added style processing infrastructure for the `html!` macro to handle CSS extraction and hoisting.
 
 ## Context
-This change was triggered by multiple refactoring efforts in the macros library, including:
-- Removal of HTML validation logic
-- Refactoring of style validation
-- Cleanup of unused imports
-- Extraction of code generation logic
+This change enables proper CSS handling in the template system by:
+1. Extracting inline `<style>` content and `style!` macro content
+2. Separating scoped vs global CSS
+3. Generating hoisted CSS bindings for component styling
 
 ## Completed
-- [x] Updated Cargo.lock to reflect dependency changes from recent refactoring work
+- [x] Added `process_styles` function to handle `style!` macro blocks
+- [x] Added `collect_all_styles` function to extract CSS from templates
+- [x] Implemented recursive processing of nested templates
+- [x] Added support for conditional blocks (`if`, `for`, `match`)
+- [x] Separated global and scoped CSS handling
 
 ## In Progress
-- [x] No active work in progress - this is a dependency management update
+- [x] Style processing infrastructure is complete
 
 ## Blockers
-- None - this is a maintenance task
+- None identified
 
 ## Next Steps
-1. Verify that all dependencies are correctly resolved
-2. Prepare for upcoming release (v47.0.0)
-```
+1. Integrate with CSS scoping system
+2. Add runtime CSS injection logic
+3. Implement style validation for scoped CSS
