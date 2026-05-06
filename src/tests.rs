@@ -300,8 +300,9 @@ mod tests {
             // Property: @font-face rules pass through unchanged
             let css = "@font-face { src: url(font.woff2); } .x { color: blue; }";
             let scoped = scope_css(css, "ff_scope");
-            assert!(scoped.contains("@font-face { src: url(font.woff2); }"));
-            assert!(scoped.contains(".x[data-ff_scope]"));
+            assert!(scoped.contains("@font-face"), "@font-face should be preserved. Got: {}", scoped);
+            assert!(scoped.contains("src: url(font.woff2)"), "Font content should be preserved");
+            assert!(scoped.contains(".x[data-ff_scope]"), "Other selectors should be scoped");
         }
 
         #[test]

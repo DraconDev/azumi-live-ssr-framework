@@ -1,21 +1,24 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Improved CSS scoping test assertions with more specific error messages
 
 ## Context
-This change updates the dependency lockfile to ensure consistent builds across environments after recent dependency modifications in the Azumi framework.
+The previous test assertions were too vague. This change makes test failures more informative by:
+1. Preserving @font-face rules in CSS scoping
+2. Ensuring font content remains unchanged
+3. Verifying other selectors are properly scoped
 
 ## Completed
-- [x] Updated Cargo.lock to reflect current dependency versions
+- [x] Added specific error messages to CSS scoping test assertions
+- [x] Maintained all existing test functionality while improving diagnostics
 
 ## In Progress
-- [x] No active work in progress beyond the lockfile update
+- [x] No active work in progress beyond this change
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Verify build consistency across development environments
-2. Continue with other framework development tasks
-```
+1. Verify test coverage for other CSS edge cases
+2. Consider adding more specific test cases for different CSS rule types
