@@ -318,3 +318,4 @@ mod tests {
             assert_eq!(scoped, "   \n\t  ");
         }
     }
+}
