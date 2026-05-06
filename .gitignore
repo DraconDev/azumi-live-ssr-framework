@@ -17,9 +17,11 @@
 __pycache__/
 bin/
 build/
+coverage/
 dist/
 node_modules/
 target/
+tarpaulin-report.html
 !*.env
 !.env
 !.env.*
