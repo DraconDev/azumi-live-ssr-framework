@@ -506,7 +506,7 @@ fn generate_body(
         return tokens;
     }
 
-    let (global_css, scoped_css) = collect_all_styles(nodes);
+    let (global_css, scoped_css) = style_processing::collect_all_styles(nodes);
     let (valid_classes, valid_ids) = crate::css::extract_selectors(&scoped_css);
 
     let style_validation_errors =
