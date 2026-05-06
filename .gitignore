@@ -18,6 +18,7 @@ __pycache__/
 bin/
 build/
 coverage/
+demo/assets_manifest.json
 dist/
 node_modules/
 target/
