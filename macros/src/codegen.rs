@@ -360,8 +360,8 @@ pub(crate) fn generate_body_with_context(
                             },
                         }
                         continue;
-                    } else {
-                        match &attr.value {
+                    }
+                    match &attr.value {
                             token_parser::AttributeValue::Static(val) => {
                                 instructions.push(quote! {
                                     write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
