@@ -1,23 +1,20 @@
 # Project State
 
 ## Current Focus
-Refactored scope ID generation utilities by moving them to the `codegen` module
+Update Cargo.lock to reflect recent dependency changes in Azumi framework
 
 ## Context
-The previous implementation had scope ID generation logic directly in the macros module, which was part of a broader refactoring to improve module organization in the macro system.
+The Cargo.lock file was modified to synchronize with updated dependencies in the Azumi framework. This is part of the ongoing dependency management process for the project.
 
 ## Completed
-- [x] Moved `first_node_span` function to `codegen` module
-- [x] Moved `azumi_scope_id_from_span` function to `codegen` module
-- [x] Updated all references to use the new module path
-- [x] Removed redundant span-finding logic that was duplicated in multiple places
+- [x] Updated Cargo.lock to reflect recent dependency changes
 
 ## In Progress
-- [ ] No active work in progress
+- [x] Dependency synchronization in progress
 
 ## Blockers
-- None identified
+- No blockers identified for this specific change
 
 ## Next Steps
-1. Verify all scope ID generation still works correctly
-2. Check for any remaining span-related utility functions that could be moved to `codegen`
+1. Verify that all dependencies are properly resolved
+2. Continue with other dependency management tasks if any
