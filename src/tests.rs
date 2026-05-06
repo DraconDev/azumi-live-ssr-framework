@@ -206,6 +206,120 @@ mod tests {
         );
     }
 
+    // ════════════════════════════════════════════════════════════════════════════
+    // Property-Based Tests for scope_css
+    // ════════════════════════════════════════════════════════════════════════════
+
+    #[cfg(test)]
+    mod scope_css_proptest {
+        use super::scope_css;
+
+        #[test]
+        fn test_scope_css_always_includes_scope_attr() {
+            // Property: Output always contains the scope attribute
+            let test_cases = [
+                ".btn { color: red; }",
+                ".a, .b { color: blue; }",
+                "@media (min-width: 768px) { .x { color: green; } }",
+                ".foo:hover { color: red; }",
+                ".bar::after { content: 'hi'; }",
+            ];
+            for css in &test_cases {
+                let scoped = scope_css(css, "test_scope");
+                assert!(
+                    scoped.contains("[data-test_scope]"),
+                    "Scoped CSS should contain scope attribute. Input: {}\nOutput: {}",
+                    css,
+                    scoped
+                );
+            }
+        }
+
+        #[test]
+        fn test_scope_css_keyframes_not_scoped() {
+            // Property: @keyframes content is NOT modified
+            let css = "@keyframes slide { from { opacity: 0; } to { opacity: 1; } }";
+            let scoped = scope_css(css, "abc");
+            // The keyframes rule should appear as-is (no [data-abc] inside)
+            assert!(scoped.contains("@keyframes slide"));
+            assert!(scoped.contains("from { opacity: 0; }"));
+            assert!(scoped.contains("to { opacity: 1; }"));
+            // Should NOT have scope attribute inside keyframes block
+            assert!(
+                !scoped.contains("from[data-abc]"),
+                "Keyframes should not be scoped"
+            );
+        }
+
+        #[test]
+        fn test_scope_css_media_queries_recursively_scoped() {
+            // Property: Selectors inside @media get scoped
+            let css = "@media (min-width: 768px) { .sidebar { width: 250px; } }";
+            let scoped = scope_css(css, "mq_scope");
+            assert!(scoped.contains("@media (min-width: 768px)"));
+            assert!(
+                scoped.contains(".sidebar[data-mq_scope]"),
+                "Inner selectors in @media should be scoped"
+            );
+        }
+
+        #[test]
+        fn test_scope_css_pseudo_classes_scoped() {
+            // Property: :hover, :focus, etc. get scope appended after pseudo-class
+            let css = ".btn:hover { color: red; }";
+            let scoped = scope_css(css, "ps_scope");
+            assert!(
+                scoped.contains(".btn[data-ps_scope]:hover"),
+                "Pseudo-class should come after scope attribute. Output: {}",
+                scoped
+            );
+        }
+
+        #[test]
+        fn test_scope_css_pseudo_elements_scoped() {
+            // Property: ::after, ::before get scope appended before pseudo-element
+            let css = ".btn::after { content: ''; }";
+            let scoped = scope_css(css, "pe_scope");
+            assert!(
+                scoped.contains(".btn[data-pe_scope]::after"),
+                "Pseudo-element should come after scope attribute. Output: {}",
+                scoped
+            );
+        }
+
+        #[test]
+        fn test_scope_css_multiple_selectors_all_scoped() {
+            // Property: All selectors in a comma-separated list get scoped
+            let css = ".a, .b, .c { color: red; }";
+            let scoped = scope_css(css, "multi");
+            assert!(scoped.contains(".a[data-multi], .b[data-multi], .c[data-multi]"));
+        }
+
+        #[test]
+        fn test_scope_css_font_face_not_scoped() {
+            // Property: @font-face rules pass through unchanged
+            let css = "@font-face { src: url(font.woff2); } .x { color: blue; }";
+            let scoped = scope_css(css, "ff_scope");
+            assert!(scoped.contains("@font-face { src: url(font.woff2); }"));
+            assert!(scoped.contains(".x[data-ff_scope]"));
+        }
+
+        #[test]
+        fn test_scope_css_empty_input() {
+            // Property: Empty input produces empty output
+            let scoped = scope_css("", "empty");
+            assert_eq!(scoped, "");
+        }
+
+        #[test]
+        fn test_scope_css_only_whitespace() {
+            // Property: Whitespace-only input is preserved
+            let scoped = scope_css("   \n\t  ", "ws");
+            assert_eq!(scoped, "   \n\t  ");
+        }
+    }
+}
+
     // ============================================================================
     // Property-Based Tests for scope_css
     // ============================================================================

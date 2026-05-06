@@ -4,28 +4,23 @@
 Added comprehensive property-based tests for CSS scoping functionality
 
 ## Context
-The project needs robust testing for the CSS scoping system that ensures proper isolation of styles within components. These tests verify that various CSS selectors and rules are correctly scoped with attribute selectors while preserving special cases like keyframes and media queries.
+To ensure robust CSS scoping behavior across various CSS constructs, including selectors, media queries, pseudo-classes, and pseudo-elements, while maintaining special cases for keyframes and font-face rules.
 
 ## Completed
-- [x] Added 18 property-based tests covering different CSS scoping scenarios
-- [x] Tested basic class selector scoping
-- [x] Verified keyframes remain untouched
-- [x] Ensured media queries are recursively scoped
-- [x] Validated pseudo-elements and pseudo-classes
-- [x] Tested multiple comma-separated selectors
-- [x] Confirmed attribute selectors are preserved
-- [x] Verified descendant combinators work correctly
-- [x] Tested ID selector scoping
-- [x] Ensured empty CSS produces empty output
-- [x] Confirmed @font-face rules remain untouched
-- [x] Validated nested media queries are scoped
+- [x] Added property-based tests for CSS scoping functionality
+- [x] Verified scope attribute presence in all selectors
+- [x] Ensured keyframes and font-face rules remain unscoped
+- [x] Validated recursive scoping in media queries
+- [x] Confirmed proper scoping of pseudo-classes and pseudo-elements
+- [x] Tested comma-separated selector lists
+- [x] Verified edge cases with empty and whitespace-only inputs
 
 ## In Progress
-- [x] Comprehensive CSS scoping test suite implementation
+- [x] Comprehensive CSS scoping test coverage
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Review test coverage for edge cases
-2. Integrate with CI/CD pipeline for automated testing
+1. Review test coverage for any missed edge cases
+2. Integrate these tests into the CI pipeline
