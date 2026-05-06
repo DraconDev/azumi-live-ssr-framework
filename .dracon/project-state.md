@@ -1,20 +1,23 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+docs(architecture): document validation parameter naming convention for scoped CSS selectors
 
 ## Context
-This change updates the dependency lockfile to ensure all dependencies are properly versioned after recent modifications to the framework's module organization and CSS validation logic.
+The architecture documentation needed clarification on how scoped CSS selectors are validated within the component system. The `valid_classes` and `valid_ids` parameters in `validate_nodes` were introduced to enforce allowlist validation against component-scoped styles.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect current dependency versions
+- [x] documented the purpose of `valid_classes` and `valid_ids` parameters
+- [x] clarified that these are allowlists for validation, not arbitrary data structures
+- [x] linked to the CSS selector extraction mechanism in `crate::css::extract_selectors`
 
 ## In Progress
-- [x] Dependency resolution and version synchronization
+- [ ] none
 
 ## Blockers
-- None reported in this commit
+- none
 
 ## Next Steps
-1. Verify all dependencies are properly resolved
-2. Continue with ongoing refactoring of CSS validation logic
+1. Review for consistency with other documentation sections
+2. Verify that this matches the actual implementation behavior
+```

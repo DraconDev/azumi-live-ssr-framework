@@ -87,7 +87,7 @@ Attribute Validation  →  Accessibility Validation  →  Code Generation
 
 | Module | Lines | Responsibility |
 |--------|-------|---------------|
-| `lib.rs` | ~630 | Proc macro entry points, validation pipeline orchestration |
+| `lib.rs` | ~360 | Proc macro entry points + validation pipeline orchestration |
 | `codegen.rs` | ~440 | `generate_body_with_context` — recursive HTML render instruction generation |
 | `validators.rs` | ~290 | `validate_nodes` — attribute/class/HTML/accessibility validation |
 | `style_processing.rs` | ~160 | `process_styles` + `collect_all_styles` — CSS hoisting and extraction |
@@ -95,6 +95,10 @@ Attribute Validation  →  Accessibility Validation  →  Code Generation
 | `html_structure_validator.rs` | ~500 | HTML nesting rules, table/list/form validation |
 | `accessibility_validator.rs` | ~200 | ARIA roles, img alt, button content, iframe titles |
 | `style.rs` | ~1,200 | CSS DSL parser, property validation, minification |
+
+### `validate_nodes` Parameters
+
+The `validators::validate_nodes` function accepts `valid_classes` and `valid_ids` — sets of class and ID names that are defined in `<style>` blocks within the current component scope. These sets are built by extracting selectors from scoped CSS via `crate::css::extract_selectors()`. This naming convention (prefixed with `valid_`) signals that these are allowlists for validation, not arbitrary data structures.
 
 ## Rendering Flow
 
