@@ -169,10 +169,9 @@ fn scope_css_level(iter: &mut Peekable<Chars>, scope_attr: &str, finding_close: 
                     // The caller will append '}'
                     result.push_str(&buffer);
                     return result;
-                } else {
-                    // Stray } or logic error, just append
-                    buffer.push(ch);
                 }
+                // Stray } or logic error, just append
+                buffer.push(ch);
             }
             ';' => {
                 buffer.push(ch);

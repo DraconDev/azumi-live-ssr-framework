@@ -1,20 +1,21 @@
 # Project State
 
 ## Current Focus
-Added `demo/assets_manifest.json` to `.gitignore` to prevent it from being tracked in version control.
+Refactored CSS and token parsing logic to improve error handling and debug output consistency.
 
 ## Context
-This change prevents the demo assets manifest from being accidentally committed to version control, which could lead to inconsistent builds or unnecessary repository bloat.
+The changes address inconsistent handling of edge cases in CSS parsing and improve debug output organization in token parsing.
 
 ## Completed
-- [x] Added `demo/assets_manifest.json` to `.gitignore`
+- [x] Refactored CSS parsing to simplify stray brace handling in `scope_css_level`
+- [x] Improved token parsing debug output by consolidating conditional logic
 
 ## In Progress
-- [ ] None
+- [x] No active work in progress beyond these changes
 
 ## Blockers
-- None
+- None identified
 
 ## Next Steps
-1. Verify the file is no longer being tracked in future commits
-2. Ensure the demo assets manifest remains properly managed in the build process
+1. Verify refactored behavior maintains existing functionality
+2. Add unit tests for edge cases in CSS parsing

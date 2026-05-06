@@ -963,13 +963,12 @@ fn parse_script_content(input: ParseStream, tag_name: &str) -> Result<Vec<Node>>
                     input.parse::<Token![@]>()?;
                     nodes.push(Node::Expression(input.parse()?));
                     continue;
-                } else {
-                    if debug {
-                        eprintln!("Found Block (not brace)");
-                    }
-                    nodes.push(Node::Block(input.parse()?));
-                    continue;
                 }
+                if debug {
+                    eprintln!("Found Block (not brace)");
+                }
+                nodes.push(Node::Block(input.parse()?));
+                continue;
             } else if debug {
                 eprintln!("IS CSS, treating as text");
             }
