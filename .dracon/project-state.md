@@ -1,20 +1,22 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Refactored module organization in the macro system to improve separation of concerns.
 
 ## Context
-This change was triggered by multiple recent refactoring and feature additions across the project, particularly in the macro system and CSS validation logic. The Cargo.lock file needs to be updated to ensure dependency versions align with the current codebase.
+This change follows a series of refactoring efforts to improve the macro system's modularity. The previous commits separated CSS validation, injection, and other validation logic into dedicated modules. This commit completes the refactoring by adding new modules for context and style processing.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect recent dependency changes in Azumi framework
+- [x] Added new `context` module for handling macro context management
+- [x] Added new `css` module for CSS-related functionality
+- [x] Added new `style` module for style processing logic
 
 ## In Progress
-- [x] No active work in progress related to this change
+- [ ] Implement functionality in the new modules
 
 ## Blockers
-- None identified for this specific change
+- Implementation of the new modules requires additional code to be written
 
 ## Next Steps
-1. Verify that all recent dependency changes are properly reflected in Cargo.lock
-2. Ensure the updated lockfile doesn't introduce any version conflicts with other parts of the project
+1. Implement core functionality in the new modules
+2. Update existing code to use the new modules
