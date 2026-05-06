@@ -574,7 +574,7 @@ fn generate_body(
             (codegen::generate_body_with_context(&working_nodes, &ctx), injected)
         } else {
             let mut temp_nodes = nodes.to_vec();
-            let injected = inject_css_into_head(&mut temp_nodes, &css_to_inject);
+            let injected = style_processing::inject_css_into_head(&mut temp_nodes, &css_to_inject);
             (
                 codegen::generate_body_with_context(&temp_nodes, &GenerationContext::normal()),
                 injected,

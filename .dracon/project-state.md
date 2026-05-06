@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Refactored CSS injection logic to use a dedicated module for better organization.
+Refactored CSS injection logic to use a dedicated module for better organization and maintainability.
 
 ## Context
-This change was prompted by the ongoing refactoring of style processing logic (see recent commits). The goal is to improve code organization and maintainability by moving related functionality into a dedicated module.
+This change follows the recent refactoring of style collection logic and aligns with the project's goal of modularizing CSS-related functionality. The previous implementation had CSS injection logic directly in the macros library, which made it harder to maintain and test.
 
 ## Completed
-- [x] Moved `inject_css_into_head` function to `style_processing` module
-- [x] Updated function call to use the new module path
+- [x] Moved `inject_css_into_head` function to the `style_processing` module
+- [x] Updated the call site to use the new module path
 
 ## In Progress
-- [ ] No active work in progress
+- [ ] No active work in progress for this change
 
 ## Blockers
-- None identified
+- None identified for this specific change
 
 ## Next Steps
-1. Verify all CSS injection functionality remains unchanged
-2. Update related tests to reflect the module structure change
+1. Verify the CSS injection functionality remains identical after the refactor
+2. Update any related documentation to reflect the new module structure
