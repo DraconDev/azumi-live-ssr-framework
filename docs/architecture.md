@@ -18,10 +18,12 @@ azumi/                      # Main crate — user-facing API
 │
 ├── macros/                 # Proc macro crate — compile-time codegen
 │   ├── src/
-│   │   ├── lib.rs          # Proc macro entry points + validation pipeline
+│   │   ├── lib.rs          # Proc macro entry points + validation pipeline orchestration
 │   │   ├── token_parser.rs # HTML tokenizer (syn-based Parse impl)
 │   │   ├── context.rs      # Context/GenerationContext types
-│   │   ├── codegen.rs      # (future) Render instruction generation
+│   │   ├── codegen.rs      # generate_body_with_context — render instruction generation
+│   │   ├── validators.rs   # validate_nodes — attribute/HTML/accessibility validation
+│   │   ├── style_processing.rs # process_styles + collect_all_styles — CSS hoisting/extraction
 │   │   ├── html_structure_validator.rs
 │   │   ├── accessibility_validator.rs
 │   │   ├── css_validator.rs

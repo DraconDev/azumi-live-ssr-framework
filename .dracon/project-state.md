@@ -1,20 +1,23 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+docs(scope): update architecture documentation to reflect recent macro refactoring
 
 ## Context
-This change was triggered by refactoring work across multiple modules in the macros library, including style collection, style processing, HTML validation, and code generation. The refactoring efforts required dependency updates to maintain compatibility with the new module structure.
+The recent refactoring of the macros library's validation and code generation components required corresponding updates to the architecture documentation to maintain accuracy.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect dependency changes from recent refactoring work
+- [x] updated `codegen.rs` documentation to specify `generate_body_with_context` function
+- [x] added `validators.rs` documentation for `validate_nodes` function
+- [x] documented `style_processing.rs` module with `process_styles` and `collect_all_styles` functions
+- [x] clarified `lib.rs` documentation to emphasize validation pipeline orchestration
 
 ## In Progress
-- [x] No active work in progress beyond the Cargo.lock update
+- [ ] review and update any remaining architecture diagrams affected by these changes
 
 ## Blockers
-- None identified for this specific change
+- none identified
 
 ## Next Steps
-1. Verify that all refactored modules are properly integrated with their new dependencies
-2. Continue with any remaining refactoring or feature implementation tasks
+1. verify documentation matches current implementation
+2. ensure all recent refactoring changes are properly reflected in the architecture docs
