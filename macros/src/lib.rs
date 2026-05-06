@@ -239,6 +239,7 @@ fn generate_body(
     span: Option<(usize, usize)>,
 ) -> proc_macro2::TokenStream {
     let css_validation_errors = css_validator::validate_component_css(nodes);
+    if !css_validation_errors.is_empty() {
         return css_validation_errors;
     }
 
