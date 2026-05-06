@@ -1,21 +1,24 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Refactored module organization in the macro system to improve separation of concerns
 
 ## Context
-This change was triggered by a series of refactoring and feature additions to the CSS validation and injection system, as well as other related modules.
+This change follows a series of recent refactorings that moved CSS-related functionality out of the main macro module. The goal is to create a cleaner, more maintainable structure by grouping related validation and processing logic together.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect dependency changes from recent refactoring work
+- [x] Removed CSS-related modules from the main macro module
+- [x] Added new `style_processing` module for CSS-related functionality
+- [x] Added new `validators` module for validation-related functionality
 
 ## In Progress
-- [x] No active work in progress - this is a dependency update
+- [ ] Implementation of CSS processing logic in the new `style_processing` module
+- [ ] Implementation of validation logic in the new `validators` module
 
 ## Blockers
-- None - this is a maintenance update
+- Need to implement the actual CSS processing and validation logic in the new modules
 
 ## Next Steps
-1. Continue with ongoing CSS validation and injection refactoring
-2. Review and test the updated dependencies
-```
+1. Implement CSS processing logic in the `style_processing` module
+2. Implement validation logic in the `validators` module
+3. Update tests to verify the new module structure works correctly

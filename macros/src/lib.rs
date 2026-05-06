@@ -1,20 +1,10 @@
 mod codegen;
-mod component;
-mod accessibility_validator;
-mod action;
-mod asset_rewriter;
-mod css;
 mod css_validator;
-mod context;
-mod head;
 mod html_structure_validator;
 mod inline_inject;
-mod live;
-mod page;
-#[cfg(feature = "schema")]
-mod schema;
-mod style;
+mod style_processing;
 mod token_parser;
+mod validators;
 
 use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
