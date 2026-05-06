@@ -1,21 +1,21 @@
 # Project State
 
 ## Current Focus
-Update Cargo.lock to reflect recent dependency changes in Azumi framework
+Reorganized static asset mappings in the demo assets manifest
 
 ## Context
-The Cargo.lock file was modified to synchronize with the latest dependency versions in the Azumi framework. This ensures consistent builds across development environments.
+The demo assets manifest was updated to reorganize the static asset mappings, likely to improve maintainability or build process efficiency.
 
 ## Completed
-- [x] Updated Cargo.lock to reflect recent dependency changes
+- [x] Reorganized static asset mappings in the demo assets manifest
+- [x] Swapped the order of `azumi.js` and `idiomorph.js` in the manifest
 
 ## In Progress
-- [x] Verifying dependency compatibility with current framework version
+- [x] No active work in progress
 
 ## Blockers
 - None identified
 
 ## Next Steps
-1. Verify build consistency across development environments
-2. Document any breaking changes in dependency versions
-```
+1. Verify the updated asset manifest works with the current build system
+2. Ensure all referenced assets are properly included in the build output
