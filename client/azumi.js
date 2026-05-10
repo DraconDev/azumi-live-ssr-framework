@@ -32,6 +32,41 @@ class Azumi {
         } else {
             runInit();
         }
+
+        this.setupReveal();
+    }
+
+    // Scroll reveal: add data-revealed when elements enter viewport
+    setupReveal() {
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReduced) {
+            document.querySelectorAll('[az-reveal]').forEach((el) => el.setAttribute('data-revealed', ''));
+            return;
+        }
+
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.setAttribute('data-revealed', '');
+                    }
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('[az-reveal]').forEach((el) => observer.observe(el));
+        } else {
+            // Fallback for older browsers
+            const revealAll = () => {
+                document.querySelectorAll('[az-reveal]:not([data-revealed])').forEach((el) => {
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top < window.innerHeight * 0.92 && rect.bottom > 0) {
+                        el.setAttribute('data-revealed', '');
+                    }
+                });
+            };
+            window.addEventListener('scroll', revealAll, { passive: true });
+            window.addEventListener('resize', revealAll, { passive: true });
+            revealAll();
+        }
     }
 
     log(...args) {
