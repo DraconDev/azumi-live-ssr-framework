@@ -115,6 +115,12 @@ class Azumi {
 
         e.preventDefault(); // Default prevent for handled events
 
+        // Check for confirmation dialog
+        const confirmMsg = target.getAttribute("az-confirm");
+        if (confirmMsg && !window.confirm(confirmMsg)) {
+            return; // User cancelled
+        }
+
         // Parse the rest: "call toggle_like -> #box"
         // This is a very basic parser for the prototype
         const action = this.parseAction(parts.slice(1).join(" "), target);
