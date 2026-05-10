@@ -292,6 +292,48 @@ fn test_az_on_in_form() {
 }
 
 #[test]
+fn test_az_action_form() {
+    let component = html! {
+        <form az-action="save" az-target="#result">
+            <input type="text" name="name" />
+            <button type="submit">"Save"</button>
+        </form>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-action=\"save\""));
+    assert!(html.contains("az-target=\"#result\""));
+}
+
+#[test]
+fn test_az_action_with_az_confirm() {
+    let component = html! {
+        <form az-action="delete" az-confirm="Are you sure?">
+            <button type="submit">"Delete"</button>
+        </form>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-action=\"delete\""));
+    assert!(html.contains("az-confirm=\"Are you sure?\""));
+}
+
+#[test]
+fn test_az_action_with_scope() {
+    let component = html! {
+        <div az-scope="{\"id\":1}" az-struct="TodoItem">
+            <form az-action="update" az-target="#todo-1" az-swap="morph">
+                <input type="text" name="title" />
+                <button type="submit">"Update"</button>
+            </form>
+        </div>
+    };
+    let html = test::render(&component);
+    assert!(html.contains("az-action=\"update\""));
+    assert!(html.contains("az-target=\"#todo-1\""));
+    assert!(html.contains("az-swap=\"morph\""));
+    assert!(html.contains("az-struct=\"TodoItem\""));
+}
+
+#[test]
 fn test_data_predict_attribute() {
     let component = html! {
         <button data-predict="count = count + 1">"Increment"</button>
