@@ -257,12 +257,14 @@ class Azumi {
         return null;
     }
 
-    // Execute: "call toggle_like -> #box" or "set active_tab = 'rust'"
+    // Execute: "call toggle_like -> #box" or "set active_tab = 'rust'" or "scroll-top"
     async execute(action, element) {
         if (action.type === "call") {
             await this.callAction(action, element);
         } else if (action.type === "set") {
             this.executeLocalState(action, element);
+        } else if (action.type === "scroll-top") {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
