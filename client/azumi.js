@@ -234,16 +234,11 @@ class Azumi {
         // Format: "set {field} = {value}" e.g. "set count = count + 1" or "set active_tab = 'rust'"
         if (actionType === "set") {
             // Reconstruct the assignment expression from remaining tokens
-            // e.g. "count", "=", "count", "+", "1" or "active_tab", "=", "'rust'"
             const rest = tokens.slice(1).join(" ");
-            // Parse "field = expression" — handle both simple and complex expressions
-            // TokenStream may have added spaces, so we reconstruct
-            // Format: set KEY = VALUE (where VALUE can be !field, field + N, field - N, or literal)
             const setMatch = rest.match(/^([\w.]+)\s*=\s*(.+)$/);
             if (setMatch) {
                 const field = setMatch[1].trim();
                 const rawValue = setMatch[2].trim();
-                // Return the set action
                 return {
                     type: "set",
                     field: field,
@@ -252,6 +247,11 @@ class Azumi {
             }
             this.warn("Invalid 'set' command format:", cmd);
             return null;
+        }
+
+        // 'scroll-top' command: smooth scroll to top
+        if (actionType === "scroll-top") {
+            return { type: "scroll-top" };
         }
 
         return null;
