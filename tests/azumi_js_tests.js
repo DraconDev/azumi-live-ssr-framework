@@ -75,6 +75,15 @@ class AzumiTest {
         return -1;
     }
 
+    hasNestedPath(obj, path) {
+        let current = obj;
+        for (const key of path) {
+            if (current == null || !(key in current)) return false;
+            current = current[key];
+        }
+        return true;
+    }
+
     evaluatePredicate(expr, state) {
         if (!expr || !state) return false;
         expr = expr.trim();
@@ -139,7 +148,7 @@ class AzumiTest {
             return (parseFloat(this.getNestedValue(state, fieldPath)) || 0) - parseFloat(decMatch[2]);
         }
         const val = this.getNestedValue(state, expr.split('.'));
-        if (val !== undefined) return val;
+        if (val !== undefined || this.hasNestedPath(state, expr.split('.'))) return val;
         if (/^-?\d+$/.test(expr)) return parseInt(expr, 10);
         if (/^-?\d+\.\d+$/.test(expr)) return parseFloat(expr);
         if (expr === 'true') return true;
