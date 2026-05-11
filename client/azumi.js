@@ -819,7 +819,7 @@ class Azumi {
 
         // Field lookup (supports nested paths)
         const val = getNestedValue(state, expr.split('.'));
-        if (val !== undefined) {
+        if (val !== undefined || hasNestedPath(state, expr.split('.'))) {
             return val;
         }
 
