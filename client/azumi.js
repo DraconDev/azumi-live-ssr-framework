@@ -756,6 +756,16 @@ class Azumi {
         const getNestedValue = (obj, path) =>
             path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
 
+        // Helper: check if nested path exists (distinguishes missing from undefined)
+        const hasNestedPath = (obj, path) => {
+            let current = obj;
+            for (const key of path) {
+                if (current == null || !(key in current)) return false;
+                current = current[key];
+            }
+            return true;
+        };
+
         // Empty
         if (expr === '') return '';
 
