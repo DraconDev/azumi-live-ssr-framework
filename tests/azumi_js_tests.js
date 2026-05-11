@@ -488,19 +488,19 @@ assertEqual(warnCalls.some(c => c.includes("prototype-polluting")), true, "apply
 
 const d2 = {};
 az.applyPrediction(d2, "prototype = 'blocked'");
-assertEqual(d2.prototype, undefined, "applyPrediction: prototype blocked");
+assertEqual(d2.hasOwnProperty("prototype"), false, "applyPrediction: prototype not set on object");
 
 const d3 = {};
 az.applyPrediction(d3, "constructor = 'blocked'");
-assertEqual(d3.constructor, undefined, "applyPrediction: constructor blocked");
+assertEqual(d3.hasOwnProperty("constructor"), false, "applyPrediction: constructor not set on object");
 
 const d4 = {};
 az.applyPrediction(d4, "toString = 'blocked'");
-assertEqual(d4.toString, undefined, "applyPrediction: toString blocked");
+assertEqual(d4.hasOwnProperty("toString"), false, "applyPrediction: toString not set on object");
 
 const d5 = {};
 az.applyPrediction(d5, "valueOf = 'blocked'");
-assertEqual(d5.valueOf, undefined, "applyPrediction: valueOf blocked");
+assertEqual(d5.hasOwnProperty("valueOf"), false, "applyPrediction: valueOf not set on object");
 
 az.warn = origWarn;
 
