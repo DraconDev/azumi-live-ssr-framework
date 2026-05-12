@@ -29,6 +29,19 @@ A Rust full-stack framework where:
 
 ---
 
+## Progress
+
+| Phase | Status | Last Updated |
+|-------|--------|-------------|
+| P0: Foundation | **2/4 complete** (azumi-cli ✅, routes! macro ✅) | 2026-05-12 |
+| P1: API Polish | Not started | - |
+| P2: Interactivity | Not started | - |
+| P3: Production | Not started | - |
+| P4: Ecosystem | Not started | - |
+| Dracon Platform | Ongoing (tag bump ✅) | 2026-05-12 |
+
+---
+
 ## Non-Goals (Things We Will NOT Do)
 
 These come up repeatedly but are intentionally out of scope. Documented so we never waste time reconsidering them.
