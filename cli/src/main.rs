@@ -1,36 +1,79 @@
 mod templates;
 
-use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
 
 const AZUMI_VERSION: &str = "v47.20.20";
 
-#[derive(Parser)]
-#[command(name = "azumi", about = "Scaffolding CLI for the Azumi web framework", version = AZUMI_VERSION)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Create a new Azumi project
-    New {
-        /// Name of the project
-        name: String,
-        /// Output directory (defaults to ./<name>)
-        #[arg(short, long)]
-        out: Option<PathBuf>,
-    },
+fn print_usage() {
+    let name = std::env::args().next().unwrap_or_else(|| "azumi".to_string());
+    eprintln!("Azumi {AZUMI_VERSION} — Scaffolding CLI for the Azumi web framework");
+    eprintln!();
+    eprintln!("Usage:");
+    eprintln!("  {name} new <project-name> [--out <path>]");
+    eprintln!();
+    eprintln!("Commands:");
+    eprintln!("  new    Create a new Azumi project");
+    eprintln!();
+    eprintln!("Options:");
+    eprintln!("  --out <path>    Output directory (defaults to ./<project-name>)");
+    eprintln!("  --help          Show this help");
+    eprintln!("  --version       Show version");
 }
 
 fn main() {
-    let cli = Cli::parse();
-    match cli.command {
-        Commands::New { name, out } => {
-            let dir = out.unwrap_or_else(|| PathBuf::from(&name));
-            create_project(&name, &dir);
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() < 2 {
+        print_usage();
+        std::process::exit(1);
+    }
+
+    match args[1].as_str() {
+        "new" => {
+            if args.len() < 3 {
+                eprintln!("Error: 'new' requires a project name");
+                eprintln!();
+                print_usage();
+                std::process::exit(1);
+            }
+            let name = &args[2];
+            let mut out: Option<PathBuf> = None;
+
+            let mut i = 3;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "--out" | "-o" => {
+                        i += 1;
+                        if i >= args.len() {
+                            eprintln!("Error: --out requires a path argument");
+                            std::process::exit(1);
+                        }
+                        out = Some(PathBuf::from(&args[i]));
+                    }
+                    _ => {
+                        eprintln!("Error: unknown argument: {}", args[i]);
+                        print_usage();
+                        std::process::exit(1);
+                    }
+                }
+                i += 1;
+            }
+
+            let dir = out.unwrap_or_else(|| PathBuf::from(name));
+            create_project(name, &dir);
+        }
+        "--help" | "-h" => {
+            print_usage();
+        }
+        "--version" | "-V" => {
+            println!("azumi-cli {AZUMI_VERSION}");
+        }
+        _ => {
+            eprintln!("Error: unknown command '{}'", args[1]);
+            eprintln!();
+            print_usage();
+            std::process::exit(1);
         }
     }
 }
