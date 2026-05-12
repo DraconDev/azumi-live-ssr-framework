@@ -825,3 +825,22 @@ Dracon License v1.1 — small teams can use included software for free; larger o
 ---
 
 _The only web framework that validates your HTML, scopes your CSS, checks accessibility, and generates optimistic UI from Rust code — all at compile time._
+
+---
+
+## 📦 Versioning & Stability Promise
+
+**Current release:** `v47.20.27` — rapid iteration to find the right API shape.
+
+**Starting with v48.0.0:** Azumi follows strict [Semantic Versioning](https://semver.org/):
+
+| Bump | What It Means |
+|------|---------------|
+| **Major** | Actual breaking changes. Published at most every 3 months. Full migration guide included. |
+| **Minor** | New features, backward compatible. Published monthly. |
+| **Patch** | Bug fixes only. Published as needed. |
+
+**What this means for you:**
+- `azumi = "48"` in Cargo.toml will never break your build.
+- Every breaking change comes with a clear migration path.
+- No more "47 major versions in 6 months." We got the exploration out of our system.
