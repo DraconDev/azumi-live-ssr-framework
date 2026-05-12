@@ -80,7 +80,7 @@ pub async fn handle_action_result<C: Component + ?Sized>(component: &C) -> impl 
 ///     azumi::action::success_fragment("<p>Saved!</p>")
 /// }
 /// ```
-pub fn success_fragment(html: impl Into<String>) -> axum::response::Response {
+pub fn success_fragment(html: impl Into<String>) -> Response {
     axum::response::Html(format!(
         r#"<div class="success_message">{}</div>"#,
         html.into()
@@ -100,7 +100,7 @@ pub fn success_fragment(html: impl Into<String>) -> axum::response::Response {
 ///     azumi::action::error_fragment("Invalid email", None)
 /// }
 /// ```
-pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> axum::response::Response {
+pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
     let msg = message.into();
     let retry = form_id.map(|id| {
         format!(
