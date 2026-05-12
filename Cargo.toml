@@ -11,7 +11,7 @@ categories = ["template-engine", "web-programming"]
 readme = "README.md"
 
 [workspace]
-members = ["macros", "demo", "cli"]
+members = ["macros", "demo"]
 resolver = "2"
 
 [features]
