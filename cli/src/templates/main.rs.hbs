@@ -1,8 +1,5 @@
-use axum::{
-    routing::get,
-    Router,
-};
-use azumi::{component, html};
+use axum::Router;
+use azumi::{component, html, routes};
 
 // ── Components ────────────────────────────────────────────────
 
@@ -258,11 +255,12 @@ async fn main() {
     #[cfg(feature = "devtools")]
     azumi::devtools::auto_reload();
 
-    let app = Router::new()
-        .route("/", get(home_handler))
-        .route("/counter", get(counter_handler))
-        .merge(azumi::action::register_actions(Router::new()))
-        .merge(azumi::devtools::router());
+    let app = routes! {
+        "/"         => home_handler,
+        "/counter"  => counter_handler,
+    }
+    .merge(azumi::action::register_actions(Router::new()))
+    .merge(azumi::devtools::router());
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     println!("  Azumi app running at http://localhost:8080");
