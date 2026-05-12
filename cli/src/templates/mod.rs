@@ -1,0 +1,299 @@
+CARGO_TEMPLATE: &str = r#""#;
+
+pub const CARGO_TOML: &str = r#"[package]
+name = "{{project_name}}"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+azumi = { git = "https://github.com/DraconDev/azumi", tag = "{{azumi_version}}" }
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+tower-http = { version = "0.6", features = ["fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[features]
+default = ["azumi/devtools"]
+"#;
+
+pub const MAIN_RS: &str = r#"use axum::{
+    routing::get,
+    Router,
+};
+use azumi::{component, html};
+
+// ── Components ────────────────────────────────────────────────
+
+#[component]
+fn HomePage() -> impl azumi::Component {
+    html! {
+        <main>
+            <section class={hero}>
+                <div class={hero_content}>
+                    <span class={eyebrow}>"Azumi Framework"</span>
+                    <h1 class={title}>"Hello, Azumi!"</h1>
+                    <p class={subtitle}>"You're running a full-stack Rust web app — no JS framework, no WASM, no second language."</p>
+                    <nav class={actions}>
+                        <a class={btn_primary} href="/counter">"Interactive Demo"</a>
+                        <a class={btn_secondary} href="https://github.com/DraconDev/azumi">"View on GitHub"</a>
+                    </nav>
+                </div>
+            </section>
+        </main>
+        <style>
+            .hero {
+                display: "flex";
+                align-items: "center";
+                justify-content: "center";
+                min-height: "100vh";
+                padding: "2rem";
+                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)";
+            }
+            .hero_content { max-width: "640px"; text-align: "center"; }
+            .eyebrow {
+                display: "inline-block";
+                font-size: "0.75rem";
+                font-weight: "700";
+                text-transform: "uppercase";
+                letter-spacing: "0.12em";
+                color: "#38bdf8";
+                margin-bottom: "1rem";
+            }
+            .title {
+                font-size: "clamp(2.5rem, 6vw, 4rem)";
+                font-weight: "900";
+                background: "linear-gradient(to right, #f1f5f9, #94a3b8)";
+                -webkit-background-clip: "text";
+                -webkit-text-fill-color: "transparent";
+                line-height: "1.1";
+                margin-bottom: "1.25rem";
+            }
+            .subtitle {
+                color: "#94a3b8";
+                font-size: "1.15rem";
+                line-height: "1.7";
+                margin-bottom: "2rem";
+            }
+            .actions { display: "flex"; gap: "1rem"; justify-content: "center"; flex-wrap: "wrap"; }
+            .btn_primary {
+                display: "inline-flex";
+                align-items: "center";
+                min-height: "48px";
+                padding: "0.85rem 1.5rem";
+                background: "#38bdf8";
+                color: "#0f172a";
+                font-weight: "800";
+                font-size: "0.9rem";
+                border-radius: "8px";
+                text-decoration: "none";
+                transition: "opacity 0.2s";
+            }
+            .btn_primary:hover { opacity: "0.85"; }
+            .btn_secondary {
+                display: "inline-flex";
+                align-items: "center";
+                min-height: "48px";
+                padding: "0.85rem 1.5rem";
+                border: "1px solid rgba(255,255,255,0.15)";
+                color: "#e2e8f0";
+                font-weight: "600";
+                font-size: "0.9rem";
+                border-radius: "8px";
+                text-decoration: "none";
+                transition: "border-color 0.2s";
+            }
+            .btn_secondary:hover { border-color: "rgba(255,255,255,0.3)"; }
+        </style>
+    }
+}
+
+// ── Counter (interactive component) ───────────────────────────
+
+#[azumi::live]
+pub struct Counter {
+    pub count: i32,
+}
+
+#[azumi::live_impl(component = "counter_view")]
+impl Counter {
+    pub fn increment(&mut self) {
+        self.count += 1;
+    }
+    pub fn decrement(&mut self) {
+        self.count -= 1;
+    }
+    pub fn reset(&mut self) {
+        self.count = 0;
+    }
+}
+
+#[component]
+fn CounterPage() -> impl azumi::Component {
+    let counter = Counter { count: 0 };
+    html! {
+        <main>
+            <section class={page}>
+                <a class={back_link} href="/">"← Back"</a>
+                <div class={card}>
+                    <h2 class={card_title}>"Interactive Counter"</h2>
+                    <p class={card_desc}>
+                        "This counter uses " <code>"#[azumi::live]"</code>
+                        " — state is HMAC-signed, mutations run on the server, "
+                        "and the DOM updates without a full page reload."
+                    </p>
+                    @counter_view(&counter)
+                    <div class={code_hint}>
+                        <p>"The count value is " <strong>"signed by the server"</strong>
+                        " — clients can't forge state. Try inspecting the page source."
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <style>
+            .page { padding: "4rem 2rem"; max-width: "640px"; margin: "0 auto"; }
+            .back_link {
+                display: "inline-block";
+                color: "#64748b";
+                text-decoration: "none";
+                font-size: "0.9rem";
+                margin-bottom: "2rem";
+            }
+            .back_link:hover { color: "#e2e8f0"; }
+            .card {
+                background: "#1e293b";
+                border: "1px solid rgba(255,255,255,0.08)";
+                border-radius: "16px";
+                padding: "2rem";
+            }
+            .card_title {
+                font-size: "1.5rem";
+                font-weight: "800";
+                color: "#f1f5f9";
+                margin-bottom: "0.75rem";
+            }
+            .card_desc {
+                color: "#94a3b8";
+                line-height: "1.7";
+                margin-bottom: "1.5rem";
+                font-size: "0.9rem";
+            }
+            .card_desc code {
+                background: "rgba(56, 189, 248, 0.1)";
+                color: "#38bdf8";
+                padding: "0.1rem 0.3rem";
+                border-radius: "4px";
+                font-size: "0.85rem";
+            }
+            .code_hint {
+                margin-top: "1.5rem";
+                padding: "1rem";
+                background: "rgba(255,255,255,0.03)";
+                border-radius: "8px";
+                border: "1px solid rgba(255,255,255,0.06)";
+                font-size: "0.82rem";
+                color: "#64748b";
+                line-height: "1.6";
+            }
+            .code_hint strong { color: "#a5f3fc"; }
+        </style>
+    }
+}
+
+#[azumi::component]
+fn counter_view(counter: &Counter) -> impl azumi::Component {
+    html! {
+        <div class={counter_wrap}>
+            <div class={display}>
+                <span class={label}>"Count"</span>
+                <span class={value}>{counter.count}</span>
+            </div>
+            <div class={controls}>
+                <button class={btn} on:click={Counter::decrement}>"-"</button>
+                <button class={btn_reset} on:click={Counter::reset}>"Reset"</button>
+                <button class={btn} on:click={Counter::increment}>"+"</button>
+            </div>
+        </div>
+        <style>
+            .counter_wrap { margin-bottom: "0"; }
+            .display {
+                display: "flex";
+                align-items: "baseline";
+                gap: "0.75rem";
+                margin-bottom: "1.25rem";
+                padding: "1.25rem";
+                background: "rgba(0,0,0,0.2)";
+                border-radius: "8px";
+            }
+            .label { color: "#64748b"; font-size: "0.85rem"; font-weight: "600"; text-transform: "uppercase"; letter-spacing: "0.05em"; }
+            .value {
+                font-size: "2.5rem";
+                font-weight: "900";
+                color: "#f1f5f9";
+                font-variant-numeric: "tabular-nums";
+                min-width: "3ch";
+                text-align: "center";
+            }
+            .controls { display: "flex"; gap: "0.5rem"; }
+            .btn {
+                flex: "1";
+                padding: "0.75rem";
+                font-size: "1.25rem";
+                font-weight: "700";
+                border: "1px solid rgba(255,255,255,0.1)";
+                background: "rgba(255,255,255,0.05)";
+                color: "#e2e8f0";
+                border-radius: "8px";
+                cursor: "pointer";
+                transition: "background 0.15s";
+            }
+            .btn:hover { background: "rgba(255,255,255,0.1)"; }
+            .btn_reset {
+                flex: "1";
+                padding: "0.75rem";
+                font-size: "0.85rem";
+                font-weight: "600";
+                border: "1px solid rgba(251, 191, 36, 0.3)";
+                background: "rgba(251, 191, 36, 0.08)";
+                color: "#fbbf24";
+                border-radius: "8px";
+                cursor: "pointer";
+                transition: "background 0.15s";
+            }
+            .btn_reset:hover { background: "rgba(251, 191, 36, 0.15)"; }
+        </style>
+    }
+}
+
+// ── Axum Router ───────────────────────────────────────────────
+
+#[tokio::main]
+async fn main() {
+    tracing_subscriber::fmt().with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
+
+    // ⚡ Start auto-reload in dev
+    #[cfg(feature = "devtools")]
+    azumi::devtools::auto_reload();
+
+    let app = Router::new()
+        .route("/", get(home_handler))
+        .route("/counter", get(counter_handler))
+        .merge(azumi::action::register_actions(Router::new()))
+        .merge(azumi::devtools::router());
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    println!("  🚀 Azumi app running at http://localhost:8080");
+    axum::serve(listener, app).await.unwrap();
+}
+
+async fn home_handler() -> impl axum::response::IntoResponse {
+    axum::response::Html(azumi::render_to_string(&HomePage))
+}
+
+async fn counter_handler() -> impl axum::response::IntoResponse {
+    axum::response::Html(azumi::render_to_string(&CounterPage))
+}
+"#;
