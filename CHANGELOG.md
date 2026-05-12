@@ -117,26 +117,6 @@ Azumi now follows strict [Semantic Versioning](https://semver.org/). From v48 fo
 - See [MIGRATION.md](MIGRATION.md) for full v26 → v27+ upgrade guide
 
 ---
----
-
-## 📦 Versioning & Stability Promise
-
-**Current:** `v47.x.x` — rapid iteration to find the right API shape.
-
-**Starting with v48.0.0:** Azumi will follow strict [Semantic Versioning](https://semver.org/):
-
-| Bump | What It Means |
-|------|---------------|
-| **Major** (48.0.0 → 49.0.0) | Actual breaking changes. Published at most every 3 months. Full migration guide included. |
-| **Minor** (48.0.0 → 48.1.0) | New features, backward compatible. Published monthly. |
-| **Patch** (48.0.0 → 48.0.1) | Bug fixes only. Published as needed. |
-
-**What this means for you:**
-- `azumi = "48"` in Cargo.toml will never break your build.
-- Every breaking change comes with a clear migration path.
-- No more "47 major versions in 6 months."
-
----
 
 ## 🚀 v42.0.0 Release Notes
 ### Fixed
