@@ -1,122 +1,136 @@
 # Azumi — Master TODO
 
 > Full-stack Rust web framework. Simple, secure, compiled.
-> Born from: "My backend is Rust — why is my frontend the thing that breaks?"
+> Born from: *"My backend is Rust — why is my frontend the thing that breaks?"*
+
+---
+
+## The North Star
+
+A Rust full-stack framework where:
+
+- **No second language** for the frontend. One compiler from DB schema to DOM attribute. No type-safety gap at the `fetch()` boundary.
+- **No WASM download tax.** ~3KB runtime. HTML is truth. Interactivity is surgical, not the default.
+- **Compiler catches frontend bugs.** CSS class typos, bad HTML nesting, missing alt text, wrong attributes — blocked at compile time, not in production.
+- **Feels simple.** Not Leptos-complex (no reactivity model to learn). Not Dioxus-heavy (no WASM build pipeline). Just Rust + `html!` + attributes.
+
+**The problem this solves:**
+> *"My backend is Rust — rock solid, memory safe, compiled. My frontend is JS/TS — runtime errors, npm fragility, undefined is not a function. Why?"*
+
+**Competitor positioning:**
+| Competitor | Why not |
+|-----------|---------|
+| Next.js / SvelteKit | Language boundary at fetch(). Two type systems, two build pipelines, two ecosystems. Type safety breaks at the API call. |
+| Leptos / Dioxus | WASM download tax (~150KB+). Complex reactivity model. DOM bridge overhead. Overkill for "form submit" and "button click." |
+| HTMX | No type safety — everything is strings (URLs, swap targets, triggers). The compiler can't help you catch mistakes. |
+| Maud | No interactivity story. Just templates — no form actions, no live state, no optimistic UI. |
+
+**Differentiator:** Compile-time CSS-HTML co-validation + zero-hydration architecture + HMAC-signed state + ~3KB runtime + AI-ready validation pipeline.
+
+---
+
+## Non-Goals (Things We Will NOT Do)
+
+These come up repeatedly but are intentionally out of scope. Documented so we never waste time reconsidering them.
+
+| Temptation | Why Not |
+|-----------|---------|
+| **ORM integration** | Pick sqlx/diesel/sea-orm independently. We provide patterns (demo), not packages. |
+| **Authentication package** | Too many variants (sessions, JWT, OAuth, OIDC, magic links). Signed state is the foundation; let ecosystem handle auth. |
+| **CSS framework integration** | Tailwind/Material/Bootstrap change too fast. Our compile-time validation is the right abstraction level. |
+| **WASM / SSR hybrid** | Defeats "no WASM" philosophy. Point users to Leptos if they want WASM. We own "server-rendered with surgical interactivity." |
+| **Client-side SPA routing** | MPA + Idiomorph is simpler, faster, no JS-for-navigation requirement. |
+| **File-system based routing** | `routes!` macro is simpler, fully type-checked, no build scripts or filesystem coupling. |
+| **Custom build tooling** | `cargo` works fine. No Vite/Rollup/Webpack equivalent needed. |
+| **Separate template language** | `html!` IS the template language — it's Rust. No syntax highlighting issues, no editor plugins. |
 
 ---
 
 ## Phase 0: Foundation — Make It Tryable (Next Session)
 
-These are the **blockers** that prevent anyone from picking up Azumi and having a working project in 5 minutes. Do these first, in order.
+Blockers that prevent anyone from picking up Azumi and having a working project in 5 minutes. Do these first, in order.
 
 ### P0.1 — `azumi new` Scaffolding CLI
 
-**Problem:** No "hello world" flow. Currently requires: clone repo → read 8 docs → manually wire Axum → hope it works.
+**Problem:** No "hello world" flow. Currently: clone repo → read 8 docs → manually wire Axum → hope.
 
-**What:**
+**Target:**
 ```bash
 cargo install azumi-cli
 azumi new my-app
 cd my-app && cargo run
-# → http://localhost:8080 — working page with one form, one button
+# → http://localhost:8080 — working page
 ```
 
-**Generated project should include:**
-- `main.rs` with Azumi + Axum wired correctly (routes, actions, devtools)
-- `src/routes/home.rs` — one page component
+**Generated project:**
+- `main.rs` with Azumi + Axum wired (routes, actions, devtools)
+- `src/routes/home.rs` — one page component using `azumi::routes!` style
 - `src/components/` — one reusable component
-- Client runtime (`azumi_script()`) already in the layout
+- Client runtime (`azumi_script()`) in layout
 - One form using `az-action` + `az-target`
 - `.gitignore`, `Cargo.toml` with correct deps
 
-**Deliverable:** A `cargo install`-able binary that generates the scaffolding.
-
-**Estimated effort:** 1 session
-
-**Dependencies:** None — standalone crate, no framework changes needed.
+**Deliverable:** `azumi-cli` crate, `cargo install`-able.
+**Effort:** 1 session | **Deps:** None
 
 ---
 
 ### P0.2 — `azumi::routes!` Macro
 
-**Problem:** Every Azumi project requires manual Axum Router wiring. This is boilerplate that turns away newcomers and makes "full-stack framework" claim feel hollow.
+**Problem:** Manual Axum Router wiring for every route = boilerplate that makes "full-stack" claim feel hollow.
 
-**What:**
+**Target:**
 ```rust
-// Before: 10 lines of manual wiring
-let app = Router::new()
-    .route("/", get(|| async { html! { <h1>"Home"</h1> } }))
-    .route("/about", get(|| async { html! { <h1>"About"</h1> } }));
-
-// After: 4 lines, declarative, no boilerplate
 azumi::routes! {
     "/" => HomePage,
     "/about" => AboutPage,
+    "/products/:id" => ProductPage,
 }
 ```
 
-**Requirements:**
-- Generates an Axum `Router` from a macro invocation
-- Each route maps a path to a component (which implements `Component`)
-- Supports nested routes (e.g., `/products/:id`)
-- Supports middleware (e.g., `azumi::routes! { ... }.layer(auth_middleware)`)
-- Prepends `/azumi.js` and `/_azumi/` routes automatically (actions, devtools, etc.)
+Auto-prepends `/azumi.js` and `/_azumi/` routes (actions, devtools, hot-reload). Supports dynamic segments and middleware.
 
-**Estimated effort:** 1 session (macro ~50-100 lines)
-
-**Dependencies:** None — pure proc macro in `azumi-macros`.
+**Effort:** 1 session (~100 lines of proc macro) | **Deps:** None
 
 ---
 
 ### P0.3 — Documentation Consolidation
 
-**Problem:** 8+ markdown files in the root. Users don't know where to start. The framework story is scattered.
+**Problem:** 8+ markdown files (2,000+ lines). No clear entry point.
 
 **Target structure:**
 ```
-README.md          → Brand + 5-minute quickstart (~200 lines, down from 827)
+README.md          → Brand + 5-min quickstart (~200 lines)
 docs/
-├── guide.md       → Full framework guide (one story, one flow, ~3000 words)
-└── reference.md   → API reference (auto-generated or maintained)
+├── guide.md       → Full guide (one story, ~3,000 words)
+├── reference.md   → API reference
+└── comparison.md  → Framework comparison
 ```
 
-**Files to merge/delete:**
-| File | Current | Fate |
-|------|---------|------|
-| `README.md` | 827 lines | Trim to 200 lines — just brand + quickstart |
-| `AGENTS.md` | ~150 lines | Merge into `docs/guide.md` |
-| `AI_GUIDE_FOR_WRITING_AZUMI.md` | ~250 lines | Merge into `docs/guide.md` |
-| `AZUMI_DESCRIPTION.md` | 241 lines | Merge into `docs/guide.md` |
-| `FRAMEWORK_COMPARISON.md` | 218 lines | Move to `docs/comparison.md` |
-| `WHEN_TO_USE_AZUMI.md` | ~100 lines | Merge into `docs/guide.md` |
-| `CHANGELOG.md` | 287 lines | Keep as-is |
-| `TODO.md` | This file | Keep as-is |
-
-**Estimated effort:** 1 session
-
-**Dependencies:** Should be done AFTER P0.1 and P0.2 so the quickstart reflects the actual `azumi new` + `azumi::routes!` experience.
+**Merge into guide.md:** AGENTS.md, AI_GUIDE_FOR_WRITING_AZUMI.md, AZUMI_DESCRIPTION.md, WHEN_TO_USE_AZUMI.md
+**Keep:** CHANGELOG.md, TODO.md
+**Move:** FRAMEWORK_COMPARISON.md → docs/comparison.md
+**Effort:** 1 session | **Deps:** P0.1 + P0.2 (so quickstart reflects `azumi new`)
 
 ---
 
 ## Phase 1: API Polish — Make It Feel Simple (Next 2-3 Sessions)
 
-These clean up the framework's API surface so "simple" isn't just a marketing claim.
+Clean up the framework's API surface so "simple" isn't just a marketing claim.
 
 ### P1.1 — Merge `#[live]` + `#[live_impl]` into One Attribute
 
-**Problem:** The #1 API design complaint. Two attributes for one component is confusing and doesn't match the "simple" promise.
+**Problem:** The #1 API design complaint. Two attributes for one component is confusing.
 
+**Current:**
 ```rust
-// Current (two macros, confusing coupling)
-#[azumi::live]
-pub struct Counter { pub count: i32 }
-
+#[azumi::live] pub struct Counter { pub count: i32 }
 #[azumi::live_impl(component = "counter_view")]
-impl Counter {
-    pub fn increment(&mut self) { self.count += 1; }
-}
+impl Counter { pub fn increment(&mut self) { self.count += 1; } }
+```
 
-// Target (one macro, everything in one place)
+**Target:**
+```rust
 #[azumi::live(component = "counter_view")]
 pub struct Counter {
     pub count: i32,
@@ -124,275 +138,186 @@ pub struct Counter {
 }
 ```
 
-**Requirements:**
-- The struct and its impl block are defined together (Rust allows this in a single `#[attr]` on a module-within-item, or via `TokenStream` manipulation)
-- `LiveStateMetadata`, `LiveState` traits still generated internally — just hidden from the user
-- Existing `#[azumi::live_impl]` kept for backward compat but marked `#[doc(hidden)]`
-- All 20 demo lessons updated
-
-**Estimated effort:** 1-2 sessions
-
-**Technical approach:**
-- The attribute on the struct captures both the struct def and any `impl` blocks that follow
-- OR: use a helper macro that takes both struct and impl as arguments (less ergonomic but simpler to implement)
+Keep `#[live_impl]` for backward compat, mark `#[doc(hidden)]`.
+**Effort:** 1-2 sessions | **Deps:** None (best before P0.3)
 
 ---
 
 ### P1.2 — Reduce Visible API Surface
 
-**Problem:** 10 proc macros, 6 traits, 33 functions, 19 structs. Users see "complex" before "simple."
+**Target: 10 macros → 5 visible, 6 traits → 2 visible, 33 functions → ~15 visible**
 
-**Target visible surface:**
-| Keep Public | Hide (`#[doc(hidden)]`) | Remove |
-|------------|------------------------|--------|
-| `html!` | `head!` | N/A |
-| `#[component]` | `#[page]` (⊂ #[component]) | |
-| `#[live]` (merged) | `#[predict]` (no-op) | |
-| `#[action]` | `from_fn()`, `from_fn_once()` | |
-| `json_data!` | `Raw<T>`, `TrustedHtml` | |
-| `Component` trait | `LiveStateMetadata` | |
-| `LiveState` trait | `FallbackRender` (merge into Component) | |
-| `azumi_script()` | `session_cleanup_script()` | |
-| `register_actions()` | 3+ obscure helper functions | |
-| `sign_state()`, `verify_state()` | | |
-| `success_fragment()`, `error_fragment()` | | |
+| Keep Public | Hide `#[doc(hidden)]` |
+|------------|----------------------|
+| `html!` | `head!` |
+| `#[component]` | `#[page]` |
+| `#[live]` (merged) | `#[live_impl]` |
+| `#[action]` | `#[predict]` |
+| `json_data!` | `from_fn()`, `from_fn_once()` |
+| `Component` trait | `session_cleanup_script()` |
+| `LiveState` trait | `Escaped`, `RenderWrapper` |
+| `azumi_script()` | `FnComponent`, `FnOnceComponent` |
+| `render_to_string()` | `HotReloadClosure` |
+| `sign_state()`, `verify_state()` | `LiveStateMetadata` |
+| `register_actions()` | `FallbackRender` |
+| `success_fragment()`, `error_fragment()` | obscure script helpers |
+| `compute_scope_id()`, `scope_css()` | |
+| `escape_css_string()` | |
 
-**Estimated effort:** 1 session
+**Prelude shrinks:** Remove `head`, `live_impl`, `page`, `predict`, `session_cleanup_script`, `from_fn`, `FnComponent`
+**Effort:** 1 session | **Deps:** P1.1
 
 ---
 
 ### P1.3 — Versioning Promise
 
-**Problem:** v47 in 6 months = breaking changes every 4 days = zero trust.
+**Problem:** v47 in 6 months = breaking changes every ~4 days = zero trust.
 
-**What:**
-- Ship next release as `v48.0.0` (incrementals are fine, just label it clearly)
-- Publish a versioning policy:
-  - Major = actual breaking changes (API removal, behavior change)
-  - Minor = new features, no breaking changes
-  - Patch = bug fixes only
-- Add this to `CHANGELOG.md` and `README.md`
+**What:** Ship v48.0.0 with semver promise:
+- Major = actual breaking changes
+- Minor = new features, backward compatible
+- Patch = bug fixes only
 
-**Estimated effort:** 1 changelog entry + a few sentences in README
+Add to CHANGELOG.md and README.
+**Effort:** 1 changelog entry | **Deps:** None
 
 ---
 
-## Phase 2: Interactivity — Make It Modern (Next 3-5 Sessions)
+### P1.4 — `#[page]` Deprecation
 
-These make the "modern with interactivity" claim production-ready.
+Mark `#[page]` as `#[doc(hidden)]`. Thin wrapper around `#[component]`. Keep for backward compat.
+**Effort:** 30 min | **Deps:** P1.2
 
-### P2.1 — `az-action` Form Handler Ergonomics
+---
 
-**Problem:** Server action handlers require too much boilerplate (State extraction, Form parsing, IntoResponse wrapping).
+## Phase 2: Interactivity — Make It Buildable (Next 3-5 Sessions)
 
-**Target API:**
+Make the "modern with interactivity" claim production-ready.
+
+### P2.1 — `#[azumi::action]` Server Handler Ergonomics
+
+**Target — no boilerplate:**
 ```rust
 #[azumi::action]
-pub async fn save_profile(
-    state: &AppState,
-    form: SaveProfileForm,
-) -> ActionResult {
-    // business logic only — no boilerplate
+pub async fn save_profile(state: &AppState, form: SaveProfileForm) -> ActionResult {
     Ok(html! { <div class="success">"Saved!"</div> })
 }
 ```
 
-**What's needed:**
-- Let `#[azumi::action]` auto-generate the Axum handler boilerplate (State extraction, Form parsing, IntoResponse)
-- Support standard success/error return types (`Result<Component, String>` → wrapped in `success_fragment`/`error_fragment`)
-- Auto-register via `inventory` (like the current `#[action]` does)
-
-**Estimated effort:** 1 session
+Auto-generates: State extraction, Form/Json parsing, IntoResponse wrapping, inventory registration.
+**Effort:** 1 session | **Deps:** None
 
 ---
 
 ### P2.2 — Error Message Overhaul
 
-**Problem:** The `html!` macro produces opaque tokenizer errors. When an AI writes bad code, the error should say *what* went wrong, *where*, and *what to do instead*.
+**Current:** `error: expected '>'` (opaque, no fix suggestion)
+**Target:** What went wrong + exact span + fix suggestion + docs link
 
-**Current:**
-```
-error: expected `>`
-  --> src/lib.rs:10:25
-   |
-10 |     <div class={container>"</div>
-   |                         ^
-```
-
-**Target:**
-```
-error: Missing closing `>` on opening tag
-  --> src/lib.rs:10:25
-   |
-10 |     <div class={container>"</div>
-   |                        ^ expected `>` here
-   |
-help: Did you mean?
-     <div class={container}>"</div>
-```
-
-**Scope:**
-- Tokenizer errors (unclosed tags, unexpected characters, unmatched braces)
-- Validator errors (CSS class not found, wrong HTML nesting, missing alt text)
-- Each error should include: what happened, exact span, fix suggestion
-
-**Estimated effort:** 2-3 sessions (high-value, spans multiple validator modules)
+**Scope:** Tokenizer errors (unclosed tags, unmatched braces), validator errors (CSS classes, HTML nesting, alt text, attributes), format!/Raw() blocks.
+**Effort:** 2-3 sessions | **Deps:** None
 
 ---
 
 ### P2.3 — Client Feature Documentation + Patterns
 
-**Problem:** The client features (`az-action`, `az-confirm`, `az-init`, `az-reveal`, `az-bind`, `az-ui`) exist and work, but:
-1. No single document shows all of them with examples
-2. Common patterns (tabs, modals, accordion, live search) aren't documented
-3. Platform team defaults to JS because they don't know Azumi can do it
-
-**Deliverable:** A `docs/interactivity.md` that covers:
+**Deliverable:** `docs/interactivity.md` with:
 - Decision tree: when to use each feature
 - Pattern catalog: tabs, modals, accordion, live search, form submit, confirm dialogs, scroll animations
-- Before/after: JS code → Azumi attribute (demonstrates the savings)
-- Migration checklist: common JS patterns and their Azumi equivalents
+- Before/after: JS code → Azumi attribute (lines saved)
+- Migration checklist: common JS patterns → Azumi equivalents
 
-**Estimated effort:** 1 session
+**Effort:** 1 session | **Deps:** P0.3 or parallel
+
+---
+
+### P2.4 — `head!` Macro Deprecation
+
+Mark `#[doc(hidden)]`. Users use `<head>` in layout. Keep for backward compat.
+**Effort:** 30 min | **Deps:** P1.2
 
 ---
 
 ## Phase 3: Production Readiness (Next 3-6 Months)
 
-These make Azumi a framework you'd bet a production SaaS on.
-
 ### P3.1 — Make Axum Optional
-
-**Problem:** `axum` is a hard dependency. Can't use with Actix, Warp, Tower directly.
-
-**What:**
-- Split `Component` trait and `render_to_string()` into a `azumi-core` crate with zero framework dependencies
-- Move Axum-specific features (`register_actions`, devtools router, hot_reload) into a `azumi-axum` adapter crate
-- Keep `azumi` as the "batteries-included" meta-crate that re-exports both
-
-**Estimated effort:** 2-3 sessions
-
-**Dependencies:** Major refactor, best done after API surface is stable (Phase 1).
-
----
+Split into `azumi-core` (zero deps: Component, html!, CSS scoping, security) + `azumi-axum` (register_actions, devtools, routes!) + `azumi` (meta-crate).
+**Effort:** 2-3 sessions | **Deps:** P1.2 (stable API surface)
 
 ### P3.2 — Streaming HTML
-
-**Problem:** Large pages block the response until fully rendered. Streaming would send headers immediately and render incrementally.
-
-**What:**
-- `Component::render()` currently writes to `fmt::Formatter` (synchronous)
-- Add an async `render_stream()` method that writes chunks as they're ready
-- Useful for: pages with multiple sections, slow data sources, streaming layouts
-
-**Estimated effort:** 1-2 sessions
-
----
+Optional `async fn render_stream()` on Component. Sends headers immediately, renders incrementally.
+**Effort:** 1-2 sessions
 
 ### P3.3 — Benchmark Suite Expansion
+Add: macro expansion time, memory at scale (1000+ components), concurrent render throughput, WASM comparison, full-page pipeline.
+**Effort:** 1 session
 
-**Problem:** Current benchmarks cover escape, render, and CSS scoping. Missing:
-- Macro expansion time (how long does `html!` take to compile?)
-- Memory usage at scale (1000+ components)
-- Concurrent request handling (how many concurrent renders before contention?)
-- WASM comparison (how does Idiomorph DOM patching compare to WASM?)
-
-**Estimated effort:** 1 session
+### P3.4 — Security Audit
+Review HMAC signing, XSS edge cases, DOM clobbering. Expand proptest coverage. Document threat model.
+**Effort:** 1 session
 
 ---
 
 ## Phase 4: Ecosystem Growth (Ongoing)
 
-These are "nice to have" but not critical path.
-
-### P4.1 — Template Hot Reload for Page-Level
-
-**Problem:** Current hot reload works for component styles but not for full template content. Edit a component → full page reload.
-
-**What:** Extend the hot-reload WebSocket to push full template patches (not just CSS). Use Idiomorph server-side to compute the diff.
-
-**Estimated effort:** 1-2 sessions
-
----
+### P4.1 — Template Hot Reload (Page-Level)
+Extend WebSocket to push full template patches via Idiomorph server-side diff.
+**Effort:** 1-2 sessions
 
 ### P4.2 — Form Validation Helpers
+`validated!` macro, auto-generated `aria-invalid`, integration with `error_fragment()`.
+**Effort:** 1 session
 
-**Problem:** Form validation requires manual error handling in action handlers.
+### P4.3 — WebSocket/SSE Support
+`az-sse` attribute: server pushes HTML fragments, Idiomorph patches them in.
+**Effort:** 2 sessions
 
-**What:**
-- `validated!` macro or helper that wraps field validation
-- Auto-generates error messages and `aria-invalid` attributes
-- Integrates with `error_fragment()` for consistent error display
-
-**Estimated effort:** 1 session
-
----
-
-### P4.3 — WebSocket / SSE Support
-
-**Problem:** Live data (notifications, real-time updates) requires external WebSocket setup.
-
-**What:** An `az-sse` attribute or action that opens a Server-Sent Events connection. The server pushes HTML fragments, Idiomorph patches them in.
-
-**Estimated effort:** 2 sessions
+### P4.4 — Component Library Starter
+`azumi-ui` crate: Button, Input, Card, Modal, Tabs, Accordion, Form — Azumi-native, unstyled.
+**Effort:** 2-3 sessions
 
 ---
 
 ## Dracon Platform — Tactical Follow-ups
 
-These are platform-specific items identified during this session's work.
-
-### DP1. — CSS Consolidation: Remaining Flex-Column Patterns
-
-**Status:** 18 patterns remain. All are **legitimate** non-candidates — they have background/border/padding or responsive overrides mixed in. No further action needed unless adding `vstack-0` (gap: 0) class.
-
-**Candidate patterns that could be simplified (not urgent):**
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| `render.rs` | 146 | `.page_content article` → `vstack-15` | Raw CSS string, not in html! macro. Would need Rust template changes. |
-| `pages.rs` | 281 | `.home_pricing_header` → `vstack-075` | Has responsive override to row — not a pure vstack replacement. |
-| `pages.rs` | 238, 557 | gap:0 patterns | Add `vstack-0` or drop no-op `gap: 0`. |
+| Item | Status | Notes |
+|------|--------|-------|
+| DP.1 — Tag bump v47.19.10 → v47.20.20 | ✅ Done | Cargo.toml confirmed at v47.20.20 |
+| DP.2 — Audit remaining TS for Azumi-native alternatives | ⏳ Next | Need to evaluate ai-hub-copy.ts (199 lines) |
+| DP.3 — CSS consolidation (~18 patterns remain, all legit) | 🔍 Evaluated | No urgent action; consider `vstack-0` for gap:0 |
+| DP.4 — TS pipeline monitoring (esbuild if >5 files) | 🔍 Monitoring | 2 TS files + 1 .d.ts — tsc is fine |
+| DP.5 — Cross-repo integration tests | ⏳ Pending | Add cargo test --workspace to platform CI |
 
 ---
 
-### DP2. — TypeScript Pipeline
+## Dependency Graph
 
-**Status:** Set up and working. 2 files (ai-rankings, ai-hub-copy) + azumi.d.ts.
+```
+P0.1 ──┬── P0.3     P2.1 ──┐
+P0.2 ──┘            P2.2 ──┤── (parallel with P0)
+                    P2.3 ──┘
+P1.1 ──→ P1.2 ──→ P1.4
+              │
+              └──→ P3.1 (stable API required)
 
-**Monitor:** Switch to `esbuild` if >5 TS files or >100KB output. Current `tsc` is fine.
-
----
-
-### DP3. — Version Tracking
-
-- **Azumi:** `v47.19.10` → `v47.20.20` ✅ (Axum 0.8 upgrade, client features)
-- **Dracon Platform:** Updated Cargo.toml to use `v47.20.20` ✅
-
----
-
-## Legend
-
-| Icon | Meaning |
-|------|---------|
-| **P0** | Blocking — do this before anything else |
-| **P1** | Core UX — makes the framework feel simple |
-| **P2** | Features — expands capability |
-| **P3** | Production — hardens for real use |
-| **P4** | Nice-to-have — not critical path |
-| **DP** | Dracon Platform specific |
+P3.2 ←── P3.1 or standalone
+P4.x ───── (anytime, no blockers)
+```
 
 ---
 
-## Quick Reference: What Each Phase Unlocks
+## Effort Summary
 
-| Phase | User Benefit | Business Impact |
-|-------|-------------|-----------------|
-| **P0** | "I can try Azumi in 5 minutes" | First-time adoption |
-| **P1** | "This feels simple and clean" | Developer retention |
-| **P2** | "I can build a real app with this" | Production use cases |
-| **P3** | "I'd bet my company on this" | Enterprise adoption |
-| **P4** | "This competes with Next.js" | Market leadership |
+| Phase | Sessions | Weeks | Unlocks |
+|-------|----------|-------|---------|
+| P0 | ~3 | 1 | "I can try Azumi in 5 min" |
+| P1 | ~3-4 | 1-2 | "This feels simple" |
+| P2 | ~5-7 | 2-3 | "I can build a real app" |
+| P3 | ~4-6 | 2-4 | "I'd bet my company on this" |
+| P4 | Ongoing | Ongoing | "Competes with Next.js" |
 
 ---
 
 *Last updated: 2026-05-12*
+*Direction: Full-stack Rust framework — simple, secure, compiled. One language from DB to DOM.*
+*"My backend is Rust — why is my frontend the thing that breaks?"*
