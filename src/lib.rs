@@ -1,5 +1,5 @@
 pub mod prelude {
-    pub use crate::action::Action;
+    pub use crate::action::{Action, error_fragment, success_fragment};
     pub use crate::{
         action, azumi_script, component, head, html, json_data, live,
         live_impl, page, predict, session_cleanup_script, AzumiScript, Component, escape_css_string,

@@ -24,7 +24,7 @@
 //! cannot forge valid state without the secret key.
 
 use crate::Component;
-use axum::response::IntoResponse;
+use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 
 use std::future::Future;
@@ -66,4 +66,58 @@ async fn azumi_js_handler() -> impl IntoResponse {
 /// Helper to wrap an action result into an Axum response with correct Content-Type
 pub async fn handle_action_result<C: Component + ?Sized>(component: &C) -> impl IntoResponse {
     axum::response::Html(crate::render_to_string(component))
+}
+
+/// HTML fragment for successful form actions (az-target swapping).
+///
+/// Wraps content in a `<div class="success_message">` for standard error handling.
+/// Use this when an `az-action` form succeeds and you want to swap in a success message.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// async fn submit_form() -> impl axum::response::IntoResponse {
+///     azumi::action::success_fragment("<p>Saved!</p>")
+/// }
+/// ```
+pub fn success_fragment(html: impl Into<String>) -> axum::response::Response {
+    axum::response::Html(format!(
+        r#"<div class="success_message">{}</div>"#,
+        html.into()
+    ))
+    .into_response()
+}
+
+/// HTML fragment for failed form actions (az-target swapping).
+///
+/// Wraps content in a `<div class="error_message">` with optional retry button.
+/// If `form_id` is provided, includes a "Try Again" button that re-shows the form.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// async fn submit_form() -> impl axum::response::IntoResponse {
+///     azumi::action::error_fragment("Invalid email", None)
+/// }
+/// ```
+pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> axum::response::Response {
+    let msg = message.into();
+    let retry = form_id.map(|id| {
+        format!(
+            r#"<button type="button" onclick="document.getElementById('{}').style.display='flex';this.parentElement.remove()" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
+            id
+        )
+    });
+
+    axum::response::Html(match retry {
+        Some(btn) => format!(
+            r#"<div class="error_message"><p class="error_text">{}</p>{}</div>"#,
+            msg, btn
+        ),
+        None => format!(
+            r#"<div class="error_message"><p class="error_text">{}</p></div>"#,
+            msg
+        ),
+    })
+    .into_response()
 }
