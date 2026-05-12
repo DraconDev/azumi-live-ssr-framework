@@ -210,7 +210,7 @@ async fn handle_socket(mut socket: WebSocket) {
         tokio::select! {
             msg = rx.recv() => {
                 if let Ok(msg) = msg {
-                    if socket.send(Message::Text(msg)).await.is_err() {
+                    if socket.send(Message::Text(msg.into())).await.is_err() {
                         break;
                     }
                 }
