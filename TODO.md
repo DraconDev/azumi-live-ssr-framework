@@ -79,18 +79,9 @@ pub async fn save_profile(
 
 ## Low Priority
 
-### 5. Evaluate `ai-rankings.ts` for Rust Simplification
-**Current:** 412 lines of TypeScript handling:
-- Slider state management
-- Row sorting/filtering
-- DOM updates
-
-**Question:** How much of this could be server-rendered with `az-ui` + `az-bind`?
-- Sliders could use `az-bind` to sync values
-- Sorting could trigger `az-action` to re-render table rows
-- Filtering could be `az-bind` + `az-ui` visibility toggles
-
-**Trade-off:** More server round-trips vs less client JS. Given Azumi's paradigm, this might be the right direction.
+### 5. ✅ Evaluate `ai-rankings.ts` for Rust Simplification (Completed 2026-05-12)
+**Verdict:** Keep as TypeScript — real-time slider computation requires client-side JS.
+**Documentation:** See `libs/chrome/src/ts/AI_RANKINGS_EVALUATION.md`
 
 ---
 
