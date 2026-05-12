@@ -1,5 +1,4 @@
 use axum::{
-    async_trait,
     extract::FromRequestParts,
     http::{request::Parts, StatusCode},
     middleware::Next,
@@ -42,7 +41,6 @@ pub async fn auth_middleware(
 // This allows handlers to just ask for `CurrentUser` without worrying about Extensions.
 pub struct CurrentUser(pub Option<User>);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for CurrentUser
 where
     S: Send + Sync,
