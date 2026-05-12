@@ -10,7 +10,7 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
     parse_macro_input, punctuated::Punctuated, BinOp, Expr, ExprAssign, ExprBinary, ExprField,
-    ExprMethodCall, ExprPath, ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl, ItemStruct,
+    ExprMethodCall, ExprPath, ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl,
     Member, Stmt, Token, UnOp,
 };
 
@@ -262,8 +262,32 @@ fn is_self_field_mutation(mc: &ExprMethodCall) -> bool {
 }
 
 /// Main macro expansion for #[azumi::live]
-pub fn expand_live(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(item as ItemStruct);
+/// Handles both struct definitions and impl blocks.
+/// - On structs: generates to_scope(), to_local_scope(), field constants, derives Serialize/Deserialize
+/// - On impl blocks: generates Axum action handlers and registers them via inventory
+pub fn expand_live(attr: TokenStream, item: TokenStream) -> TokenStream {
+    // Try parsing as struct first (most common case)
+    if let Ok(input) = syn::parse::<syn::ItemStruct>(item.clone()) {
+        return expand_live_struct(attr, input);
+    }
+    // Fallback to impl block
+    if let Ok(_input) = syn::parse::<syn::ItemImpl>(item.clone()) {
+        return expand_live_impl(attr, item);
+    }
+    // Error: neither struct nor impl
+    syn::Error::new_spanned(
+        proc_macro2::TokenStream::from(item),
+        "#[azumi::live] supports only structs and impl blocks.\n\
+         Use `#[azumi::live]` on a struct to define live state, \
+         or on an impl block to register action handlers."
+    )
+    .to_compile_error()
+    .into()
+}
+
+/// Struct case for #[azumi::live]
+/// Generates to_scope(), to_local_scope(), field constants, derives Serialize/Deserialize
+fn expand_live_struct(_attr: TokenStream, input: syn::ItemStruct) -> TokenStream {
     let struct_name = &input.ident;
     let struct_vis = &input.vis;
     let struct_generics = &input.generics;
