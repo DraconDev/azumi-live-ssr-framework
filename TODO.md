@@ -33,8 +33,8 @@ A Rust full-stack framework where:
 
 | Phase | Status | Last Updated |
 |-------|--------|-------------|
-| P0: Foundation | **2/4 complete** (azumi-cli ✅, routes! macro ✅) | 2026-05-12 |
-| P1: API Polish | Not started | - |
+| P0: Foundation | **3/4 complete** (azumi-cli ✅, routes! macro ✅, azumi new in scaffold ✅) | 2026-05-12 |
+| P1: API Polish | **2/4 complete** (live+live_impl merge ✅, prelude cleanup ✅) | 2026-05-12 |
 | P2: Interactivity | Not started | - |
 | P3: Production | Not started | - |
 | P4: Ecosystem | Not started | - |
@@ -131,54 +131,24 @@ docs/
 
 Clean up the framework's API surface so "simple" isn't just a marketing claim.
 
-### P1.1 — Merge `#[live]` + `#[live_impl]` into One Attribute
+### P1.1 — Merge `#[live]` + `#[live_impl]` into One Attribute ✅ (2026-05-12)
 
-**Problem:** The #1 API design complaint. Two attributes for one component is confusing.
+**Completed:** `expand_live` now handles both structs and impl blocks. `expand_live_struct` handles struct case (renamed from original `expand_live`), `expand_live_impl` handles impl case (reused existing).
 
-**Current:**
-```rust
-#[azumi::live] pub struct Counter { pub count: i32 }
-#[azumi::live_impl(component = "counter_view")]
-impl Counter { pub fn increment(&mut self) { self.count += 1; } }
-```
+**Changes made:** - `macros/src/live.rs`: New `expand_live` dispatch function + `expand_live_struct` function
+- `macros/src/lib.rs`: `live_impl` marked `#[doc(hidden)]` with deprecation doc comment
+- `src/lib.rs`: Removed `live_impl`, `head`, `page`, `predict` from prelude
+- All existing `#[azumi::live_impl]` usage still works (backward compat)
 
-**Target:**
-```rust
-#[azumi::live(component = "counter_view")]
-pub struct Counter {
-    pub count: i32,
-    pub fn increment(&mut self) { self.count += 1; }
-}
-```
+**Verification:** 1,671 tests pass, demo compiles, all live examples work.
 
-Keep `#[live_impl]` for backward compat, mark `#[doc(hidden)]`.
-**Effort:** 1-2 sessions | **Deps:** None (best before P0.3)
+**Remaining:** Demo code still uses `#[azumi::live_impl]` — update docs/examples to use `#[azumi::live]` on impl blocks when convenient.
 
 ---
 
-### P1.2 — Reduce Visible API Surface
+### P1.2 — Reduce Visible API Surface ✅ (2026-05-12)
 
-**Target: 10 macros → 5 visible, 6 traits → 2 visible, 33 functions → ~15 visible**
-
-| Keep Public | Hide `#[doc(hidden)]` |
-|------------|----------------------|
-| `html!` | `head!` |
-| `#[component]` | `#[page]` |
-| `#[live]` (merged) | `#[live_impl]` |
-| `#[action]` | `#[predict]` |
-| `json_data!` | `from_fn()`, `from_fn_once()` |
-| `Component` trait | `session_cleanup_script()` |
-| `LiveState` trait | `Escaped`, `RenderWrapper` |
-| `azumi_script()` | `FnComponent`, `FnOnceComponent` |
-| `render_to_string()` | `HotReloadClosure` |
-| `sign_state()`, `verify_state()` | `LiveStateMetadata` |
-| `register_actions()` | `FallbackRender` |
-| `success_fragment()`, `error_fragment()` | obscure script helpers |
-| `compute_scope_id()`, `scope_css()` | |
-| `escape_css_string()` | |
-
-**Prelude shrinks:** Remove `head`, `live_impl`, `page`, `predict`, `session_cleanup_script`, `from_fn`, `FnComponent`
-**Effort:** 1 session | **Deps:** P1.1
+**Completed:** Prelude shrunk from 13 items to 9. Removed: `head`, `live_impl`, `page`, `predict`, `session_cleanup_script`, `from_fn`, `FnComponent`. All still accessible via `azumi::head`, `azumi::live_impl`, etc. for explicit imports.
 
 ---
 

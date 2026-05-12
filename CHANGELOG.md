@@ -5,6 +5,24 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [48.0.0] - 2026-05-12
+
+### Stability Promise
+Azumi now follows strict [Semantic Versioning](https://semver.org/). From v48 forward:
+- Major = actual breaking changes (at most every 3 months)
+- Minor = new features, backward compatible (monthly)
+- Patch = bug fixes only (as needed)
+
+### Changed
+- **Axum upgrade**: `axum` dependency `0.7` → `0.8`. If you use `Message::Text(s)`, call `s.into()` for `Utf8Bytes`. `axum::async_trait` is no longer needed (use native `async fn in trait` with Rust 1.75+).
+- **Axum-extra**: Companion upgrade `0.9` → `0.10`.
+- **`#[azumi::live]` now handles impl blocks**: Use `#[azumi::live]` directly on impl blocks for action handlers. `#[azumi::live_impl]` still works but is deprecated.
+- **Prelude cleanup**: `head`, `live_impl`, `page`, `predict` removed from `azumi::prelude`. Still accessible via `azumi::head`, etc.
+
+### Added
+- **`azumi new` scaffolding CLI**: `cargo install azumi-cli && azumi new my-app` creates a working project.
+- **`azumi::routes!` macro**: Declare routes inline without manual Axum Router setup.
+
 ## [47.0.0] - 2026-05-06
 
 ### Added
@@ -99,9 +117,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - See [MIGRATION.md](MIGRATION.md) for full v26 → v27+ upgrade guide
 
 ---
+---
 
-## [34.5.4] - 2026-05-01
+## 📦 Versioning & Stability Promise
 
+**Current:** `v47.x.x` — rapid iteration to find the right API shape.
+
+**Starting with v48.0.0:** Azumi will follow strict [Semantic Versioning](https://semver.org/):
+
+| Bump | What It Means |
+|------|---------------|
+| **Major** (48.0.0 → 49.0.0) | Actual breaking changes. Published at most every 3 months. Full migration guide included. |
+| **Minor** (48.0.0 → 48.1.0) | New features, backward compatible. Published monthly. |
+| **Patch** (48.0.0 → 48.0.1) | Bug fixes only. Published as needed. |
+
+**What this means for you:**
+- `azumi = "48"` in Cargo.toml will never break your build.
+- Every breaking change comes with a clear migration path.
+- No more "47 major versions in 6 months."
+
+---
+
+## 🚀 v42.0.0 Release Notes
 ### Fixed
 - **`property` attribute added to HTML validator**: OpenGraph meta tags (`<meta property="og:*">`) now compile correctly in `html!` macros — `property` was missing from the allowed attribute whitelist
 - **`test_generate_head_with_type` initialization**: Test now properly calls `reset_seo()` + `init_seo()` before `generate_head()` to avoid test pollution from global `SITE_CONFIG`
