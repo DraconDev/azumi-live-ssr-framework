@@ -53,6 +53,8 @@ pub fn live(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+/// Use `#[azumi::live]` instead — this macro is retained for backward compatibility.
+#[doc(hidden)]
 pub fn live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     live::expand_live_impl(attr, item)
 }
