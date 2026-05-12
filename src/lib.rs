@@ -25,6 +25,14 @@ pub mod devtools;
 pub mod seo;
 pub use script::{AzumiScript, escape_script_content, escape_style_content, escape_tag_content, session_cleanup_script};
 
+// ── Re-exports for declarative macros ─────────────────────────────────────
+/// Internal re-exports used by `azumi::routes!` and other declarative macros.
+/// Not part of the public API.
+#[doc(hidden)]
+pub mod __private {
+    pub use axum;
+}
+
 #[cfg(feature = "test-utils")]
 pub mod test;
 
@@ -704,4 +712,41 @@ impl<'a> FallbackRender for HotReloadClosure<'a> {
     fn render_azumi(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         (self.0)(f)
     }
+}
+
+// ── Route declaration macro ──────────────────────────────────────────────
+
+/// Declare page routes with clean syntax.
+///
+/// Eliminates the boilerplate of `Router::new().route(...)` chains.
+/// Each entry maps a URL path to an Axum handler function.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use azumi::routes;
+///
+/// let app = routes! {
+///     "/"         => home_handler,
+///     "/about"    => about_handler,
+///     "/counter"  => counter_handler,
+/// }
+/// .merge(azumi::action::register_actions(Router::new()))
+/// .merge(azumi::devtools::router());
+/// ```
+///
+/// This is purely syntactic sugar — it expands to `Router::new().route(...)` chains.
+/// Each handler must be a valid Axum handler (async fn returning impl IntoResponse).
+#[macro_export]
+macro_rules! routes {
+    ($($path:expr => $handler:expr),+ $(,)?) => {{
+        let mut __azumi_router = $crate::__private::axum::Router::new();
+        $(
+            __azumi_router = __azumi_router.route(
+                $path,
+                $crate::__private::axum::routing::get($handler),
+            );
+        )+
+        __azumi_router
+    }};
 }
