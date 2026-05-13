@@ -402,8 +402,8 @@ fn process_file_change(path: &Path) {
         let line_start = content[..first_node_abs].rfind('\n').map(|i| i + 1).unwrap_or(0);
         let col = first_node_abs - line_start;
 
-        let scope_id = crate::compute_scope_id(line, col);
-        let scoped_css = crate::scope_css(css_content, &scope_id);
+        let scope_id = crate::css_scoping::compute_scope_id(line, col);
+        let scoped_css = crate::css_scoping::scope_css(css_content, &scope_id);
         crate::hot_reload::push_style_update(&scope_id, &scoped_css);
     }
 }
