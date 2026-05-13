@@ -4,7 +4,7 @@ use axum::{
     routing::{get, post},
     Form, Router,
 };
-use azumi::{component, html, render_to_string, Component};
+use azumi::{component, html, Component};
 use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -119,7 +119,7 @@ fn TodoPage(todos: Vec<String>) -> impl Component {
             @for (i, todo) in todos.iter().enumerate() {
                 <div class={"item"}>
                     <span>{todo.clone()}</span>
-                    <form action="/delete" method="POST" style="margin: 0">
+                    <form action="/delete" method="POST">
                         <input type="hidden" name="index" value={i.to_string()} />
                         <button type="submit" class={"delete_btn"}>"✕"</button>
                     </form>
@@ -147,7 +147,7 @@ struct DeleteForm {
 // Handlers
 // ---------------------------------------------------------------------------
 
-async fn index(todos: State<TodoList>) -> impl IntoResponse {
+async fn index(State(todos): State<TodoList>) -> impl IntoResponse {
     let list = todos.lock().await;
     Html(azumi::render_to_string(
         &Layout::render(
@@ -160,7 +160,7 @@ async fn index(todos: State<TodoList>) -> impl IntoResponse {
 }
 
 async fn add_todo(
-    todos: State<TodoList>,
+    State(todos): State<TodoList>,
     Form(form): Form<AddForm>,
 ) -> impl IntoResponse {
     let text = form.text.trim().to_string();
@@ -171,7 +171,7 @@ async fn add_todo(
 }
 
 async fn delete_todo(
-    todos: State<TodoList>,
+    State(todos): State<TodoList>,
     Form(form): Form<DeleteForm>,
 ) -> impl IntoResponse {
     let mut list = todos.lock().await;

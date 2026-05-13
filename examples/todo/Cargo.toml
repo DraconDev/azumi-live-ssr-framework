@@ -5,8 +5,9 @@ edition = "2021"
 
 [dependencies]
 azumi = { path = "../.." }
-axum = "0.8"
+axum = { version = "0.8", features = ["form"] }
 tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
 
 [[bin]]
 name = "todo"
