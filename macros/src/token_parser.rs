@@ -328,7 +328,7 @@ impl Parse for Element {
         let mut bind_struct = None;
         let mut full_span = start_span;
 
-        while !input.peek(Token![>]) && !input.peek(Token![/]) {
+        while !input.is_empty() && !input.peek(Token![>]) && !input.peek(Token![/]) {
             // Check for bind={Struct} on <form> tags
             if name == "form" && input.peek(Ident) {
                 let fork = input.fork();

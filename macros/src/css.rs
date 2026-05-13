@@ -84,12 +84,8 @@ fn scope_css_recursive(iter: &mut Peekable<Chars>, scope_attr: &str) -> String {
                 }
             }
             '}' => {
-                // Determine if this closes the current level
-                // In scope_css_level, we check this.
-                // But here we are iterating.
-                // If we hit '}', it means the block we were processing has ended.
-                // We should put it back? Or return?
-                // We need a helper that consumes.
+                // Stray closing brace — preserve it in output to avoid corrupting CSS structure
+                buffer.push('}');
             }
             _ => {
                 buffer.push(ch);

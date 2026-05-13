@@ -14,7 +14,7 @@ fn test_escape_less_than() {
     let text = "a < b";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("&lt;") || html.contains("a < b"));
+    assert!(html.contains("&lt;"), "Expected &lt; to be escaped, got: {}", html);
 }
 
 #[test]
@@ -22,7 +22,7 @@ fn test_escape_greater_than() {
     let text = "a > b";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("&gt;") || html.contains("a > b"));
+    assert!(html.contains("&gt;"), "Expected &gt; to be escaped, got: {}", html);
 }
 
 #[test]
@@ -30,7 +30,7 @@ fn test_escape_ampersand() {
     let text = "a & b";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("&amp;") || html.contains("a & b"));
+    assert!(html.contains("&amp;"), "Expected &amp; to be escaped, got: {}", html);
 }
 
 #[test]
@@ -55,7 +55,8 @@ fn test_html_in_text() {
     let text = "<script>alert('xss')</script>";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(!html.contains("<script>alert") || html.contains("&lt;script&gt;"));
+    assert!(!html.contains("<script>alert"), "Script tag should be escaped, got: {}", html);
+    assert!(html.contains("&lt;script&gt;"), "Expected &lt;script&gt; to be escaped, got: {}", html);
 }
 
 #[test]

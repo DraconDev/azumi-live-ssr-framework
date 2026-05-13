@@ -393,8 +393,9 @@ pub struct Escaped<T: std::fmt::Display>(pub T);
 
 impl<T: std::fmt::Display> std::fmt::Display for Escaped<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        struct Escaper<'a>(&'a mut std::fmt::Formatter<'a>);
-        impl std::fmt::Write for Escaper<'_> {
+        use std::fmt::Write;
+        struct Escaper<'a, 'b>(&'a mut std::fmt::Formatter<'b>);
+        impl std::fmt::Write for Escaper<'_, '_> {
             fn write_str(&mut self, s: &str) -> std::fmt::Result {
                 for c in s.chars() {
                     match c {
