@@ -346,7 +346,7 @@ fn expand_live_struct(_attr: TokenStream, input: syn::ItemStruct) -> TokenStream
             .map(|name| {
                 let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
                 quote! {
-                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap());
+                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap_or(serde_json::Value::Null));
                 }
             })
             .collect();
@@ -373,7 +373,7 @@ fn expand_live_struct(_attr: TokenStream, input: syn::ItemStruct) -> TokenStream
             .map(|name| {
                 let ident = syn::Ident::new(name, proc_macro2::Span::call_site());
                 quote! {
-                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap());
+                    map.insert(stringify!(#ident).to_string(), serde_json::to_value(&self.#ident).unwrap_or(serde_json::Value::Null));
                 }
             })
             .collect();
@@ -646,8 +646,13 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         impl azumi::LiveState for #struct_name {
             fn to_scope(&self) -> String {
-                let json = serde_json::to_string(self).unwrap_or_default();
-                azumi::security::sign_state(&json)
+                match serde_json::to_string(self) {
+                    Ok(json) => azumi::security::sign_state(&json),
+                    Err(e) => {
+                        eprintln!("Azumi Warning: Failed to serialize LiveState: {}", e);
+                        String::new()
+                    }
+                }
             }
         }
 

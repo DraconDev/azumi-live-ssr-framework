@@ -58,9 +58,16 @@ fn get_secret() -> &'static str {
             } else {
                 let secret = env_secret;
                 if secret.len() < 32 {
+                    #[cfg(debug_assertions)]
                     eprintln!(
                         "⚠️  WARNING: AZUMI_SECRET is too short ({} bytes). \
                         For HMAC-SHA256 security, use at least 32 random characters (64+ hex chars).",
+                        secret.len()
+                    );
+                    #[cfg(not(debug_assertions))]
+                    panic!(
+                        "FATAL: AZUMI_SECRET is too short ({} bytes). \
+                        For HMAC-SHA256 security in production, use at least 32 random characters (64+ hex chars).",
                         secret.len()
                     );
                 }

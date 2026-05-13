@@ -137,6 +137,13 @@ pub trait LiveState:
         crate::security::sign_state(&json)
     }
 
+    /// Attempt to serialize state to a signed scope string.
+    /// Returns an error if serialization fails instead of panicking.
+    fn try_to_scope(&self) -> Result<String, serde_json::Error> {
+        let json = serde_json::to_string(self)?;
+        Ok(crate::security::sign_state(&json))
+    }
+
     fn to_local_scope(&self) -> String {
         String::new()
     }
@@ -343,13 +350,13 @@ where
     F: FnOnce(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
 {
     fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Take ownership of the closure (first call) or return (subsequent calls).
+        // Take ownership of the closure (first call) or return warning (subsequent calls).
         // RefCell tracks borrow state at runtime, eliminating the need for UnsafeCell.
         // Mark as consumed before calling (in case of panic, we don't want to retry).
         if let Some(c) = self.closure.borrow_mut().take() {
             c(f)
         } else {
-            Ok(())
+            f.write_str("<!-- Azumi Warning: FnOnceComponent rendered more than once -->")
         }
     }
 }
