@@ -4,7 +4,7 @@ use axum::{
     routing::{get, post},
     Form, Router,
 };
-use azumi::{component, html, Component};
+use azumi::{component, html};
 use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
