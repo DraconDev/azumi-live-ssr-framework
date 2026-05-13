@@ -20,37 +20,11 @@ fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
     })
 }
 
-static AZUMI_DEV_TOKEN: OnceLock<Option<String>> = OnceLock::new();
+const DEV_TOKEN_HEADER: &str = "X-Azumi-Dev-Token";
 
 fn get_dev_token() -> Option<String> {
-    // In test mode, read directly from env to allow tests to change the token
-    #[cfg(test)]
-    {
-        return std::env::var("AZUMI_DEV_TOKEN").ok();
-    }
-    
-    // In production, cache the token to avoid repeated env var lookups
-    #[cfg(not(test))]
-    {
-        AZUMI_DEV_TOKEN
-            .get_or_init(|| std::env::var("AZUMI_DEV_TOKEN").ok())
-            .clone()
-    }
-}
-
-#[cfg(test)]
-fn reset_dev_token_cache() {
-    // We can't reset a OnceLock, so we set the env var directly
-    // In test mode, get_dev_token will check the env var each time
-    // because tests may modify it
-}
-
-#[cfg(test)]
-fn get_dev_token_for_test() -> Option<String> {
     std::env::var("AZUMI_DEV_TOKEN").ok()
 }
-
-const DEV_TOKEN_HEADER: &str = "X-Azumi-Dev-Token";
 
 pub fn is_dev_token_valid(token: Option<&str>) -> bool {
     let Some(t) = token else {
