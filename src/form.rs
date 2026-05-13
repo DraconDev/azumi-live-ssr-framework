@@ -90,7 +90,7 @@ impl<'a> FieldValidator<'a> {
     }
 
     pub fn min_length(self, min: usize) -> Self {
-        if self.value.len() < min {
+        if self.value.chars().count() < min {
             self.errors.add(
                 self.name,
                 format!("Must be at least {} characters", min),
@@ -100,7 +100,7 @@ impl<'a> FieldValidator<'a> {
     }
 
     pub fn max_length(self, max: usize) -> Self {
-        if self.value.len() > max {
+        if self.value.chars().count() > max {
             self.errors.add(
                 self.name,
                 format!("Must be at most {} characters", max),
@@ -110,17 +110,26 @@ impl<'a> FieldValidator<'a> {
     }
 
     pub fn email(self) -> Self {
-        if !self.value.is_empty() && !self.value.contains('@') {
+        if self.value.is_empty() {
+            return self;
+        }
+        let is_valid = self.value.contains('@')
+            && !self.value.starts_with('@')
+            && self.value.split('@').nth(1).map_or(false, |domain| domain.contains('.'));
+        if !is_valid {
             self.errors.add(self.name, "Please enter a valid email address");
         }
         self
     }
 
     pub fn url(self) -> Self {
-        if !self.value.is_empty()
-            && !self.value.starts_with("http://")
-            && !self.value.starts_with("https://")
-        {
+        if self.value.is_empty() {
+            return self;
+        }
+        let is_valid = (self.value.starts_with("http://") || self.value.starts_with("https://"))
+            && self.value.len() > self.value.find("://").unwrap_or(0) + 3
+            && !self.value[self.value.find("://").unwrap_or(0) + 3..].starts_with('@');
+        if !is_valid {
             self.errors.add(self.name, "Please enter a valid URL");
         }
         self

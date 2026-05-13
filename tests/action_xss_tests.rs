@@ -32,8 +32,8 @@ fn test_success_fragment_escapes_quotes() {
     let response = success_fragment(xss);
     let body = response_to_string(response);
     assert!(
-        !body.contains("onclick"),
-        "onclick handler should be escaped: {}",
+        body.contains("&quot; onclick=&quot;"),
+        "Quotes should be HTML-escaped so onclick doesn't execute: {}",
         body
     );
     assert!(
@@ -87,8 +87,8 @@ fn test_error_fragment_escapes_form_id_in_onclick() {
         body
     );
     assert!(
-        body.contains("\\x27") || body.contains("&#x27;"),
-        "form_id should be escaped in onclick handler: {}",
+        body.contains("\\'") || body.contains("\\x27"),
+        "form_id single quotes should be JS-escaped in onclick handler: {}",
         body
     );
 }
@@ -134,8 +134,7 @@ fn response_to_string(response: axum::response::Response) -> String {
         .build()
         .unwrap();
     let bytes = rt.block_on(async {
-        use http_body_util::BodyExt;
-        body.collect().await.unwrap().to_bytes()
+        axum::body::to_bytes(body, usize::MAX).await.unwrap()
     });
     String::from_utf8(bytes.to_vec()).unwrap()
 }
