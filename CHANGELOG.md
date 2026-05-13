@@ -118,7 +118,6 @@ Azumi now follows strict [Semantic Versioning](https://semver.org/). From v48 fo
 
 ---
 
-## 🚀 v42.0.0 Release Notes
 ### Fixed
 - **`property` attribute added to HTML validator**: OpenGraph meta tags (`<meta property="og:*">`) now compile correctly in `html!` macros — `property` was missing from the allowed attribute whitelist
 - **`test_generate_head_with_type` initialization**: Test now properly calls `reset_seo()` + `init_seo()` before `generate_head()` to avoid test pollution from global `SITE_CONFIG`

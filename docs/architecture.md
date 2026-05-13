@@ -87,14 +87,15 @@ Attribute Validation  →  Accessibility Validation  →  Code Generation
 
 | Module | Lines | Responsibility |
 |--------|-------|---------------|
-| `lib.rs` | 253 | Proc macro entry points + validation pipeline orchestration |
+| `lib.rs` | 250 | Proc macro entry points + validation pipeline orchestration |
 | `codegen.rs` | 546 | `generate_body_with_context`, `first_node_span`, `azumi_scope_id_from_span` |
 | `validators.rs` | 542 | `validate_nodes`, `collect_bind_checks`, `validate_format_in_expressions` |
 | `style_processing.rs` | 201 | `process_styles`, `collect_all_styles`, `inject_css_into_head` |
-| `token_parser.rs` | 1,345 | HTML tokenizer, syn-based Parse implementations |
-| `html_structure_validator.rs` | 1,325 | HTML nesting rules, table/list/form validation |
+| `token_parser.rs` | 1,344 | HTML tokenizer, syn-based Parse implementations |
+| `html_structure_validator.rs` | 1,386 | HTML nesting rules, table/list/form validation |
 | `accessibility_validator.rs` | 504 | ARIA roles, img alt, button content, iframe titles |
-| `style.rs` | 1,213 | CSS DSL parser, property validation, minification |
+| `style.rs` | 1,157 | CSS DSL parser, property validation, minification |
+| `css.rs` | 620 | CSS property/color utilities, selector extraction |
 
 ### `validate_nodes` Parameters
 
