@@ -30,10 +30,10 @@ pub fn expand_json_data(input: TokenStream) -> TokenStream {
     
     let expanded = quote! {
         {
-            let __json_value = match serde_json::to_string(&#value) {
-                Ok(s) => s,
-                Err(e) => panic!("json_data! failed to serialize: {}", e),
-            };
+            let __json_value = serde_json::to_string(&#value)
+                .unwrap_or_else(|e| {
+                    panic!("json_data! failed to serialize variable '{}': {}", stringify!(#value), e)
+                });
             // Escape </script> to prevent XSS (case-insensitive)
             let __escaped = azumi::escape_script_content(&__json_value);
             azumi::from_fn_once(move |f| {

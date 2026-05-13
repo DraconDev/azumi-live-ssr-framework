@@ -6,7 +6,7 @@ use std::collections::HashSet;
 /// - `Normal`: HTML-escaped via `RenderWrapper` (Component or Display)
 /// - `Script`: Escaped via `azumi::escape_script_content()`
 /// - `Style`: Escaped via `azumi::escape_style_content()`
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Context {
     Normal,
     Script,

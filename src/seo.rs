@@ -37,22 +37,6 @@ fn xml_escape(s: &str) -> String {
     out
 }
 
-/// Escape a string for safe inclusion as HTML text content.
-/// Escapes `<`, `>`, and `&`.
-#[allow(dead_code)]
-fn html_text_escape(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '&' => out.push_str("&amp;"),
-            _ => out.push(c),
-        }
-    }
-    out
-}
-
 static SITE_CONFIG: Mutex<Option<SeoConfig>> = Mutex::new(None);
 
 #[derive(Clone, Default, Debug)]
@@ -647,12 +631,6 @@ mod tests {
     #[test]
     fn test_xml_escape_all_special_chars() {
         assert_eq!(xml_escape("&<>\"'"), "&amp;&lt;&gt;&quot;&apos;");
-    }
-
-    #[test]
-    fn test_html_text_escape() {
-        assert_eq!(html_text_escape("<script>"), "&lt;script&gt;");
-        assert_eq!(html_text_escape("a & b"), "a &amp; b");
     }
 
     #[test]
