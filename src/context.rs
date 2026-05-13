@@ -45,7 +45,7 @@ impl PageMetaState {
     }
 
     fn clone(&self) -> Self {
-        self.refcount.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        self.refcount.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         Self {
             refcount: Rc::clone(&self.refcount),
         }
@@ -54,7 +54,7 @@ impl PageMetaState {
 
 impl Drop for PageMetaState {
     fn drop(&mut self) {
-        if self.refcount.fetch_sub(1, std::sync::atomic::Ordering::SeqCst) == 1 {
+        if self.refcount.fetch_sub(1, std::sync::atomic::Ordering::Relaxed) == 1 {
             PAGE_META.with(|params| *params.borrow_mut() = PageMeta::default());
         }
     }

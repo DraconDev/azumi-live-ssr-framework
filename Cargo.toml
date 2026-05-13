@@ -1,7 +1,8 @@
 [package]
 name = "azumi"
-version = "47.20.65"
+version = "47.20.66"
 edition = "2021"
+rust-version = "1.70"
 authors = ["DraconDev <dracsharp@gmail.com>"]
 license-file = "LICENSE"
 description = "Type-safe, compile-time HTML templating for Rust"
