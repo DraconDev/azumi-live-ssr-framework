@@ -129,13 +129,14 @@ fn test_error_fragment_with_both_xss_message_and_form_id() {
 // ════════════════════════════════════════════════════════════════════════════
 
 fn response_to_string(response: axum::response::Response) -> String {
-    use axum::body::Body;
-    use http_body_util::BodyExt;
     let body = response.into_body();
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap();
-    let bytes = rt.block_on(async { body.collect().await.unwrap().to_bytes() });
+    let bytes = rt.block_on(async {
+        use http_body_util::BodyExt;
+        body.collect().await.unwrap().to_bytes()
+    });
     String::from_utf8(bytes.to_vec()).unwrap()
 }
