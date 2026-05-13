@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
 use axum::{
     extract::ws::{Message, WebSocket, WebSocketUpgrade},
@@ -48,43 +49,45 @@ pub fn is_dev_token_valid(token: Option<&str>) -> bool {
 
 struct LRUEntry<V> {
     value: V,
-    last_access: u64,
+    last_access: AtomicU64,
 }
 
 struct LRUCache<K, V> {
     map: HashMap<K, LRUEntry<V>>,
-    next_access_id: u64,
+    next_access_id: AtomicU64,
 }
 
 impl<K: std::hash::Hash + Eq + std::cmp::Ord + Clone, V> LRUCache<K, V> {
     fn new() -> Self {
         Self {
             map: HashMap::new(),
-            next_access_id: 0,
+            next_access_id: AtomicU64::new(0),
         }
     }
 
+    fn next_id(&self) -> u64 {
+        self.next_access_id.fetch_add(1, Ordering::Relaxed)
+    }
+
     fn insert(&mut self, key: K, value: V) {
-        let access_id = self.next_access_id;
-        self.next_access_id = self.next_access_id.wrapping_add(1);
+        let access_id = self.next_id();
 
         if let Some(entry) = self.map.get_mut(&key) {
             entry.value = value;
-            entry.last_access = access_id;
+            entry.last_access.store(access_id, Ordering::Relaxed);
             return;
         }
         self.map.insert(key, LRUEntry {
             value,
-            last_access: access_id,
+            last_access: AtomicU64::new(access_id),
         });
     }
 
-    fn get(&mut self, key: &K) -> Option<&V> {
-        let access_id = self.next_access_id;
-        self.next_access_id = self.next_access_id.wrapping_add(1);
+    fn get(&self, key: &K) -> Option<&V> {
+        let access_id = self.next_id();
 
-        if let Some(entry) = self.map.get_mut(key) {
-            entry.last_access = access_id;
+        if let Some(entry) = self.map.get(key) {
+            entry.last_access.store(access_id, Ordering::Relaxed);
             Some(&entry.value)
         } else {
             None
@@ -107,7 +110,7 @@ impl<K: std::hash::Hash + Eq + std::cmp::Ord + Clone, V> LRUCache<K, V> {
         // Use select_nth_unstable for O(n) average partition instead of O(n log n) sort
         // This finds the kth smallest element and partitions around it
         let mut entries: Vec<_> = self.map.iter()
-            .map(|(k, v)| (v.last_access, k))
+            .map(|(k, v)| (v.last_access.load(Ordering::Relaxed), k))
             .collect();
         
         // Partition to find the boundary - entries[0..keep] are the ones to keep (newer)
@@ -257,7 +260,7 @@ impl RuntimeTemplate {
 const MAX_REGISTRY_SIZE: usize = 1000;
 
 pub fn get_template(id: &str) -> Option<RuntimeTemplate> {
-    let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(Default::default).write() else {
+    let Ok(registry) = TEMPLATE_REGISTRY.get_or_init(Default::default).read() else {
         eprintln!("Hot Reload: Registry lock poisoned - template lookup failed");
         return None;
     };

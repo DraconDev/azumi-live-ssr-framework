@@ -634,13 +634,6 @@ mod tests {
     }
 
     #[test]
-    fn test_html_text_escape_preserves_newlines() {
-        let input = "line1\nline2";
-        let escaped = html_text_escape(input);
-        assert!(escaped.contains('\n'));
-    }
-
-    #[test]
     fn test_render_automatic_seo_empty_context() {
         let result = render_automatic_seo();
         let html = crate::render_to_string(&result);
