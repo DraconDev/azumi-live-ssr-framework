@@ -99,7 +99,7 @@ var Idiomorph = (function () {
                     return []
                 }
             } else {
-                throw "Do not understand how to morph style " + ctx.morphStyle;
+                throw new Error("Do not understand how to morph style " + ctx.morphStyle);
             }
         }
 

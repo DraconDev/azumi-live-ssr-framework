@@ -401,10 +401,14 @@ class Azumi {
         // Helper: get nested property
         const getNested = (obj, path) =>
             path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
-        // Helper: set nested property
+        // Helper: set nested property (auto-creates intermediate objects)
         const setNested = (obj, path, value) => {
             const last = path[path.length - 1];
-            const target = path.slice(0, -1).reduce((o, k) => (o != null ? o[k] : undefined), obj);
+            const target = path.slice(0, -1).reduce((o, k) => {
+                if (o == null) return undefined;
+                if (o[k] == null) o[k] = {};
+                return o[k];
+            }, obj);
             if (target != null) target[last] = value;
         };
 
