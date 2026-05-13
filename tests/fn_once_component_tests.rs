@@ -157,12 +157,12 @@ fn test_fn_once_multiple_renders_same_output() {
     // First render produces output
     assert_eq!(html1, "<span>Rendered</span>");
 
-    // Subsequent renders return empty (cached behavior)
+    // Subsequent renders return warning comment (cached behavior)
     let html2 = test::render(&component);
-    assert_eq!(html2, "");
+    assert!(html2.contains("FnOnceComponent rendered more than once"));
 
     let html3 = test::render(&component);
-    assert_eq!(html3, "");
+    assert!(html3.contains("FnOnceComponent rendered more than once"));
 
     // Closure should only be called ONCE
     assert_eq!(*call_count.borrow(), 1);
@@ -185,9 +185,9 @@ fn test_fn_once_caching_second_render_empty() {
     let html1 = test::render(&component);
     assert!(html1.contains("Count: 10"));
 
-    // Second render returns empty (cached)
+    // Second render returns warning comment (cached)
     let html2 = test::render(&component);
-    assert_eq!(html2, "");
+    assert!(html2.contains("FnOnceComponent rendered more than once"));
 
     // Counter should only be 10 (incremented once)
     assert_eq!(*counter.borrow(), 10);

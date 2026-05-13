@@ -111,17 +111,9 @@ fn collect_styles_recursive(
                     if let Some(_src_attr) = elem.attrs.iter().find(|a| a.name == "src") {
                     } else {
                         for child in &elem.children {
-                            match child {
-                                token_parser::Node::Text(text) => {
-                                    scoped_css.push_str(&text.content);
-                                    scoped_css.push('\n');
-                                }
-                                token_parser::Node::Expression(expr) => {
-                                    let expr_str = expr.content.to_string();
-                                    scoped_css.push_str(&expr_str);
-                                    scoped_css.push('\n');
-                                }
-                                _ => {}
+                            if let token_parser::Node::Text(text) = child {
+                                scoped_css.push_str(&text.content);
+                                scoped_css.push('\n');
                             }
                         }
                     }
