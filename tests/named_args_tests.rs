@@ -16,8 +16,9 @@ fn test_named_arguments_work() {
 fn test_named_args_in_component_call() {
     // Verify that the macro correctly handles named arguments syntax
     // in component-like invocations (using the @ComponentName syntax)
+    let class_name = "test";
     let output = html! {
-        <div class="test">"content"</div>
+        <div class={class_name}>"content"</div>
     };
 
     let rendered = render_to_string(&output);

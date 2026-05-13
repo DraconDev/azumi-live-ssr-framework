@@ -26,3 +26,36 @@ error: Azumi: Raw() is not allowed inside html!.
   |
 6 |         @{Raw(format!("<div>{}</div>", x))}
   |          ^
+
+error: Azumi: format!() detected building HTML/CSS/JS strings.
+
+       Using format!() to build web content defeats Azumi's compile-time safety.
+       If you need to format a value for display, do it outside the html! macro
+       and pass the result as a variable.
+
+       ✅ Correct patterns:
+
+       // For dynamic text - use html! interpolation:
+       html! { <p>{value}</p> }
+
+       // For dynamic attributes - use expression:
+       html! { <a href={url}>{label}</a> }
+
+       // For JSON data - use json_data! macro:
+       html! { {azumi::json_data!("MY_DATA" = &data)} }
+
+       // For CSS - use <style> tag with {variable}:
+       html! { <style>{GLOBAL_CSS}</style> }
+
+       // For JavaScript - use <script> tag with {variable}:
+       html! { <script>{TRACKING_JS}</script> }
+
+       ❌ Wrong pattern:
+
+       html! { {format!("<div>{}</div>", value)} }
+
+       See: AI_GUIDE_FOR_WRITING_AZUMI.md
+ --> tests/ui/02-raw-format-blocked.rs:6:10
+  |
+6 |         @{Raw(format!("<div>{}</div>", x))}
+  |          ^

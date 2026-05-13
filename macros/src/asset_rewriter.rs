@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
 use std::sync::{LazyLock, Mutex};
 
 fn get_manifest_path() -> Option<std::path::PathBuf> {
