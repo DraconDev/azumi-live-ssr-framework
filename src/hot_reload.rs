@@ -145,7 +145,7 @@ impl RuntimeTemplate {
 const MAX_REGISTRY_SIZE: usize = 1000;
 
 pub fn get_template(id: &str) -> Option<RuntimeTemplate> {
-    let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(Default::default).write() else {
+    let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(|| std::sync::RwLock::new(create_registry())).write() else {
         eprintln!("Hot Reload: Registry lock poisoned - template lookup failed");
         return None;
     };
