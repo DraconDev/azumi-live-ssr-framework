@@ -1,0 +1,1 @@
+pub const AZUMI_VERSION: &str = "v47.20.28";

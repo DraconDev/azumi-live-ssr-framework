@@ -1,0 +1,102 @@
+use azumi::{component, html};
+
+/// A reusable card component with title, body, and optional actions.
+#[component]
+pub fn Card(title: String, children: impl azumi::Component) -> impl azumi::Component {
+    html! {
+        <article class={"card"}>
+            <h3 class={"card_title"}>{title}</h3>
+            <div class={"card_body"}>
+                {children}
+            </div>
+        </article>
+        <style>
+            .card {
+                background: "var(--bg_elevated)";
+                border: "1px solid var(--border)";
+                border-radius: "0.5rem";
+                padding: "1.5rem";
+            }
+            .card_title {
+                margin: "0 0 0.75rem";
+                font-size: "1.1rem";
+                font-weight: "800";
+            }
+            .card_body {
+                color: "var(--text_secondary)";
+                line-height: "1.7";
+            }
+        </style>
+    }
+}
+
+/// A reusable alert banner with severity levels.
+#[component]
+pub fn Alert(severity: AlertSeverity, message: String) -> impl azumi::Component {
+    let class = match severity {
+        AlertSeverity::Info => "alert_info",
+        AlertSeverity::Success => "alert_success",
+        AlertSeverity::Warning => "alert_warning",
+        AlertSeverity::Error => "alert_error",
+    };
+    html! {
+        <div class={class} role="alert">
+            {message}
+        </div>
+        <style>
+            .alert_info { padding: "1rem"; border-radius: "0.35rem"; background: "rgba(125, 211, 252, 0.08)"; border: "1px solid rgba(125, 211, 252, 0.2)"; color: "var(--accent)"; }
+            .alert_success { padding: "1rem"; border-radius: "0.35rem"; background: "rgba(52, 211, 153, 0.08)"; border: "1px solid rgba(52, 211, 153, 0.2)"; color: "var(--success)"; }
+            .alert_warning { padding: "1rem"; border-radius: "0.35rem"; background: "rgba(251, 191, 36, 0.08)"; border: "1px solid rgba(251, 191, 36, 0.2)"; color: "var(--warning)"; }
+            .alert_error { padding: "1rem"; border-radius: "0.35rem"; background: "rgba(248, 113, 113, 0.08)"; border: "1px solid rgba(248, 113, 113, 0.2)"; color: "var(--danger)"; }
+        </style>
+    }
+}
+
+#[derive(Clone)]
+pub enum AlertSeverity {
+    Info,
+    Success,
+    Warning,
+    Error,
+}
+
+/// A reusable loading spinner.
+#[component]
+pub fn Spinner() -> impl azumi::Component {
+    html! {
+        <span class={"spinner"} aria-label="Loading"></span>
+        <style>
+            .spinner {
+                display: "inline-block";
+                width: "1rem";
+                height: "1rem";
+                border: "2px solid var(--border)";
+                border-top-color: "var(--accent)";
+                border-radius: "50%";
+                animation: "spin 0.8s linear infinite";
+            }
+            @keyframes spin { to { transform: "rotate(360deg)"; } }
+        </style>
+    }
+}
+
+/// A reusable badge/pill.
+#[component]
+pub fn Badge(label: String) -> impl azumi::Component {
+    html! {
+        <span class={"badge"}>{label}</span>
+        <style>
+            .badge {
+                display: "inline-flex";
+                align-items: "center";
+                padding: "0.2rem 0.6rem";
+                border-radius: "999px";
+                font-size: "0.75rem";
+                font-weight: "700";
+                background: "var(--accent_dim)";
+                color: "var(--accent)";
+                letter-spacing: "0.02em";
+            }
+        </style>
+    }
+}

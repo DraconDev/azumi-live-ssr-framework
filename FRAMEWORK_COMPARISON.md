@@ -1,7 +1,9 @@
 # ⚔️ The Modern Web Architecture Matrix: Azumi vs. The World
+# The Modern Web Architecture Matrix: Azumi vs. The World
+
+> **DEPRECATED**: This file has been moved to [docs/comparison.md](docs/comparison.md). The content below is preserved for reference.
 
 > **The Definitive Comparison Guide** > _Comparing: Azumi, Astro, Next.js, Leptos, Svelte 5, HTMX, Maud, and Rails_
-
 ---
 
 ## 🧐 The "TL;DR" Thesis

@@ -1,7 +1,9 @@
 # 🔥 Hot Reload in Azumi
+# Hot Reload in Azumi
+
+> **DEPRECATED**: This file has been consolidated into [docs/guide.md](docs/guide.md#debugging). The content below is preserved for reference.
 
 Azumi provides a built-in, self-hosting hot reload system that requires zero configuration and zero external binaries.
-
 ---
 
 ## 🚀 The "Gold Standard" (Recommended)

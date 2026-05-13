@@ -1,5 +1,7 @@
 # When to Use Azumi vs Simpler Approaches
 
+> **DEPRECATED**: This file has been consolidated into [docs/guide.md](docs/guide.md#when-to-use-azumi). The content below is preserved for reference.
+
 > **TL;DR**: Use azumi for production apps with reusable components. Use `format!()` strings for quick pages.
 
 ---

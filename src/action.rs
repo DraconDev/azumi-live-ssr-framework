@@ -29,6 +29,66 @@ use axum::routing::get;
 
 use std::future::Future;
 
+/// Result type for Azumi actions.
+///
+/// On success, returns HTML rendered from a Component.
+/// On error, returns an error message with optional form ID for retry UI.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// #[azumi::action]
+/// pub async fn save(form: SaveForm) -> ActionResult {
+///     if form.name.is_empty() {
+///         return ActionResult::err("Name is required");
+///     }
+///     ActionResult::ok(html! { <div>"Saved!"</div> })
+/// }
+/// ```
+pub enum ActionResult {
+    Ok(String),
+    Err { message: String, form_id: Option<String> },
+    Redirect(String),
+}
+
+impl ActionResult {
+    /// Create a success result from any Component.
+    pub fn ok<C: Component + ?Sized>(component: &C) -> Self {
+        Self::Ok(crate::render_to_string(component))
+    }
+
+    /// Create an error result.
+    pub fn err(message: impl Into<String>) -> Self {
+        Self::Err {
+            message: message.into(),
+            form_id: None,
+        }
+    }
+
+    /// Create an error result with a form ID for retry UI.
+    pub fn err_with_form(message: impl Into<String>, form_id: impl Into<String>) -> Self {
+        Self::Err {
+            message: message.into(),
+            form_id: Some(form_id.into()),
+        }
+    }
+
+    /// Create a redirect result.
+    pub fn redirect(url: impl Into<String>) -> Self {
+        Self::Redirect(url.into())
+    }
+}
+
+impl IntoResponse for ActionResult {
+    fn into_response(self) -> Response {
+        match self {
+            Self::Ok(html) => axum::response::Html(html).into_response(),
+            Self::Err { message, form_id } => error_fragment(message, form_id.as_deref()),
+            Self::Redirect(url) => axum::response::Redirect::to(&url).into_response(),
+        }
+    }
+}
+
 /// Trait for Azumi Actions
 /// This is implemented automatically by the `#[azumi::action]` macro
 #[allow(dead_code)]

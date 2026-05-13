@@ -21,11 +21,13 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
 
+#[doc(hidden)]
 #[proc_macro]
 pub fn head(input: TokenStream) -> TokenStream {
     head::expand_head(input)
 }
 
+#[doc(hidden)]
 #[proc_macro_attribute]
 pub fn page(attr: TokenStream, item: TokenStream) -> TokenStream {
     page::expand_page(attr, item)
@@ -59,6 +61,7 @@ pub fn live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     live::expand_live_impl(attr, item)
 }
 
+#[doc(hidden)]
 #[proc_macro_attribute]
 pub fn predict(_attr: TokenStream, item: TokenStream) -> TokenStream {
     item

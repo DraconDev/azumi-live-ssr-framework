@@ -1,5 +1,7 @@
 # Azumi — AI Agent Guide
 
+> **DEPRECATED**: This file has been consolidated into [docs/guide.md](docs/guide.md#ai-code-generation). The content below is preserved for reference.
+
 ## Philosophy
 
 Azumi is an **AI-first, compiler-validated web framework**. Every decision prioritizes what makes AI-generated code correct by default:

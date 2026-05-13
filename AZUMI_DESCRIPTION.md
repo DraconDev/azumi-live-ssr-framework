@@ -1,5 +1,7 @@
 # Azumi: A Technical Description
 
+> **DEPRECATED**: This file has been consolidated into [docs/guide.md](docs/guide.md). The content below is preserved for reference.
+
 > **Compiler-Driven Optimistic UI for Rust**
 
 ---

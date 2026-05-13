@@ -1,16 +1,24 @@
 pub mod prelude {
-    pub use crate::action::{Action, error_fragment, success_fragment};
+    #[cfg(feature = "axum")]
+    pub use crate::action::{Action, ActionResult, error_fragment, success_fragment};
     pub use crate::{
-        action, azumi_script, component, html, json_data, live,
+        azumi_script, component, html, json_data, live,
         session_cleanup_script, AzumiScript, Component, escape_css_string,
         from_fn, FnComponent,
     };
+    pub use crate::form::{FormValidator, ValidatedForm, ValidationErrors};
 }
 
 pub use azumi_macros::{
-    action, component, head, html, json_data, live, live_impl, page,
-    predict,
+    component, html, json_data, live,
 };
+#[doc(hidden)]
+pub use azumi_macros::{
+    head, live_impl, page, predict,
+};
+#[cfg(feature = "axum")]
+pub use azumi_macros::action;
+#[cfg(feature = "axum")]
 pub mod action;
 pub mod context;
 #[cfg(feature = "devtools")]
@@ -18,11 +26,14 @@ pub mod hot_reload;
 pub mod script;
 pub mod security;
 pub use security::VerifyStateError;
+#[cfg(feature = "axum")]
 pub use inventory;
 #[cfg(feature = "devtools")]
 pub mod devtools;
 
 pub mod seo;
+pub mod form;
+pub mod streaming;
 pub use script::{AzumiScript, escape_script_content, escape_style_content, escape_tag_content, session_cleanup_script};
 
 // ── Re-exports for declarative macros ─────────────────────────────────────
@@ -30,6 +41,7 @@ pub use script::{AzumiScript, escape_script_content, escape_style_content, escap
 /// Not part of the public API.
 #[doc(hidden)]
 pub mod __private {
+    #[cfg(feature = "axum")]
     pub use axum;
 }
 

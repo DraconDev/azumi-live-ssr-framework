@@ -1,5 +1,7 @@
 # Comprehensive AI Guide to Writing Azumi Code
 
+> **DEPRECATED**: This file has been consolidated into [docs/guide.md](docs/guide.md). The content below is preserved for reference.
+
 > A complete reference guide for AI assistants helping developers write Azumi applications, covering all features and patterns.
 
 ## 🎯 Philosophy & Core Concepts

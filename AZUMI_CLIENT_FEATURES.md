@@ -1,5 +1,7 @@
 # Azumi Client Features Guide
 
+> **DEPRECATED**: This file has been moved to [docs/interactivity.md](docs/interactivity.md). The content below is preserved for reference.
+
 When building Azumi apps, you can often avoid writing custom JavaScript by using
 Azumi's built-in client features. This guide explains when to use each feature.
 

@@ -12,8 +12,17 @@ pub fn validate_component_css(nodes: &[Node]) -> proc_macro2::TokenStream {
     collect_css_files(nodes, &mut css_files);
 
     if !css_files.is_empty() {
+        let paths = css_files.join("\n  - ");
+        let msg = format!(
+            "External CSS files are banned in Azumi. Found:\n  - {}\n\n\
+             Use one of these alternatives:\n\
+             1. Inline styles in a <style> block: <style>{{{{ my_css_var }}}}</style>\n\
+             2. Scope CSS with the html! macro's built-in scoping\n\
+             3. Put global styles in a file named 'global.css' (opt-out of validation)",
+            paths
+        );
         return quote! {
-            compile_error!("External CSS files are banned in Azumi. Use the style! macro instead.");
+            compile_error!(#msg);
         };
     }
 
