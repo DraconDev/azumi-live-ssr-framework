@@ -123,6 +123,46 @@ pub fn push_style_update(scope_id: &str, css: &str) {
     let _ = get_broadcast_channel().send(msg.to_string());
 }
 
+async fn check_dev_token(
+    req: axum::http::Request<axum::body::Body>,
+    next: axum::middleware::Next,
+) -> Result<axum::response::Response, StatusCode> {
+    let token = req.headers()
+        .get(DEV_TOKEN_HEADER)
+        .and_then(|v| v.to_str().ok());
+    
+    if is_dev_token_valid(token) {
+        Ok(next.run(req).await)
+    } else {
+        Err(StatusCode::UNAUTHORIZED)
+    }
+}
+
+async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
+    ws.on_upgrade(handle_socket)
+}
+
+async fn handle_socket(mut socket: WebSocket) {
+    let mut rx = get_broadcast_channel().subscribe();
+
+    loop {
+        tokio::select! {
+            msg = rx.recv() => {
+                if let Ok(msg) = msg {
+                    if socket.send(Message::Text(msg)).await.is_err() {
+                        break;
+                    }
+                }
+            }
+            _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
+                if socket.send(Message::Ping(vec![])).await.is_err() {
+                    break;
+                }
+            }
+        }
+    }
+}
+
 /// Mounts the hot reload route at `/_azumi/live_reload`
 ///
 /// # Security Warning
