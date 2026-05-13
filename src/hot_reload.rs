@@ -34,6 +34,12 @@ impl RuntimeTemplate {
 
 const MAX_REGISTRY_SIZE: usize = 1000;
 
+static TEMPLATE_REGISTRY: OnceLock<std::sync::RwLock<lru::LruCache<String, RuntimeTemplate>>> = OnceLock::new();
+
+fn create_registry() -> lru::LruCache<String, RuntimeTemplate> {
+    lru::LruCache::new(NonZeroUsize::new(MAX_REGISTRY_SIZE).unwrap())
+}
+
 pub fn get_template(id: &str) -> Option<RuntimeTemplate> {
     let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(|| std::sync::RwLock::new(create_registry())).write() else {
         eprintln!("Hot Reload: Registry lock poisoned - template lookup failed");
