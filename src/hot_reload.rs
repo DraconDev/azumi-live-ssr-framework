@@ -22,6 +22,7 @@ fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
     })
 }
 
+#[derive(Clone)]
 pub struct RuntimeTemplate {
     pub static_parts: Vec<String>,
 }
