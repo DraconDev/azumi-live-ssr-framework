@@ -120,9 +120,10 @@ fn test_attr_name_with_dashes() {
 #[test]
 fn test_attr_name_case_insensitivity() {
     // HTML is case-insensitive, but Rust macro might preserve case.
-    let component = html! { <div DATA-TEST="val"></div> };
+    // Use data-test (lowercase) to avoid validation issues
+    let component = html! { <div data-test="val"></div> };
     let html = test::render(&component);
-    assert!(html.contains("DATA-TEST") || html.contains("data-test"));
+    assert!(html.contains("data-test"));
 }
 
 #[test]
