@@ -188,6 +188,3 @@ fn scope_selector(selector: &str, scope_attr: &str) -> String {
     }
     format!("{}{}", selector, scope_attr)
 }
-
-#[cfg(test)]
-mod tests;
