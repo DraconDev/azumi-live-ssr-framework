@@ -107,18 +107,33 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
         if let Pat::Ident(pat_ident) = &**pat {
             // Only consider parameter if it's named "state"
             if pat_ident.ident == "state" {
-                // We trust the trait bound to catch invalid types later
-                // If 'state' doesn't implement LiveState, the generated code will fail to compile
-                // which is better than silently verifying it.
-                live_state_ident = Some(&pat_ident.ident);
-
-                // Extract the inner type from references:
-                // &T -> T, &mut T -> T, T -> T
+                // Extract the inner type from references: &T -> T, &mut T -> T
                 let inner_type: Box<Type> = match &**ty {
                     Type::Reference(ref_ty) => ref_ty.elem.clone(),
                     _ => ty.clone(),
                 };
-                live_state_type = Some(inner_type);
+                // Avoid false positives on primitive types like &str, String, i32, etc.
+                // by checking if the type name is a known primitive
+                let is_primitive = if let Type::Path(type_path) = &*inner_type {
+                    if let Some(seg) = type_path.path.segments.first() {
+                        let name = seg.ident.to_string();
+                        matches!(
+                            name.as_str(),
+                            "str" | "String" | "i8" | "i16" | "i32" | "i64" | "i128" | "isize"
+                            | "u8" | "u16" | "u32" | "u64" | "u128" | "usize"
+                            | "f32" | "f64" | "bool" | "char"
+                            | "Vec" | "HashMap" | "BTreeMap" | "Option" | "Result"
+                        )
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                };
+                if !is_primitive {
+                    live_state_ident = Some(&pat_ident.ident);
+                    live_state_type = Some(inner_type);
+                }
             }
         }
     }

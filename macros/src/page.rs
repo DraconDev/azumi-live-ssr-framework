@@ -10,7 +10,7 @@ pub fn expand_page(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let fn_sig = &input.sig;
 
     // 1. Infer Title from Function Name
-    // lesson_9 -> "Lesson 9"
+    // lesson_9 -> "Lesson 9", my_html_page -> "My HTML Page"
     let name_str = fn_name.to_string();
     let title = name_str
         .split('_')
@@ -18,7 +18,16 @@ pub fn expand_page(_attr: TokenStream, item: TokenStream) -> TokenStream {
             let mut c = s.chars();
             match c.next() {
                 None => String::new(),
-                Some(f) => f.to_uppercase().chain(c).collect(),
+                Some(f) => {
+                    let rest: String = c.collect();
+                    // Preserve known acronyms (all-uppercase words of 2+ chars)
+                    let word = if !rest.is_empty() && rest.chars().all(|ch| ch.is_uppercase() || ch.is_numeric()) {
+                        format!("{}{}", f.to_uppercase(), rest)
+                    } else {
+                        f.to_uppercase().to_string() + &rest
+                    };
+                    word
+                }
             }
         })
         .collect::<Vec<_>>()

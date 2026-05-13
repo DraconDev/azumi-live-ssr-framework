@@ -91,7 +91,10 @@ pub fn derive_schema(input: TokenStream) -> TokenStream {
 
                 impl<'a, T: serde::Serialize + ?Sized> Fallback for Wrapper<'a, T> {
                     fn convert(&self) -> Value {
-                        serde_json::to_value(self.0).unwrap_or(Value::Null)
+                        serde_json::to_value(self.0).unwrap_or_else(|e| {
+                            eprintln!("Azumi schema warning: failed to serialize field: {}", e);
+                            Value::Null
+                        })
                     }
                 }
 

@@ -4,6 +4,11 @@ use syn::{parse_macro_input, FnArg, ItemFn, Type};
 
 fn is_extractor_type(ty: &Type) -> bool {
     if let Type::Path(type_path) = ty {
+        // Only match unqualified types (single segment) to avoid false positives
+        // on user-defined types with the same name (e.g., my_app::State)
+        if type_path.path.segments.len() != 1 {
+            return false;
+        }
         if let Some(seg) = type_path.path.segments.first() {
             let name = seg.ident.to_string();
             return matches!(
