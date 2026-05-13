@@ -185,7 +185,7 @@ async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) -> 
         }
     }
 
-    let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(Default::default).write() else {
+    let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(|| std::sync::RwLock::new(create_registry())).write() else {
         eprintln!("Hot Reload: Registry lock poisoned - template update failed");
         return (StatusCode::SERVICE_UNAVAILABLE, "Registry unavailable");
     };
@@ -198,24 +198,8 @@ async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) -> 
         }
     }
 
-    // Atomic check-and-evict: loop until we have room or hit max capacity
-    while registry.len() >= MAX_REGISTRY_SIZE {
-        let evict_count = (MAX_REGISTRY_SIZE / 10).max(1);
-        let old_len = registry.len();
-        registry.evict_lru(evict_count);
-        // If eviction didn't help (e.g., registry is exactly full and can't evict more), break
-        if registry.len() >= old_len {
-            break;
-        }
-    }
-
-    // Final check: if we're still over capacity after eviction, reject
-    if registry.len() >= MAX_REGISTRY_SIZE {
-        eprintln!("Hot Reload: Registry at capacity, could not evict");
-        return (StatusCode::INSUFFICIENT_STORAGE, "Registry at capacity");
-    }
-
-    registry.insert(payload.id.clone(), RuntimeTemplate { static_parts: payload.parts });
+    // lru::LruCache automatically evicts oldest entries when at capacity
+    registry.put(payload.id.clone(), RuntimeTemplate { static_parts: payload.parts });
     #[cfg(debug_assertions)]
     println!("Hot Reload: Updated template \"{}\"", payload.id.replace('"', "\\\""));
     let _ = get_broadcast_channel().send(serde_json::json!({"type": "reload"}).to_string());
@@ -293,78 +277,55 @@ mod tests {
 
     #[test]
     fn test_lru_cache_insert_and_get() {
-        let mut cache = LRUCache::new();
-        cache.insert("key1", "value1");
-        assert_eq!(cache.get(&"key1"), Some(&"value1"));
+        let mut cache = create_registry();
+        cache.put("key1".to_string(), RuntimeTemplate { static_parts: vec!["value1".to_string()] });
+        assert!(cache.get("key1").is_some());
     }
 
     #[test]
     fn test_lru_cache_update_existing_key() {
-        let mut cache = LRUCache::new();
-        cache.insert("key1", "value1");
-        cache.insert("key1", "value2");
-        assert_eq!(cache.get(&"key1"), Some(&"value2"));
+        let mut cache = create_registry();
+        cache.put("key1".to_string(), RuntimeTemplate { static_parts: vec!["value1".to_string()] });
+        cache.put("key1".to_string(), RuntimeTemplate { static_parts: vec!["value2".to_string()] });
+        let val = cache.get("key1").unwrap();
+        assert_eq!(val.static_parts, vec!["value2".to_string()]);
     }
 
     #[test]
     fn test_lru_cache_get_nonexistent() {
-        let mut cache = LRUCache::new();
-        cache.insert("key1", "value1");
-        assert_eq!(cache.get(&"key2"), None);
+        let mut cache = create_registry();
+        cache.put("key1".to_string(), RuntimeTemplate { static_parts: vec!["value1".to_string()] });
+        assert!(cache.get("key2").is_none());
     }
 
     #[test]
     fn test_lru_cache_len() {
-        let mut cache = LRUCache::new();
+        let mut cache = create_registry();
         assert_eq!(cache.len(), 0);
-        cache.insert("key1", "value1");
+        cache.put("key1".to_string(), RuntimeTemplate { static_parts: vec!["value1".to_string()] });
         assert_eq!(cache.len(), 1);
-        cache.insert("key2", "value2");
+        cache.put("key2".to_string(), RuntimeTemplate { static_parts: vec!["value2".to_string()] });
         assert_eq!(cache.len(), 2);
     }
 
     #[test]
-    fn test_lru_cache_evict_lru() {
-        let mut cache = LRUCache::new();
-        cache.insert("key1", "v1");
-        cache.insert("key2", "v2");
-        cache.insert("key3", "v3");
-        assert_eq!(cache.len(), 3);
-        cache.evict_lru(1);
+    fn test_lru_cache_auto_evict() {
+        let mut cache = lru::LruCache::new(NonZeroUsize::new(2).unwrap());
+        cache.put("key1".to_string(), RuntimeTemplate { static_parts: vec!["v1".to_string()] });
+        cache.put("key2".to_string(), RuntimeTemplate { static_parts: vec!["v2".to_string()] });
+        cache.put("key3".to_string(), RuntimeTemplate { static_parts: vec!["v3".to_string()] });
         assert_eq!(cache.len(), 2);
+        assert!(cache.get("key1").is_none()); // key1 was evicted
     }
 
     #[test]
-    fn test_lru_cache_evict_all() {
-        let mut cache = LRUCache::new();
-        cache.insert("key1", "v1");
-        cache.insert("key2", "v2");
-        cache.evict_lru(10);
-        assert_eq!(cache.len(), 0);
-    }
-
-    #[test]
-    fn test_lru_cache_evict_zero_does_nothing() {
-        let mut cache = LRUCache::new();
-        cache.insert("key1", "v1");
-        cache.evict_lru(0);
-        assert_eq!(cache.len(), 1);
-    }
-
-    #[test]
-    fn test_lru_cache_access_updates_lru_order() {
-        let mut cache = LRUCache::new();
-        cache.insert("key1", "v1");
-        cache.insert("key2", "v2");
-        cache.insert("key3", "v3");
-        let _ = cache.get(&"key1");
-        cache.evict_lru(1);
-        assert_eq!(cache.len(), 2);
-    }
-
-    #[test]
-    fn test_lru_cache_default() {
-        let cache: LRUCache<String, i32> = LRUCache::default();
-        assert_eq!(cache.len(), 0);
+    fn test_lru_cache_access_updates_order() {
+        let mut cache = lru::LruCache::new(NonZeroUsize::new(2).unwrap());
+        cache.put("key1".to_string(), RuntimeTemplate { static_parts: vec!["v1".to_string()] });
+        cache.put("key2".to_string(), RuntimeTemplate { static_parts: vec!["v2".to_string()] });
+        let _ = cache.get("key1"); // access key1 to make it more recent
+        cache.put("key3".to_string(), RuntimeTemplate { static_parts: vec!["v3".to_string()] });
+        assert!(cache.get("key1").is_some()); // key1 should still be there
+        assert!(cache.get("key2").is_none()); // key2 was evicted
     }
 }
