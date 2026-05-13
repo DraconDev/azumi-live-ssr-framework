@@ -56,11 +56,16 @@ impl SseEvent {
         }
     }
 
-    /// Create an event carrying raw JSON data.
-    pub fn json(data: impl Into<String>) -> Self {
+    /// Create an event carrying JSON data.
+    ///
+    /// Accepts any type implementing `serde::Serialize`. The data is
+    /// serialized to JSON internally. If serialization fails, the
+    /// error is logged and the event carries an empty payload.
+    pub fn json(data: impl serde::Serialize) -> Self {
+        let json = serde_json::to_string(&data).unwrap_or_default();
         Self {
             event: "json".to_string(),
-            data: data.into(),
+            data: json,
             id: None,
         }
     }

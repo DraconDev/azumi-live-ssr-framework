@@ -278,38 +278,38 @@ struct TemplateUpdatePayload {
     parts: Vec<String>,
 }
 
-async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) {
+async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) -> impl IntoResponse {
     if payload.id.len() > MAX_TEMPLATE_ID_LEN {
         eprintln!("Hot Reload: Template ID too long");
-        return;
+        return (StatusCode::BAD_REQUEST, "Template ID too long");
     }
     if payload.parts.len() > MAX_TEMPLATE_PARTS {
         eprintln!("Hot Reload: Too many parts (max {})", MAX_TEMPLATE_PARTS);
-        return;
+        return (StatusCode::BAD_REQUEST, "Too many template parts");
     }
     let mut total_size = payload.id.len();
     for part in &payload.parts {
         if part.len() > MAX_PART_SIZE {
             eprintln!("Hot Reload: Part too large (max {} bytes)", MAX_PART_SIZE);
-            return;
+            return (StatusCode::PAYLOAD_TOO_LARGE, "Template part too large");
         }
         total_size = total_size.saturating_add(part.len());
         if total_size > MAX_TOTAL_CSS_SIZE {
             eprintln!("Hot Reload: Total CSS size too large (max {} bytes)", MAX_TOTAL_CSS_SIZE);
-            return;
+            return (StatusCode::PAYLOAD_TOO_LARGE, "Total CSS size too large");
         }
     }
 
     let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(Default::default).write() else {
         eprintln!("Hot Reload: Registry lock poisoned - template update failed");
-        return;
+        return (StatusCode::SERVICE_UNAVAILABLE, "Registry unavailable");
     };
 
     {
         let total_size = payload.id.len() + payload.parts.iter().map(|p| p.len()).sum::<usize>();
         if total_size > MAX_REGISTRY_SIZE * 10 {
             eprintln!("Hot Reload: Total payload size too large");
-            return;
+            return (StatusCode::PAYLOAD_TOO_LARGE, "Total payload size too large");
         }
     }
 
@@ -327,13 +327,14 @@ async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) {
     // Final check: if we're still over capacity after eviction, reject
     if registry.len() >= MAX_REGISTRY_SIZE {
         eprintln!("Hot Reload: Registry at capacity, could not evict");
-        return;
+        return (StatusCode::INSUFFICIENT_STORAGE, "Registry at capacity");
     }
 
     registry.insert(payload.id.clone(), RuntimeTemplate { static_parts: payload.parts });
     #[cfg(debug_assertions)]
     println!("Hot Reload: Updated template \"{}\"", payload.id.replace('"', "\\\""));
     let _ = get_broadcast_channel().send(serde_json::json!({"type": "reload"}).to_string());
+    (StatusCode::OK, "Template updated")
 }
 
 #[cfg(test)]

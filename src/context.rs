@@ -147,5 +147,5 @@ pub fn set_page_meta(
 /// Get the current page metadata.
 /// This is used by the `head!` macro or layout components.
 pub fn get_page_meta() -> PageMeta {
-    PAGE_META.with(|params| params.borrow().clone())
+    PAGE_META.with(|params| params.try_borrow().map(|b| b.clone()).unwrap_or_default())
 }

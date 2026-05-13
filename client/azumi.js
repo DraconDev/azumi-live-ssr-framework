@@ -121,7 +121,15 @@ class Azumi {
     }
 
     pollForReload() {
+        let attempts = 0;
+        const maxAttempts = 30;
         const interval = setInterval(() => {
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                this.warn("Hot reload: max polling attempts reached, giving up.");
+                return;
+            }
             fetch(window.location.href, { method: "HEAD" })
                 .then((res) => {
                     if (res.ok) {
@@ -171,7 +179,10 @@ class Azumi {
 
         if (trigger !== e.type) return;
 
-        e.preventDefault(); // Default prevent for handled events
+        // Only prevent default for click and submit events
+        if (e.type === "click" || e.type === "submit") {
+            e.preventDefault();
+        }
 
         // Check for confirmation dialog
         const confirmMsg = target.getAttribute("az-confirm");
@@ -859,7 +870,7 @@ class Azumi {
                     state
                 );
                 if (val !== undefined) el.textContent = val;
-            } else if (state.hasOwnProperty(field)) {
+            } else if (Object.prototype.hasOwnProperty.call(state, field)) {
                 el.textContent = state[field];
             }
         });
