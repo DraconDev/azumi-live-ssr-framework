@@ -113,6 +113,44 @@ async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) -> 
     (StatusCode::OK, "Template updated")
 }
 
+/// Pushes a style update to all connected clients
+pub fn push_style_update(scope_id: &str, css: &str) {
+    let msg = serde_json::json!({
+        "type": "style-update",
+        "scopeId": scope_id,
+        "css": css
+    });
+    let _ = get_broadcast_channel().send(msg.to_string());
+}
+
+/// Mounts the hot reload route at `/_azumi/live_reload`
+///
+/// # Security Warning
+///
+/// These endpoints are **development-only** and should NOT be exposed in production:
+///
+/// - `/_azumi/live_reload` - WebSocket endpoint for hot reload
+/// - `/_azumi/update_template` - POST endpoint to update templates
+///
+/// **Authentication**: Both endpoints require the `X-Azumi-Dev-Token` header
+/// to be set to the value of the `AZUMI_DEV_TOKEN` environment variable.
+///
+/// In production, either:
+/// 1. Remove this router entirely (hot reload is for development only)
+/// 2. Restrict access at the network level (e.g., firewall rules to block external access)
+/// 3. Ensure `AZUMI_DEV_TOKEN` is not set or is a secret only localhost knows
+///
+/// If deploying to production with this enabled, ensure only localhost can access these routes.
+pub fn router<S>() -> Router<S>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    Router::new()
+        .route("/_azumi/live_reload", get(ws_handler))
+        .route("/_azumi/update_template", post(update_template_handler))
+        .layer(axum::middleware::from_fn(check_dev_token))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
