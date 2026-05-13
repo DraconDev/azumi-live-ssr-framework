@@ -1,5 +1,5 @@
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::num::NonZeroUsize;
+use std::sync::OnceLock;
 
 pub fn is_dev_token_valid(token: Option<&str>) -> bool {
     let Some(t) = token else {
@@ -27,6 +27,10 @@ pub fn is_dev_token_valid(token: Option<&str>) -> bool {
 }
 
 static TEMPLATE_REGISTRY: OnceLock<std::sync::RwLock<lru::LruCache<String, RuntimeTemplate>>> = OnceLock::new();
+
+fn create_registry() -> lru::LruCache<String, RuntimeTemplate> {
+    lru::LruCache::new(NonZeroUsize::new(MAX_REGISTRY_SIZE).unwrap())
+}
 
 /// Pushes a style update to all connected clients
 pub fn push_style_update(scope_id: &str, css: &str) {
@@ -141,7 +145,7 @@ impl RuntimeTemplate {
 const MAX_REGISTRY_SIZE: usize = 1000;
 
 pub fn get_template(id: &str) -> Option<RuntimeTemplate> {
-    let Ok(registry) = TEMPLATE_REGISTRY.get_or_init(Default::default).read() else {
+    let Ok(mut registry) = TEMPLATE_REGISTRY.get_or_init(Default::default).write() else {
         eprintln!("Hot Reload: Registry lock poisoned - template lookup failed");
         return None;
     };
