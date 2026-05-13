@@ -39,9 +39,6 @@ pub use script::{AzumiScript, escape_script_content, escape_style_content, escap
 // Re-export CSS scoping for backward compatibility
 pub use css_scoping::{compute_scope_id, scope_css};
 
-use fnv::FnvHasher;
-use std::hash::{Hash, Hasher};
-
 // ── Re-exports for declarative macros ─────────────────────────────────────
 /// Internal re-exports used by `azumi::routes!` and other declarative macros.
 /// Not part of the public API.
