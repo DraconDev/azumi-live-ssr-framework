@@ -1,6 +1,6 @@
 [package]
 name = "azumi-cli"
-version = "0.1.0"
+version = "47.20.29"
 edition = "2021"
 description = "Scaffolding CLI for Azumi web framework"
 repository = "https://github.com/DraconDev/azumi"
