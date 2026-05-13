@@ -123,66 +123,15 @@ pub fn generate_head(
     url: Option<&str>,
     type_: Option<&str>,
 ) -> HeadContent {
-    let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
-
+    let global = SITE_CONFIG.read().ok().and_then(|guard| guard.clone());
     let context_meta = crate::context::get_page_meta();
-
-    let effective_title = if !title.is_empty() {
-        title.to_string()
-    } else {
-        context_meta.title.unwrap_or_default()
-    };
-
-    let effective_desc = description
-        .map(|s| s.to_string())
-        .or(context_meta.description)
-        .or(global.as_ref().and_then(|g| g.description.clone()));
-
-    let effective_image = image
-        .map(|s| s.to_string())
-        .or(context_meta.image)
-        .or(global.as_ref().and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
-
-    // Use a single reference to global for title construction to avoid second clone
-    let full_title = if let Some(ref g) = global {
-        if let Some(ref og) = g.open_graph {
-            if let Some(ref site_name) = og.site_name {
-                if !effective_title.is_empty() {
-                    format!("{} | {}", effective_title, site_name)
-                } else {
-                    site_name.clone()
-                }
-            } else {
-                effective_title.clone()
-            }
-        } else {
-            effective_title.clone()
-        }
-    } else {
-        effective_title.clone()
-    };
-
     let current_path = crate::context::get_current_path();
-    let base_url = global.as_ref().and_then(|g| g.base_url.clone());
 
-    let full_url = if let Some(u) = url {
-        Some(u.to_string())
-    } else {
-        match (base_url, &current_path) {
-            (Some(base), Some(path)) => {
-                let base_clean = base.trim_end_matches('/');
-                let path_clean = if let Some(stripped) = path.strip_prefix('/') {
-                    stripped
-                } else {
-                    path
-                };
-                Some(format!("{}/{}", base_clean, path_clean))
-            }
-            (Some(base), None) => Some(base.to_string()),
-            _ => None,
-        }
-    };
-
+    let effective_title = resolve_title(title, &context_meta);
+    let full_title = build_full_title(&effective_title, &global);
+    let effective_desc = resolve_description(description, &context_meta, &global);
+    let effective_image = resolve_image(image, &context_meta, &global);
+    let full_url = resolve_url(url, &global, &current_path);
     let effective_type = type_.unwrap_or("website");
 
     let mut html = String::new();
@@ -192,14 +141,114 @@ pub fn generate_head(
     let safe_url = full_url.as_deref().map(html_attr_escape);
     let safe_image = effective_image.as_deref().map(html_attr_escape);
 
-    let _ = write!(html, "<title>{}</title>", safe_title);
-    if let Some(d) = &safe_desc {
-        let _ = write!(html, r#"<meta name="description" content="{}">"#, d);
+    render_basic_meta(&mut html, &safe_title, safe_desc.as_deref(), safe_url.as_deref());
+    render_open_graph(&mut html, &global, &safe_title, safe_desc.as_deref(), safe_url.as_deref(), safe_image.as_deref(), effective_type);
+    render_twitter_card(&mut html, &global, &safe_title, safe_desc.as_deref(), safe_image.as_deref());
+
+    HeadContent(html)
+}
+
+/// Resolve the effective title from local, context, or global config.
+fn resolve_title(title: &str, context_meta: &crate::context::PageMeta) -> String {
+    if !title.is_empty() {
+        title.to_string()
+    } else {
+        context_meta.title.clone().unwrap_or_default()
     }
-    if let Some(url) = &safe_url {
-        let _ = write!(html, r#"<link rel="canonical" href="{}">"#, url);
+}
+
+/// Build the full title, appending site name if available.
+fn build_full_title(effective_title: &str, global: &Option<SeoConfig>) -> String {
+    if let Some(ref g) = global {
+        if let Some(ref og) = g.open_graph {
+            if let Some(ref site_name) = og.site_name {
+                if !effective_title.is_empty() {
+                    return format!("{} | {}", effective_title, site_name);
+                } else {
+                    return site_name.clone();
+                }
+            }
+        }
+    }
+    effective_title.to_string()
+}
+
+/// Resolve description from local, context, or global config.
+fn resolve_description(
+    description: Option<&str>,
+    context_meta: &crate::context::PageMeta,
+    global: &Option<SeoConfig>,
+) -> Option<String> {
+    description
+        .map(|s| s.to_string())
+        .or_else(|| context_meta.description.clone())
+        .or_else(|| global.as_ref().and_then(|g| g.description.clone()))
+}
+
+/// Resolve image from local, context, or global config.
+fn resolve_image(
+    image: Option<&str>,
+    context_meta: &crate::context::PageMeta,
+    global: &Option<SeoConfig>,
+) -> Option<String> {
+    image
+        .map(|s| s.to_string())
+        .or_else(|| context_meta.image.clone())
+        .or_else(|| {
+            global
+                .as_ref()
+                .and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone()))
+        })
+}
+
+/// Resolve the canonical URL from explicit, base+path, or global config.
+fn resolve_url(
+    url: Option<&str>,
+    global: &Option<SeoConfig>,
+    current_path: &Option<String>,
+) -> Option<String> {
+    if let Some(u) = url {
+        return Some(u.to_string());
     }
 
+    let base_url = global.as_ref().and_then(|g| g.base_url.clone());
+    match (base_url, current_path) {
+        (Some(base), Some(path)) => {
+            let base_clean = base.trim_end_matches('/');
+            let path_clean = path.strip_prefix('/').unwrap_or(path);
+            Some(format!("{}/{}", base_clean, path_clean))
+        }
+        (Some(base), None) => Some(base),
+        _ => None,
+    }
+}
+
+/// Render basic meta tags: title, description, canonical.
+fn render_basic_meta(
+    html: &mut String,
+    safe_title: &str,
+    safe_desc: Option<&str>,
+    safe_url: Option<&str>,
+) {
+    let _ = write!(html, "<title>{}</title>", safe_title);
+    if let Some(d) = safe_desc {
+        let _ = write!(html, r#"<meta name="description" content="{}">"#, d);
+    }
+    if let Some(url) = safe_url {
+        let _ = write!(html, r#"<link rel="canonical" href="{}">"#, url);
+    }
+}
+
+/// Render Open Graph meta tags.
+fn render_open_graph(
+    html: &mut String,
+    global: &Option<SeoConfig>,
+    safe_title: &str,
+    safe_desc: Option<&str>,
+    safe_url: Option<&str>,
+    safe_image: Option<&str>,
+    effective_type: &str,
+) {
     if let Some(ref g) = global {
         if let Some(ref og) = g.open_graph {
             let _ = write!(
@@ -207,19 +256,15 @@ pub fn generate_head(
                 r#"<meta property="og:title" content="{}">"#,
                 safe_title
             );
-
-            if let Some(d) = &safe_desc {
+            if let Some(d) = safe_desc {
                 let _ = write!(html, r#"<meta property="og:description" content="{}">"#, d);
             }
-
-            if let Some(u) = &safe_url {
+            if let Some(u) = safe_url {
                 let _ = write!(html, r#"<meta property="og:url" content="{}">"#, u);
             }
-
-            if let Some(i) = &safe_image {
+            if let Some(i) = safe_image {
                 let _ = write!(html, r#"<meta property="og:image" content="{}">"#, i);
             }
-
             if let Some(s) = &og.site_name {
                 let safe_s = html_attr_escape(s);
                 let _ = write!(
@@ -228,13 +273,21 @@ pub fn generate_head(
                     safe_s
                 );
             }
-
             let safe_type = html_attr_escape(effective_type);
             let _ = write!(html, r#"<meta property="og:type" content="{}">"#, safe_type);
         }
     }
+}
 
-    if let Some(g) = global {
+/// Render Twitter Card meta tags.
+fn render_twitter_card(
+    html: &mut String,
+    global: &Option<SeoConfig>,
+    safe_title: &str,
+    safe_desc: Option<&str>,
+    safe_image: Option<&str>,
+) {
+    if let Some(ref g) = global {
         if let Some(ref tw) = g.twitter {
             let safe_card = html_attr_escape(&tw.card);
             let _ = write!(
@@ -259,17 +312,14 @@ pub fn generate_head(
                 r#"<meta name="twitter:title" content="{}">"#,
                 safe_title
             );
-            if let Some(d) = &safe_desc {
+            if let Some(d) = safe_desc {
                 let _ = write!(html, r#"<meta name="twitter:description" content="{}">"#, d);
             }
-            if let Some(i) = &safe_image {
+            if let Some(i) = safe_image {
                 let _ = write!(html, r#"<meta name="twitter:image" content="{}">"#, i);
             }
         }
     }
-
-    // Return the built HTML string wrapped in a Component
-    HeadContent(html)
 }
 
 /// Public wrapper for SEO head content. Returned by `generate_head()`.
