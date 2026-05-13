@@ -36,6 +36,9 @@ pub mod form;
 pub mod streaming;
 pub use script::{AzumiScript, escape_script_content, escape_style_content, escape_tag_content, session_cleanup_script};
 
+use fnv::FnvHasher;
+use std::hash::{Hash, Hasher};
+
 // ── Re-exports for declarative macros ─────────────────────────────────────
 /// Internal re-exports used by `azumi::routes!` and other declarative macros.
 /// Not part of the public API.
