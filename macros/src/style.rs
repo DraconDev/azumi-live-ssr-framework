@@ -554,6 +554,8 @@ pub fn process_style_macro(input: TokenStream) -> StyleOutput {
     }
 
     // Emit warning for skipped dashed classes
+    // NOTE: In stable Rust, proc macros cannot emit proper warnings - only errors.
+    // Using eprintln! to notify developers during compilation.
     if !skipped_dashed_classes.is_empty() {
         let class_list: Vec<String> = skipped_dashed_classes
             .iter()

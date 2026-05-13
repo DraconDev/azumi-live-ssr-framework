@@ -1,36 +1,11 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::OnceLock;
-use axum::{
-    extract::ws::{Message, WebSocket, WebSocketUpgrade},
-    response::IntoResponse,
-    routing::{get, post},
-    Json, Router,
-    http::StatusCode,
-};
-use tokio::sync::broadcast;
-use crate::{Escaped, FallbackRender};
-
-static BROADCAST_CHANNEL: OnceLock<broadcast::Sender<String>> = OnceLock::new();
-
-fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
-    BROADCAST_CHANNEL.get_or_init(|| {
-        let (tx, _) = broadcast::channel(100);
-        tx
-    })
-}
-
-const DEV_TOKEN_HEADER: &str = "X-Azumi-Dev-Token";
-
-fn get_dev_token() -> Option<String> {
-    std::env::var("AZUMI_DEV_TOKEN").ok()
-}
 
 pub fn is_dev_token_valid(token: Option<&str>) -> bool {
     let Some(t) = token else {
         return false;
     };
-    let Some(expected) = get_dev_token() else {
+    let Ok(expected) = std::env::var("AZUMI_DEV_TOKEN") else {
         return false;
     };
     
@@ -51,105 +26,7 @@ pub fn is_dev_token_valid(token: Option<&str>) -> bool {
     result == 0
 }
 
-struct LRUEntry<V> {
-    value: V,
-    last_access: AtomicU64,
-}
-
-struct LRUCache<K, V> {
-    map: HashMap<K, LRUEntry<V>>,
-    next_access_id: AtomicU64,
-}
-
-impl<K: std::hash::Hash + Eq + std::cmp::Ord + Clone, V> LRUCache<K, V> {
-    fn new() -> Self {
-        Self {
-            map: HashMap::new(),
-            next_access_id: AtomicU64::new(0),
-        }
-    }
-
-    fn next_id(&self) -> u64 {
-        self.next_access_id.fetch_add(1, Ordering::Relaxed)
-    }
-
-    fn insert(&mut self, key: K, value: V) {
-        let access_id = self.next_id();
-
-        if let Some(entry) = self.map.get_mut(&key) {
-            entry.value = value;
-            entry.last_access.store(access_id, Ordering::Relaxed);
-            return;
-        }
-        self.map.insert(key, LRUEntry {
-            value,
-            last_access: AtomicU64::new(access_id),
-        });
-    }
-
-    fn get(&self, key: &K) -> Option<&V> {
-        let access_id = self.next_id();
-
-        if let Some(entry) = self.map.get(key) {
-            entry.last_access.store(access_id, Ordering::Relaxed);
-            Some(&entry.value)
-        } else {
-            None
-        }
-    }
-
-    fn evict_lru(&mut self, count: usize) {
-        if count == 0 || self.map.is_empty() {
-            return;
-        }
-        
-        let map_len = self.map.len();
-        let remove_count = count.min(map_len);
-        
-        if remove_count >= map_len {
-            self.map.clear();
-            return;
-        }
-        
-        // Use select_nth_unstable for O(n) average partition instead of O(n log n) sort
-        // This finds the kth smallest element and partitions around it
-        let mut entries: Vec<_> = self.map.iter()
-            .map(|(k, v)| (v.last_access.load(Ordering::Relaxed), k))
-            .collect();
-        
-        // Partition to find the boundary - entries[0..keep] are the ones to keep (newer)
-        // We want to remove the oldest 'count' entries, so we keep the (len - count) newest
-        let keep_count = map_len - remove_count;
-        
-        if keep_count > 0 {
-            // Partition so entries[keep_count..] contains the oldest items to evict
-            entries.select_nth_unstable(keep_count);
-        }
-        
-        // Collect keys to remove (everything from keep_count onward)
-        // Clone keys to owned values so we can mutably borrow self.map afterwards
-        let keys_to_remove: Vec<K> = entries.into_iter()
-            .skip(keep_count)
-            .map(|(_, k)| (*k).clone())
-            .collect();
-        
-        for key in keys_to_remove {
-            self.map.remove(&key);
-        }
-    }
-
-    fn len(&self) -> usize {
-        self.map.len()
-    }
-}
-
-impl<K: std::hash::Hash + Eq + std::cmp::Ord + Clone, V> Default for LRUCache<K, V> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-static TEMPLATE_REGISTRY: OnceLock<std::sync::RwLock<LRUCache<String, RuntimeTemplate>>> = OnceLock::new();
+static TEMPLATE_REGISTRY: OnceLock<std::sync::RwLock<lru::LruCache<String, RuntimeTemplate>>> = OnceLock::new();
 
 /// Pushes a style update to all connected clients
 pub fn push_style_update(scope_id: &str, css: &str) {
