@@ -12,6 +12,16 @@ use tokio::sync::broadcast;
 use crate::{Escaped, FallbackRender};
 
 const DEV_TOKEN_HEADER: &str = "X-Azumi-Dev-Token";
+
+static BROADCAST_CHANNEL: OnceLock<broadcast::Sender<String>> = OnceLock::new();
+
+fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
+    BROADCAST_CHANNEL.get_or_init(|| {
+        let (tx, _) = broadcast::channel(100);
+        tx
+    })
+}
+
 pub struct RuntimeTemplate {
     pub static_parts: Vec<String>,
 }
