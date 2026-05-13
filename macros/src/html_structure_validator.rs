@@ -90,20 +90,14 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                             check_node(child, errors);
                         }
                     }
-                    crate::token_parser::Block::Component(comp_block) => {
-                        for child in &comp_block.children {
-                            check_node(child, errors);
-                        }
+                    crate::token_parser::Block::Component(_) => {
+                        // Component reference has no child nodes to validate
                     }
-                    crate::token_parser::Block::Let(let_block) => {
-                        for child in &let_block.body {
-                            check_node(child, errors);
-                        }
+                    crate::token_parser::Block::Let(_) => {
+                        // Let binding has no child nodes to validate
                     }
-                    crate::token_parser::Block::Style(style_block) => {
-                        for child in &style_block.children {
-                            check_node(child, errors);
-                        }
+                    crate::token_parser::Block::Style(_) => {
+                        // Style block content is CSS, not nodes
                     }
                 }
             }
