@@ -1,6 +1,6 @@
 [package]
 name = "azumi"
-version = "47.20.71"
+version = "47.20.72"
 edition = "2021"
 rust-version = "1.70"
 authors = ["DraconDev <dracsharp@gmail.com>"]
@@ -31,7 +31,7 @@ inventory = { version = "0.3", optional = true }
 scraper = { version = "0.18", optional = true }
 hmac = "0.12"
 sha2 = "0.10"
-base64 = "0.21"
+base64 = "0.22"
 fnv = "1.0"
 thiserror = "2"
 tokio = { version = "1.0", features = ["macros", "rt"] }

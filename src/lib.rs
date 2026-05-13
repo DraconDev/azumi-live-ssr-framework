@@ -773,13 +773,13 @@ impl<'a> FallbackRender for HotReloadClosure<'a> {
 #[macro_export]
 macro_rules! routes {
     ($($path:expr => $handler:expr),+ $(,)?) => {{
-        let mut __azumi_router = $crate::__private::axum::Router::new();
+        let mut _azumi_router = $crate::__private::axum::Router::new();
         $(
-            __azumi_router = __azumi_router.route(
+            _azumi_router = _azumi_router.route(
                 $path,
                 $crate::__private::axum::routing::get($handler),
             );
         )+
-        __azumi_router
+        _azumi_router
     }};
 }
