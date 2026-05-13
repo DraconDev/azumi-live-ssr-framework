@@ -136,36 +136,25 @@ fn generate_body(
     nodes: &[token_parser::Node],
     span: Option<(usize, usize)>,
 ) -> proc_macro2::TokenStream {
+    // Collect ALL validation errors from all validators instead of short-circuiting
+    let mut all_errors = proc_macro2::TokenStream::new();
+
     let css_validation_errors = css_validator::validate_component_css(nodes);
-    if !css_validation_errors.is_empty() {
-        return css_validation_errors;
-    }
+    all_errors.extend(css_validation_errors);
 
     let order_errors = html_structure_validator::validate_node_order(nodes);
-    if !order_errors.is_empty() {
-        let mut tokens = proc_macro2::TokenStream::new();
-        for err in order_errors {
-            tokens.extend(err);
-        }
-        return tokens;
+    for err in order_errors {
+        all_errors.extend(err);
     }
 
     let raw_warnings = html_structure_validator::validate_raw_usage(nodes);
-    if !raw_warnings.is_empty() {
-        let mut tokens = proc_macro2::TokenStream::new();
-        for warn in raw_warnings {
-            tokens.extend(warn);
-        }
-        return tokens;
+    for warn in raw_warnings {
+        all_errors.extend(warn);
     }
 
     let format_warnings = validators::validate_format_in_expressions(nodes);
-    if !format_warnings.is_empty() {
-        let mut tokens = proc_macro2::TokenStream::new();
-        for warn in format_warnings {
-            tokens.extend(warn);
-        }
-        return tokens;
+    for warn in format_warnings {
+        all_errors.extend(warn);
     }
 
     let (global_css, scoped_css) = style_processing::collect_all_styles(nodes);
@@ -173,8 +162,11 @@ fn generate_body(
 
     let style_validation_errors =
         validators::validate_nodes(nodes, &valid_classes, &valid_ids, !scoped_css.is_empty());
-    if !style_validation_errors.is_empty() {
-        return style_validation_errors;
+    all_errors.extend(style_validation_errors);
+
+    // If any validator produced errors, return them all at once
+    if !all_errors.is_empty() {
+        return all_errors;
     }
 
     let has_global = !global_css.is_empty();
