@@ -945,18 +945,23 @@ class Azumi {
         // signature for the first result. Pipelining is mathematically impossible
         // without client-side signing keys.
         if (scopeElement) {
-            if (scopeElement._azumi_pending) {
+            let scopeState = this.scopes.get(scopeElement);
+            if (!scopeState) {
+                scopeState = {};
+                this.scopes.set(scopeElement, scopeState);
+            }
+            if (scopeState._azumi_pending) {
                 // Clear stale locks after 30 seconds (server crash / network hang)
-                if (Date.now() - (scopeElement._azumi_pending_time || 0) > 30000) {
+                if (Date.now() - (scopeState._azumi_pending_time || 0) > 30000) {
                     this.warn("Clearing stale action lock (>30s timeout)");
-                    scopeElement._azumi_pending = false;
+                    scopeState._azumi_pending = false;
                 } else {
                     this.warn("Action ignored: Request already pending for this component.");
                     return;
                 }
             }
-            scopeElement._azumi_pending = true;
-            scopeElement._azumi_pending_time = Date.now();
+            scopeState._azumi_pending = true;
+            scopeState._azumi_pending_time = Date.now();
         }
 
         // IMPORTANT: Capture state BEFORE prediction
@@ -1091,7 +1096,10 @@ class Azumi {
             }
         } finally {
             if (scopeElement) {
-                scopeElement._azumi_pending = false;
+                const scopeState = this.scopes.get(scopeElement);
+                if (scopeState) {
+                    scopeState._azumi_pending = false;
+                }
             }
         }
     }
