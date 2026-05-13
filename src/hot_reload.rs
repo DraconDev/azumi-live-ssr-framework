@@ -1,6 +1,27 @@
 use std::num::NonZeroUsize;
 use std::sync::OnceLock;
 
+use axum::{
+    extract::ws::{Message, WebSocket, WebSocketUpgrade},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
+use tokio::sync::broadcast;
+
+const DEV_TOKEN_HEADER: &str = "X-Azumi-Dev-Token";
+const MAX_REGISTRY_SIZE: usize = 1000;
+
+static BROADCAST_CHANNEL: OnceLock<broadcast::Sender<String>> = OnceLock::new();
+
+fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
+    BROADCAST_CHANNEL.get_or_init(|| {
+        let (tx, _) = broadcast::channel(100);
+        tx
+    })
+}
+
 pub fn is_dev_token_valid(token: Option<&str>) -> bool {
     let Some(t) = token else {
         return false;
