@@ -208,67 +208,60 @@ fn html_escape(s: &str) -> String {
 pub struct ValidatedForm;
 
 impl ValidatedForm {
-    /// Render a text input with optional validation error.
-    pub fn input(name: &str, value: &str, error: Option<&str>) -> impl Component {
+    fn render_input(
+        input_type: &str,
+        name: &str,
+        value: &str,
+        error: Option<&str>,
+    ) -> impl Component {
+        let input_type = input_type.to_string();
         let has_error = error.is_some();
         let name = name.to_string();
         let value = value.to_string();
         let error = error.map(|s| s.to_string());
         from_fn(move |w| {
             write!(w, "<div>")?;
-            write!(w, "<input type=\"text\" name=\"{}\" value=\"{}\"", html_escape(&name), html_escape(&value))?;
+            write!(
+                w,
+                "<input type=\"{}\" name=\"{}\" value=\"{}\"",
+                html_escape(&input_type),
+                html_escape(&name),
+                html_escape(&value)
+            )?;
             if has_error {
-                write!(w, " aria-invalid=\"true\" aria-describedby=\"{}_error\"", html_escape(&name))?;
+                write!(
+                    w,
+                    " aria-invalid=\"true\" aria-describedby=\"{}_error\"",
+                    html_escape(&name)
+                )?;
             }
             write!(w, "/>")?;
             if let Some(ref msg) = error {
-                write!(w, "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>", html_escape(&name), html_escape(msg))?;
+                write!(
+                    w,
+                    "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>",
+                    html_escape(&name),
+                    html_escape(msg)
+                )?;
             }
             write!(w, "</div>")?;
             Ok(())
         })
+    }
+
+    /// Render a text input with optional validation error.
+    pub fn input(name: &str, value: &str, error: Option<&str>) -> impl Component {
+        Self::render_input("text", name, value, error)
     }
 
     /// Render an email input with optional validation error.
     pub fn email(name: &str, value: &str, error: Option<&str>) -> impl Component {
-        let has_error = error.is_some();
-        let name = name.to_string();
-        let value = value.to_string();
-        let error = error.map(|s| s.to_string());
-        from_fn(move |w| {
-            write!(w, "<div>")?;
-            write!(w, "<input type=\"email\" name=\"{}\" value=\"{}\"", html_escape(&name), html_escape(&value))?;
-            if has_error {
-                write!(w, " aria-invalid=\"true\" aria-describedby=\"{}_error\"", html_escape(&name))?;
-            }
-            write!(w, "/>")?;
-            if let Some(ref msg) = error {
-                write!(w, "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>", html_escape(&name), html_escape(msg))?;
-            }
-            write!(w, "</div>")?;
-            Ok(())
-        })
+        Self::render_input("email", name, value, error)
     }
 
     /// Render a password input with optional validation error.
     pub fn password(name: &str, value: &str, error: Option<&str>) -> impl Component {
-        let has_error = error.is_some();
-        let name = name.to_string();
-        let value = value.to_string();
-        let error = error.map(|s| s.to_string());
-        from_fn(move |w| {
-            write!(w, "<div>")?;
-            write!(w, "<input type=\"password\" name=\"{}\" value=\"{}\"", html_escape(&name), html_escape(&value))?;
-            if has_error {
-                write!(w, " aria-invalid=\"true\" aria-describedby=\"{}_error\"", html_escape(&name))?;
-            }
-            write!(w, "/>")?;
-            if let Some(ref msg) = error {
-                write!(w, "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>", html_escape(&name), html_escape(msg))?;
-            }
-            write!(w, "</div>")?;
-            Ok(())
-        })
+        Self::render_input("password", name, value, error)
     }
 
     /// Render a textarea with optional validation error.
