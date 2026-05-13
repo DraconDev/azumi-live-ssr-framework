@@ -19,17 +19,13 @@ use crate::Component;
 /// ```
 #[must_use]
 pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
-    let tag_lower = tag_name.to_lowercase();
-    let tag_upper = tag_name.to_uppercase();
-    let tag_title = format!("{}{}", &tag_name[..1].to_uppercase(), &tag_name[1..].to_lowercase());
+    if tag_name.is_empty() {
+        return content.to_string();
+    }
     
-    // Build patterns as owned strings so they live long enough
-    let patterns: [(String, String); 4] = [
-        (format!("</{}", tag_lower), format!(r"<\/{}", tag_lower)),
-        (format!("</{}", tag_title), format!(r"<\/{}", tag_title)),
-        (format!("</{}", tag_upper), format!(r"<\/{}", tag_upper)),
-        (format!("</ {}", tag_lower), format!(r"<\/ {}", tag_lower)),
-    ];
+    let tag_lower = tag_name.to_lowercase();
+    let tag_lower_bytes = tag_lower.as_bytes();
+    let tag_len = tag_lower_bytes.len();
     
     let mut result = String::with_capacity(content.len() + content.len() / 8);
     let bytes = content.as_bytes();
@@ -40,14 +36,28 @@ pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
         
         // Check for </tag> pattern (starts with '<' followed by '/')
         if i + 2 < bytes.len() && bytes[i] == b'<' && bytes[i + 1] == b'/' {
-            for (pattern, replacement) in &patterns {
-                let pattern_bytes = pattern.as_bytes();
-                let end = i + pattern_bytes.len();
-                if end <= bytes.len() && &bytes[i..end] == pattern_bytes {
-                    result.push_str(replacement);
-                    i = end;
+            // Check for optional space after </
+            let mut j = i + 2;
+            let has_space = j < bytes.len() && bytes[j] == b' ';
+            if has_space {
+                j += 1;
+            }
+            
+            // Check if the following bytes match the tag name (case-insensitive)
+            if j + tag_len <= bytes.len() {
+                let candidate = &bytes[j..j + tag_len];
+                let matches = candidate.iter().zip(tag_lower_bytes.iter()).all(|(a, b)| {
+                    a.to_ascii_lowercase() == *b
+                });
+                
+                if matches {
+                    result.push_str("<\\/");
+                    if has_space {
+                        result.push(' ');
+                    }
+                    result.push_str(&content[j..j + tag_len]);
+                    i = j + tag_len;
                     matched = true;
-                    break;
                 }
             }
         }
@@ -236,7 +246,7 @@ mod tests {
         assert_eq!(escape_script_content("</Script>"), r"<\/Script>");
         assert_eq!(escape_script_content("</SCRIPT>"), r"<\/SCRIPT>");
         assert_eq!(escape_script_content("</ script>"), r"<\/ script>");
-        assert_eq!(escape_script_content("</ScRiPt>"), "</ScRiPt>", "Mixed case not in allowlist passes through");
+        assert_eq!(escape_script_content("</ScRiPt>"), r"<\/ScRiPt>", "Mixed case should be escaped case-insensitively");
     }
 
     #[test]
@@ -245,7 +255,7 @@ mod tests {
         assert_eq!(escape_style_content("</Style>"), r"<\/Style>");
         assert_eq!(escape_style_content("</STYLE>"), r"<\/STYLE>");
         assert_eq!(escape_style_content("</ style>"), r"<\/ style>");
-        assert_eq!(escape_style_content("</StYlE>"), "</StYlE>", "Mixed case not in allowlist passes through");
+        assert_eq!(escape_style_content("</StYlE>"), r"<\/StYlE>", "Mixed case should be escaped case-insensitively");
     }
 
     #[test]
