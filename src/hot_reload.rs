@@ -2,6 +2,17 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
 
+use tokio::sync::broadcast;
+
+static BROADCAST_CHANNEL: OnceLock<broadcast::Sender<String>> = OnceLock::new();
+
+fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
+    BROADCAST_CHANNEL.get_or_init(|| {
+        let (tx, _) = broadcast::channel(100);
+        tx
+    })
+}
+
 static AZUMI_DEV_TOKEN: OnceLock<Option<String>> = OnceLock::new();
 
 fn get_dev_token() -> Option<String> {
