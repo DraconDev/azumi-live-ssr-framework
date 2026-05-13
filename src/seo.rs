@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use std::sync::Mutex;
+use std::sync::RwLock;
 
 use crate::Component;
 
@@ -37,7 +37,7 @@ fn xml_escape(s: &str) -> String {
     out
 }
 
-static SITE_CONFIG: Mutex<Option<SeoConfig>> = Mutex::new(None);
+static SITE_CONFIG: RwLock<Option<SeoConfig>> = RwLock::new(None);
 
 #[derive(Clone, Default, Debug)]
 pub struct OpenGraph {
@@ -100,7 +100,7 @@ impl SeoConfig {
 }
 
 pub fn init_seo(config: SeoConfig) {
-    if let Ok(mut guard) = SITE_CONFIG.lock() {
+    if let Ok(mut guard) = SITE_CONFIG.write() {
         if guard.is_none() {
             *guard = Some(config);
         } else {
@@ -111,7 +111,7 @@ pub fn init_seo(config: SeoConfig) {
 
 #[cfg(test)]
 pub fn reset_seo() {
-    if let Ok(mut guard) = SITE_CONFIG.lock() {
+    if let Ok(mut guard) = SITE_CONFIG.write() {
         *guard = None;
     }
 }
