@@ -171,7 +171,7 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
 
     // Check if function name is snake_case
     let name_str = fn_name.to_string();
-    let is_snake_case = name_str.chars().all(|c| c.is_lowercase() || c == '_');
+    let is_snake_case = name_str.chars().all(|c| c.is_lowercase() || c == '_' || c.is_ascii_digit());
 
     let (mod_name, wrapper_fn) = if is_snake_case {
         let mod_ident = syn::Ident::new(&name_str, fn_name.span());
