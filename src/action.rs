@@ -27,8 +27,6 @@ use crate::Component;
 use axum::response::{IntoResponse, Response};
 use axum::routing::get;
 
-use std::future::Future;
-
 /// Result type for Azumi actions.
 ///
 /// On success, returns HTML rendered from a Component.
