@@ -117,7 +117,7 @@ fn collect_styles_recursive(
                                     scoped_css.push('\n');
                                 }
                                 token_parser::Node::Expression(expr) => {
-                                    let expr_str = expr.to_string();
+                                    let expr_str = expr.content.to_string();
                                     scoped_css.push_str(&expr_str);
                                     scoped_css.push('\n');
                                 }
