@@ -322,13 +322,23 @@ fn scope_selector(selector: &str, scope_attr: &str) -> String {
 fn extract_balanced_paren(s: &str, start: usize) -> String {
     let mut result = String::new();
     let mut depth = 1; // Start at 1 since we're already inside the paren
+    let mut in_string: Option<char> = None; // Track if inside '...' or "..."
     for ch in s[start + 1..].chars() {
         match ch {
-            '(' => {
+            // String handling: don't count parens inside strings
+            '\'' | '"' => {
+                if in_string == Some(ch) {
+                    in_string = None;
+                } else if in_string.is_none() {
+                    in_string = Some(ch);
+                }
+                result.push(ch);
+            }
+            '(' if in_string.is_none() => {
                 depth += 1;
                 result.push(ch);
             }
-            ')' => {
+            ')' if in_string.is_none() => {
                 depth -= 1;
                 if depth == 0 {
                     return result;
