@@ -23,9 +23,19 @@ fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
 static AZUMI_DEV_TOKEN: OnceLock<Option<String>> = OnceLock::new();
 
 fn get_dev_token() -> Option<String> {
-    AZUMI_DEV_TOKEN
-        .get_or_init(|| std::env::var("AZUMI_DEV_TOKEN").ok())
-        .clone()
+    // In test mode, read directly from env to allow tests to change the token
+    #[cfg(test)]
+    {
+        return std::env::var("AZUMI_DEV_TOKEN").ok();
+    }
+    
+    // In production, cache the token to avoid repeated env var lookups
+    #[cfg(not(test))]
+    {
+        AZUMI_DEV_TOKEN
+            .get_or_init(|| std::env::var("AZUMI_DEV_TOKEN").ok())
+            .clone()
+    }
 }
 
 #[cfg(test)]
