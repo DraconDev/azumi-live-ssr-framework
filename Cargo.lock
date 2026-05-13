@@ -163,7 +163,7 @@ dependencies = [
 
 [[package]]
 name = "azumi"
-version = "47.20.31"
+version = "47.20.32"
 dependencies = [
  "axum",
  "azumi",
@@ -221,6 +221,15 @@ dependencies = [
  "serde",
  "serde_json",
  "syn 2.0.111",
+]
+
+[[package]]
+name = "azumi-todo-example"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "azumi",
+ "tokio",
 ]
 
 [[package]]
