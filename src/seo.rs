@@ -348,10 +348,18 @@ pub struct SitemapBuilder {
 
 /// Normalize a URL path by resolving `.` and `..` segments.
 /// Returns None if the path attempts to escape above the root.
+/// Preserves the original structure including trailing slashes.
 fn normalize_path(path: &str) -> Option<String> {
+    // Don't normalize empty paths or simple valid paths without dots
+    if !path.contains('.') {
+        return Some(path.to_string());
+    }
+
     let mut segments: Vec<&str> = Vec::new();
-    for segment in path.split('/') {
-        match segment {
+    let parts: Vec<&str> = path.split('/').collect();
+
+    for segment in &parts {
+        match *segment {
             "" | "." => {} // Ignore empty and current-dir segments
             ".." => {
                 if segments.pop().is_none() {
@@ -361,7 +369,20 @@ fn normalize_path(path: &str) -> Option<String> {
             _ => segments.push(segment),
         }
     }
-    Some(format!("/{}", segments.join("/")))
+
+    // Reconstruct the path, preserving leading slash if original had it
+    let mut result = String::new();
+    if path.starts_with('/') {
+        result.push('/');
+    }
+    result.push_str(&segments.join("/"));
+
+    // Preserve trailing slash if original ended with /
+    if path.ends_with('/') && !result.ends_with('/') {
+        result.push('/');
+    }
+
+    Some(result)
 }
 
 /// Check if a path contains URL-encoded traversal sequences.
