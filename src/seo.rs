@@ -346,19 +346,6 @@ pub struct SitemapBuilder {
     urls: Vec<String>,
 }
 
-impl SitemapBuilder {
-    pub fn new(base_url: impl Into<String>) -> Self {
-        Self {
-            base_url: base_url.into(),
-            urls: Vec::new(),
-        }
-    }
-
-    pub fn add_url(mut self, path: impl Into<String>) -> Self {
-        self.urls.push(path.into());
-        self
-    }
-
 /// Normalize a URL path by resolving `.` and `..` segments.
 /// Returns None if the path attempts to escape above the root.
 fn normalize_path(path: &str) -> Option<String> {
@@ -389,6 +376,19 @@ fn contains_encoded_traversal(path: &str) -> bool {
         || path.contains("%2f..%2f")
         || path.contains("%2F..%2F")
 }
+
+impl SitemapBuilder {
+    pub fn new(base_url: impl Into<String>) -> Self {
+        Self {
+            base_url: base_url.into(),
+            urls: Vec::new(),
+        }
+    }
+
+    pub fn add_url(mut self, path: impl Into<String>) -> Self {
+        self.urls.push(path.into());
+        self
+    }
 
     pub fn build(self) -> String {
         let mut xml = String::from(
