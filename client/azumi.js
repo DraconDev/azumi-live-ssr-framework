@@ -972,11 +972,20 @@ class Azumi {
             // For forms, we send the form data alongside the parent scope's signed state.
             // This allows the server to verify the request context.
             body = new FormData(element);
-            const data = Object.fromEntries(body.entries());
-            if (scopeElement) {
-                data._azumi_scope = scopeElement.getAttribute("az-scope") || "";
+            const hasFiles = element.querySelector('input[type="file"]') !== null;
+            if (!hasFiles) {
+                // No file inputs: convert to JSON for simple server handling
+                const data = Object.fromEntries(body.entries());
+                if (scopeElement) {
+                    data._azumi_scope = scopeElement.getAttribute("az-scope") || "";
+                }
+                body = JSON.stringify(data);
+            } else {
+                // File inputs present: send FormData directly
+                if (scopeElement) {
+                    body.append("_azumi_scope", scopeElement.getAttribute("az-scope") || "");
+                }
             }
-            body = JSON.stringify(data);
         } else {
             if (scopeElement) {
                 // Get the raw attribute value (including signature if present)
@@ -1028,13 +1037,15 @@ class Azumi {
 
         try {
             this.log("Fetching Action:", action.url, "Payload:", body);
-            const res = await fetch(action.url, {
+            const fetchOptions = {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
                 body, // Sends the ORIGINAL, validly signed state
-            });
+            };
+            // Only set Content-Type for JSON payloads; FormData needs browser-set multipart boundary
+            if (!(body instanceof FormData)) {
+                fetchOptions.headers = { "Content-Type": "application/json" };
+            }
+            const res = await fetch(action.url, fetchOptions);
 
             this.log("Server Response Status:", res.status);
 
@@ -1066,9 +1077,14 @@ class Azumi {
 
                 // Morph will reconcile prediction with server truth
                 // Use outerHTML to replace component wrapper
-                window.Idiomorph.morph(target, html, {
+                const morphed = window.Idiomorph.morph(target, html, {
                     morphStyle: "outerHTML",
                 });
+
+                // Update target to the morphed element (original may have been replaced)
+                if (morphed && morphed.length > 0) {
+                    target = morphed[0];
+                }
 
                 // Restore local state after morphing
                 if (savedLocalState) {
