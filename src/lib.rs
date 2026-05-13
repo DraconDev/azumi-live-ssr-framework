@@ -36,6 +36,8 @@ pub mod seo;
 pub mod form;
 pub mod streaming;
 pub use script::{AzumiScript, escape_script_content, escape_style_content, escape_tag_content, session_cleanup_script};
+// Re-export CSS scoping for backward compatibility
+pub use css_scoping::{compute_scope_id, scope_css};
 
 use fnv::FnvHasher;
 use std::hash::{Hash, Hasher};
