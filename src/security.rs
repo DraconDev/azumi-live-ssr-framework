@@ -318,7 +318,7 @@ fn verify_state_internal_detailed(
 /// to avoid leaking internal details to clients. The `Debug` implementation
 /// (`{:#?}`) provides detailed diagnostic information for troubleshooting
 /// during development.
-#[derive(Error, Debug)]
+#[derive(Error)]
 pub enum VerifyStateError {
     #[error("Invalid state")]
     StateTooLarge {
@@ -373,6 +373,34 @@ pub enum VerifyStateError {
     SignatureDecodeFailed,
     #[error("Invalid state")]
     HmacVerificationFailed,
+}
+
+impl std::fmt::Debug for VerifyStateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::StateTooLarge { .. } => f.debug_struct("StateTooLarge").finish_non_exhaustive(),
+            Self::TooManyPipes { .. } => f.debug_struct("TooManyPipes").finish_non_exhaustive(),
+            Self::MissingPipe => f.debug_struct("MissingPipe").finish(),
+            Self::TimestampParseFailed { .. } => {
+                f.debug_struct("TimestampParseFailed").finish_non_exhaustive()
+            }
+            Self::TimestampFuture { .. } => {
+                f.debug_struct("TimestampFuture").finish_non_exhaustive()
+            }
+            Self::TimestampExpired { .. } => {
+                f.debug_struct("TimestampExpired").finish_non_exhaustive()
+            }
+            Self::TimestampMaxValue => f.debug_struct("TimestampMaxValue").finish(),
+            Self::UserIdMismatch { .. } => {
+                f.debug_struct("UserIdMismatch").finish_non_exhaustive()
+            }
+            Self::UnexpectedUserId { .. } => {
+                f.debug_struct("UnexpectedUserId").finish_non_exhaustive()
+            }
+            Self::SignatureDecodeFailed => f.debug_struct("SignatureDecodeFailed").finish(),
+            Self::HmacVerificationFailed => f.debug_struct("HmacVerificationFailed").finish(),
+        }
+    }
 }
 
 #[cfg(test)]

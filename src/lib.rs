@@ -393,21 +393,26 @@ pub struct Escaped<T: std::fmt::Display>(pub T);
 
 impl<T: std::fmt::Display> std::fmt::Display for Escaped<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = format!("{}", self.0);
-        for c in s.chars() {
-            match c {
-                '<' => f.write_str("&lt;")?,
-                '>' => f.write_str("&gt;")?,
-                '&' => f.write_str("&amp;")?,
-                '"' => f.write_str("&quot;")?,
-                '\'' => f.write_str("&#x27;")?,
-                _ => {
-                    let mut buf = [0u8; 4];
-                    f.write_str(c.encode_utf8(&mut buf))?;
+        struct Escaper<'a>(&'a mut std::fmt::Formatter<'a>);
+        impl std::fmt::Write for Escaper<'_> {
+            fn write_str(&mut self, s: &str) -> std::fmt::Result {
+                for c in s.chars() {
+                    match c {
+                        '<' => self.0.write_str("&lt;")?,
+                        '>' => self.0.write_str("&gt;")?,
+                        '&' => self.0.write_str("&amp;")?,
+                        '"' => self.0.write_str("&quot;")?,
+                        '\'' => self.0.write_str("&#x27;")?,
+                        _ => {
+                            let mut buf = [0u8; 4];
+                            self.0.write_str(c.encode_utf8(&mut buf))?;
+                        }
+                    }
                 }
+                Ok(())
             }
         }
-        Ok(())
+        write!(Escaper(f), "{}", self.0)
     }
 }
 
