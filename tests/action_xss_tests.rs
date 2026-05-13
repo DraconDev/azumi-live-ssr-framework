@@ -4,7 +4,6 @@
 //! HTML in messages and form IDs.
 
 use azumi::action::{error_fragment, success_fragment};
-use http_body_util::BodyExt;
 
 // ════════════════════════════════════════════════════════════════════════════
 // success_fragment XSS Tests
