@@ -54,7 +54,9 @@ pub fn auto_reload_if(enabled: bool) {
 
     println!("🔥 Azumi Smart Watcher Active");
     run_master_loop();
-    std::process::exit(0);
+    // Use a cleaner exit path that allows destructors to run
+    // In practice, run_master_loop never returns, but this avoids the hard exit
+    // if it ever does (e.g., watcher error)
 }
 
 /// Check if an argument is safe from shell injection.

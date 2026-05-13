@@ -124,7 +124,6 @@ pub fn generate_head(
     type_: Option<&str>,
 ) -> HeadContent {
     let global = SITE_CONFIG.lock().ok().and_then(|guard| guard.clone());
-    let global_for_title = global.clone();
 
     let context_meta = crate::context::get_page_meta();
 
@@ -144,7 +143,8 @@ pub fn generate_head(
         .or(context_meta.image)
         .or(global.as_ref().and_then(|g| g.open_graph.as_ref().and_then(|og| og.image.clone())));
 
-    let full_title = if let Some(ref g) = global_for_title {
+    // Use a single reference to global for title construction to avoid second clone
+    let full_title = if let Some(ref g) = global {
         if let Some(ref og) = g.open_graph {
             if let Some(ref site_name) = og.site_name {
                 if !effective_title.is_empty() {

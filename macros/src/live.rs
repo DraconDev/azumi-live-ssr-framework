@@ -388,15 +388,15 @@ fn expand_live_struct(_attr: TokenStream, input: syn::ItemStruct) -> TokenStream
         }
     };
 
-    let _local_field_names_static: Vec<_> = local_field_names
+    let _ = local_field_names
         .iter()
         .map(|s| quote!(#s))
-        .collect();
+        .collect::<Vec<_>>();
 
-    let _computed_field_names_static: Vec<_> = computed_field_names
+    let _ = computed_field_names
         .iter()
         .map(|s| quote!(#s))
-        .collect();
+        .collect::<Vec<_>>();
 
     let filtered_named_fields = if let Fields::Named(named) = struct_fields {
         let filtered: Punctuated<syn::Field, Token![,]> = named
