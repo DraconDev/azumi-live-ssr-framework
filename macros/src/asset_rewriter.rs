@@ -3,22 +3,41 @@ use std::fs;
 use std::path::Path;
 use std::sync::{LazyLock, Mutex};
 
-static MANIFEST: LazyLock<Mutex<Option<HashMap<String, String>>>> =
-    LazyLock::new(|| Mutex::new(load_manifest()));
+fn get_manifest_path() -> Option<std::path::PathBuf> {
+    // Use CARGO_MANIFEST_DIR for deterministic path during compilation
+    std::env::var_os("CARGO_MANIFEST_DIR").map(|dir| {
+        let mut path = std::path::PathBuf::from(dir);
+        path.push("assets_manifest.json");
+        path
+    })
+}
+
+fn get_demo_manifest_path() -> Option<std::path::PathBuf> {
+    std::env::var_os("CARGO_MANIFEST_DIR").map(|dir| {
+        let mut path = std::path::PathBuf::from(dir);
+        path.push("demo/assets_manifest.json");
+        path
+    })
+}
 
 fn load_manifest() -> Option<HashMap<String, String>> {
-    let path = Path::new("assets_manifest.json");
-    if let Ok(content) = fs::read_to_string(path) {
-        return serde_json::from_str(&content).ok();
+    if let Some(ref path) = get_manifest_path() {
+        if let Ok(content) = fs::read_to_string(path) {
+            return serde_json::from_str(&content).ok();
+        }
     }
 
-    let demo_path = Path::new("demo/assets_manifest.json");
-    if let Ok(content) = fs::read_to_string(demo_path) {
-        return serde_json::from_str(&content).ok();
+    if let Some(ref demo_path) = get_demo_manifest_path() {
+        if let Ok(content) = fs::read_to_string(demo_path) {
+            return serde_json::from_str(&content).ok();
+        }
     }
 
     None
 }
+
+static MANIFEST: LazyLock<Mutex<Option<HashMap<String, String>>>> =
+    LazyLock::new(|| Mutex::new(load_manifest()));
 
 use crate::token_parser::{AttributeValue, Block, Node};
 

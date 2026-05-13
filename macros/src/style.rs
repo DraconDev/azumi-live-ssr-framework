@@ -478,35 +478,8 @@ pub fn process_global_style_macro(input: TokenStream) -> StyleOutput {
         }
     };
 
-    // 2. Generate raw CSS (validation happens during parsing above)
-
-    let mut raw_css = String::new();
-
-    // Iterate items in order!
-    for item in &style_input.items {
-        match item {
-            StyleItem::AtRule(at_rule) => {
-                raw_css.push('@');
-                raw_css.push_str(&at_rule.name);
-                raw_css.push(' ');
-                raw_css.push_str(&at_rule.content);
-                if !at_rule.content.trim().ends_with('}') {
-                    raw_css.push(';');
-                }
-                raw_css.push(' ');
-            }
-            StyleItem::Rule(rule) => {
-                let selector_str = tokens_to_css_string(&rule.selectors);
-
-                raw_css.push_str(&selector_str);
-                raw_css.push_str(" { ");
-                for prop in &rule.block.properties {
-                    raw_css.push_str(&format!("{}: {}; ", prop.name, prop.value));
-                }
-                raw_css.push_str("} ");
-            }
-        }
-    }
+    // 2. Generate raw CSS from parsed AST (DRY: use shared reconstruction)
+    let raw_css = reconstruct_css_from_parsed(&style_input);
 
     // 3. Extract classes and IDs for bindings (even though not scoped)
     let (classes, ids) = extract_selectors(&raw_css);
@@ -646,43 +619,14 @@ pub fn reconstruct_css_from_parsed(style_input: &StyleInput) -> String {
 
 /// Reconstruct CSS string from TokenStream (parsing and formatting)
 pub fn reconstruct_css_from_tokens(input: TokenStream) -> String {
-    // 1. Parse the input
+    // Parse then delegate to the shared reconstruction function
     let style_input: StyleInput = match parse2(input) {
         Ok(input) => input,
         Err(_e) => {
             return String::new();
         }
     };
-
-    let mut raw_css = String::new();
-
-    // Iterate items in order!
-    for item in &style_input.items {
-        match item {
-            StyleItem::AtRule(at_rule) => {
-                raw_css.push('@');
-                raw_css.push_str(&at_rule.name);
-                raw_css.push(' ');
-                raw_css.push_str(&at_rule.content);
-                if !at_rule.content.trim().ends_with('}') {
-                    raw_css.push(';');
-                }
-                raw_css.push(' ');
-            }
-            StyleItem::Rule(rule) => {
-                let selector_str = tokens_to_css_string(&rule.selectors);
-
-                raw_css.push_str(&selector_str);
-                raw_css.push_str(" { ");
-                for prop in &rule.block.properties {
-                    raw_css.push_str(&format!("{}: {}; ", prop.name, prop.value));
-                }
-                raw_css.push_str("} ");
-            }
-        }
-    }
-
-    raw_css
+    reconstruct_css_from_parsed(&style_input)
 }
 
 fn tokens_to_css_string(tokens: &TokenStream) -> String {

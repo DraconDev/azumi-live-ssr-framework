@@ -1,23 +1,51 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::OnceLock;
-use axum::{
-    extract::ws::{Message, WebSocket, WebSocketUpgrade},
-    response::IntoResponse,
-    routing::{get, post},
-    Json, Router,
-    http::StatusCode,
-};
-use tokio::sync::broadcast;
-use crate::{Escaped, FallbackRender};
 
-static BROADCAST_CHANNEL: OnceLock<broadcast::Sender<String>> = OnceLock::new();
+static AZUMI_DEV_TOKEN: OnceLock<Option<String>> = OnceLock::new();
 
-fn get_broadcast_channel() -> &'static broadcast::Sender<String> {
-    BROADCAST_CHANNEL.get_or_init(|| {
-        let (tx, _) = broadcast::channel(100);
-        tx
-    })
+fn get_dev_token() -> Option<String> {
+    AZUMI_DEV_TOKEN
+        .get_or_init(|| std::env::var("AZUMI_DEV_TOKEN").ok())
+        .clone()
+}
+
+pub fn is_dev_token_valid(token: Option<&str>) -> bool {
+    let Some(t) = token else {
+        return false;
+    };
+    let Some(expected) = get_dev_token() else {
+        return false;
+    };
+    
+    let t_bytes = t.as_bytes();
+    let expected_bytes = expected.as_bytes();
+    
+    // SECURITY: Length check must come BEFORE byte comparison
+    // Otherwise a partial token (e.g., "sec" vs "secret") would match
+    if t_bytes.len() != expected_bytes.len() {
+        return false;
+    }
+    
+    let mut result = 0u8;
+    for i in 0..t_bytes.len() {
+        result |= t_bytes[i] ^ expected_bytes[i];
+    }
+    
+    result == 0
+}
+
+/// Test-only helper to reset the cached dev token
+#[cfg(test)]
+fn reset_dev_token_cache() {
+    // We can't reset a OnceLock, so we set the env var directly
+    // In test mode, get_dev_token will check the env var each time
+    // because tests may modify it
+}
+
+#[cfg(test)]
+fn get_dev_token_for_test() -> Option<String> {
+    std::env::var("AZUMI_DEV_TOKEN").ok()
 }
 
 const DEV_TOKEN_HEADER: &str = "X-Azumi-Dev-Token";

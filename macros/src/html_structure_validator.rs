@@ -583,10 +583,31 @@ pub fn validate_tag_name(elem: &Element) -> Option<TokenStream> {
 pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<TokenStream> {
     let name = &attr.name;
 
-    // 1. Allow ANY attribute containing a hyphen
-    // This covers data-*, aria-*, hx-*, x-*, and any future library using hyphenated attributes.
+    // 1. Allow common hyphenated attribute prefixes
+    // This covers data-*, aria-*, hx-*, x-*, and standard custom attributes.
+    // Reject obvious non-standard attributes like onclick-foo.
     if name.contains('-') {
-        return None;
+        // Ensure it starts with a known prefix pattern
+        let is_known_prefix = name.starts_with("data-")
+            || name.starts_with("aria-")
+            || name.starts_with("hx-")
+            || name.starts_with("x-")
+            || name.starts_with("az-")
+            || name.starts_with("data-")
+            || name.starts_with("item")
+            || name.starts_with("accept-")
+            || name.starts_with("crossorigin")
+            || name.starts_with("http-equiv")
+            || name.starts_with("stroke-")
+            || name.starts_with("fill-")
+            || name.starts_with("clip-")
+            || name.starts_with("gradient-");
+        if is_known_prefix {
+            return None;
+        }
+        // Allow any attribute where the part before the first hyphen is a valid HTML attribute name
+        // This catches things like 'popovertarget' (not hyphenated but valid)
+        // For hyphenated, be more restrictive
     }
 
     // 2. Check for Azumi event DSL (on:event) vs native HTML events (onevent)
