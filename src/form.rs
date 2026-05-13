@@ -185,6 +185,7 @@ fn html_escape(s: &str) -> String {
             '<' => out.push_str("&lt;"),
             '>' => out.push_str("&gt;"),
             '&' => out.push_str("&amp;"),
+            '\'' => out.push_str("&#x27;"),
             _ => out.push(c),
         }
     }

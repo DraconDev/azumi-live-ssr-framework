@@ -61,6 +61,52 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                     check_node(child, errors);
                 }
             }
+            Node::Block(block) => {
+                match block {
+                    crate::token_parser::Block::If(if_block) => {
+                        for child in &if_block.then_branch {
+                            check_node(child, errors);
+                        }
+                        if let Some(else_branch) = &if_block.else_branch {
+                            for child in else_branch {
+                                check_node(child, errors);
+                            }
+                        }
+                    }
+                    crate::token_parser::Block::For(for_block) => {
+                        for child in &for_block.body {
+                            check_node(child, errors);
+                        }
+                    }
+                    crate::token_parser::Block::Match(match_block) => {
+                        for arm in &match_block.arms {
+                            for child in &arm.body {
+                                check_node(child, errors);
+                            }
+                        }
+                    }
+                    crate::token_parser::Block::Call(call_block) => {
+                        for child in &call_block.children {
+                            check_node(child, errors);
+                        }
+                    }
+                    crate::token_parser::Block::Component(comp_block) => {
+                        for child in &comp_block.children {
+                            check_node(child, errors);
+                        }
+                    }
+                    crate::token_parser::Block::Let(let_block) => {
+                        for child in &let_block.body {
+                            check_node(child, errors);
+                        }
+                    }
+                    crate::token_parser::Block::Style(style_block) => {
+                        for child in &style_block.children {
+                            check_node(child, errors);
+                        }
+                    }
+                }
+            }
             _ => {}
         }
     }

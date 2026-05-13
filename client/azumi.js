@@ -1098,4 +1098,4 @@ class Azumi {
 
 // Initialize
 window.azumi = new Azumi();
-this.log("Azumi Live Client Initialized 🚀");
+window.azumi.log("Azumi Live Client Initialized 🚀");
