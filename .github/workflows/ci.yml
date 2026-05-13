@@ -34,10 +34,10 @@ jobs:
         run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Run tests (all features)
-        run: cargo test --all-features
+        run: AZUMI_SECRET=ci-test-secret-do-not-use-in-prod cargo test --all-features
 
       - name: Run tests (release)
-        run: cargo test --release --all-features
+        run: AZUMI_SECRET=ci-release-test-secret-do-not-use-in-prod cargo test --release --all-features
 
   test-macros:
     name: Macro Tests
@@ -123,6 +123,29 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
+
+  doc:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rust-docs
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Build docs
+        run: cargo doc --all-features --no-deps
+        env:
+          RUSTDOCFLAGS: "-D warnings"
 
   bench:
     name: Benchmarks
