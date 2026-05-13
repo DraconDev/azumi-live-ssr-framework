@@ -359,6 +359,37 @@ impl SitemapBuilder {
         self
     }
 
+/// Normalize a URL path by resolving `.` and `..` segments.
+/// Returns None if the path attempts to escape above the root.
+fn normalize_path(path: &str) -> Option<String> {
+    let mut segments: Vec<&str> = Vec::new();
+    for segment in path.split('/') {
+        match segment {
+            "" | "." => {} // Ignore empty and current-dir segments
+            ".." => {
+                if segments.pop().is_none() {
+                    return None; // Path traversal attempt: .. above root
+                }
+            }
+            _ => segments.push(segment),
+        }
+    }
+    Some(format!("/{}", segments.join("/")))
+}
+
+/// Check if a path contains URL-encoded traversal sequences.
+fn contains_encoded_traversal(path: &str) -> bool {
+    path.contains("%2e%2e")
+        || path.contains("%2E%2E")
+        || path.contains("%2e%2E")
+        || path.contains("%2E%2e")
+        || path.contains("%252e%252e")
+        || path.contains("..%2f")
+        || path.contains("..%2F")
+        || path.contains("%2f..%2f")
+        || path.contains("%2F..%2F")
+}
+
     pub fn build(self) -> String {
         let mut xml = String::from(
             r#"<?xml version="1.0" encoding="UTF-8"?>
@@ -385,6 +416,15 @@ impl SitemapBuilder {
         };
 
         for path in self.urls {
+            // Reject URL-encoded path traversal attempts
+            if contains_encoded_traversal(&path) {
+                eprintln!(
+                    "SEO Warning: Path '{}' contains encoded traversal sequences, skipping",
+                    path
+                );
+                continue;
+            }
+
             let url = if path.starts_with("http") {
                 let scheme_pos = path.find("://").map(|p| p + 3).unwrap_or(0);
                 let after_scheme = &path[scheme_pos..];
@@ -407,24 +447,25 @@ impl SitemapBuilder {
                 }
                 path.to_string()
             } else {
-                let mut candidate = format!(
-                    "{}{}{}",
+                // Normalize the path to resolve . and .. segments
+                let normalized = match normalize_path(&path) {
+                    Some(n) => n,
+                    None => {
+                        eprintln!(
+                            "SEO Warning: Path '{}' attempts directory traversal above root, skipping",
+                            path
+                        );
+                        continue;
+                    }
+                };
+
+                let candidate = format!(
+                    "{}{}",
                     base,
-                    if path.starts_with('/') { "" } else { "/" },
-                    path
+                    normalized
                 );
-                while let Some(pos) = candidate.find("/../") {
-                    let mut seg_start = pos;
-                    while seg_start > 0 && candidate.as_bytes()[seg_start - 1] != b'/' {
-                        seg_start -= 1;
-                    }
-                    if seg_start > 0 {
-                        seg_start -= 1;
-                        candidate = format!("{}{}", &candidate[..seg_start], &candidate[pos + 3..]);
-                    } else {
-                        candidate = candidate[pos + 3..].to_string();
-                    }
-                }
+
+                // Verify the resolved path stays under the base URL
                 if !candidate.starts_with(base_origin) {
                     eprintln!(
                         "SEO Warning: Path '{}' resolves outside base URL, skipping",
