@@ -475,7 +475,14 @@ impl<T: std::fmt::Display> FallbackRender for RenderWrapper<T> {
 ///
 /// Raw in html! expressions is now a compile-time error.
 #[doc(hidden)]
-pub struct Raw<T: std::fmt::Display>(pub T);
+pub struct Raw<T: std::fmt::Display>(T);
+
+impl<T: std::fmt::Display> Raw<T> {
+    #[doc(hidden)]
+    pub(crate) fn new(value: T) -> Self {
+        Self(value)
+    }
+}
 
 impl<T: std::fmt::Display> std::fmt::Display for Raw<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

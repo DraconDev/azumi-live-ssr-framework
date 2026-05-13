@@ -123,7 +123,7 @@ pub fn session_cleanup_script() -> SessionCleanupScript {
 /// Bypasses ALL of Azumi's safety guarantees (escaping, scoping, validation).
 /// Only use for pre-sanitized HTML from known-trusted sources (e.g., markdown renderer output).
 #[doc(hidden)]
-pub struct TrustedHtml(pub String);
+pub struct TrustedHtml(String);
 
 impl Component for TrustedHtml {
     fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

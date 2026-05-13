@@ -128,6 +128,38 @@ pub async fn handle_action_result<C: Component + ?Sized>(component: &C) -> impl 
     axum::response::Html(crate::render_to_string(component))
 }
 
+/// Escape HTML entities to prevent XSS in action fragments.
+fn escape_html(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("&quot;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '&' => out.push_str("&amp;"),
+            '\'' => out.push_str("&#x27;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+/// Escape a string for safe inclusion in a JavaScript string literal.
+fn escape_js_string(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '\'' => out.push_str("\\'"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
 /// HTML fragment for successful form actions (az-target swapping).
 ///
 /// Wraps content in a `<div class="success_message">` for standard error handling.
@@ -141,9 +173,10 @@ pub async fn handle_action_result<C: Component + ?Sized>(component: &C) -> impl 
 /// }
 /// ```
 pub fn success_fragment(html: impl Into<String>) -> Response {
+    let safe_html = escape_html(&html.into());
     axum::response::Html(format!(
         r#"<div class="success_message">{}</div>"#,
-        html.into()
+        safe_html
     ))
     .into_response()
 }
@@ -161,11 +194,12 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 /// }
 /// ```
 pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
-    let msg = message.into();
+    let msg = escape_html(&message.into());
     let retry = form_id.map(|id| {
+        let safe_id = escape_js_string(id);
         format!(
             r#"<button type="button" onclick="document.getElementById('{}').style.display='flex';this.parentElement.remove()" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
-            id
+            safe_id
         )
     });
 
