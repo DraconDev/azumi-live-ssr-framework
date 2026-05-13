@@ -4,6 +4,7 @@
 //! HTML in messages and form IDs.
 
 use azumi::action::{error_fragment, success_fragment};
+use http_body_util::BodyExt;
 
 // ════════════════════════════════════════════════════════════════════════════
 // success_fragment XSS Tests
@@ -131,8 +132,10 @@ fn response_to_string(response: axum::response::Response) -> String {
     use axum::body::Body;
     use http_body_util::BodyExt;
     let body = response.into_body();
-    let bytes = tokio::runtime::Runtime::new()
-        .unwrap()
-        .block_on(async { body.collect().await.unwrap().to_bytes() });
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    let bytes = rt.block_on(async { body.collect().await.unwrap().to_bytes() });
     String::from_utf8(bytes.to_vec()).unwrap()
 }
