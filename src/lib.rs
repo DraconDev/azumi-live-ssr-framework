@@ -517,8 +517,6 @@ impl<T: std::fmt::Display> Component for Raw<T> {
 /// that scope IDs match at compile time and runtime.
 #[must_use]
 pub fn compute_scope_id(line: usize, col: usize) -> String {
-    use fnv::FnvHasher;
-    use std::hash::{Hash, Hasher};
     let mut hasher = FnvHasher::default();
     line.hash(&mut hasher);
     col.hash(&mut hasher);

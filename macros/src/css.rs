@@ -201,14 +201,24 @@ fn is_keyframes(s: &str) -> bool {
 fn extract_balanced_block(iter: &mut Peekable<Chars>) -> String {
     let mut content = String::new();
     let mut depth = 1; // We already passed the opening '{'
+    let mut in_string: Option<char> = None; // Track if inside '...' or "..."
 
     for ch in iter.by_ref() {
         match ch {
-            '{' => {
+            // String handling: don't count braces inside strings
+            '\'' | '"' => {
+                if in_string == Some(ch) {
+                    in_string = None; // Closing string
+                } else if in_string.is_none() {
+                    in_string = Some(ch); // Opening string
+                }
+                content.push(ch);
+            }
+            '{' if in_string.is_none() => {
                 depth += 1;
                 content.push(ch);
             }
-            '}' => {
+            '}' if in_string.is_none() => {
                 depth -= 1;
                 if depth == 0 {
                     return content;
