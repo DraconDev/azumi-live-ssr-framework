@@ -88,7 +88,7 @@ pub fn TodoPage(todos: Vec<TodoItem>) -> impl azumi::Component {
     html! {
         <section class={page}>
 
-            <!-- Add todo form — uses az-action for server-roundtrip form handling -->
+            // Add todo form — uses az-action for server-roundtrip form handling
             <form class={add_form} az-action={"/todo/add"} az-target={"todo_list"} method="post">
                 <div class={add_row}>
                     <input
@@ -107,7 +107,7 @@ pub fn TodoPage(todos: Vec<TodoItem>) -> impl azumi::Component {
                 <span>{remaining}</span><span class={stats_label}>" tasks remaining"</span>
             </div>
 
-            <!-- Todo list — swapped by az-action responses -->
+            // Todo list — swapped by az-action responses
             <div id={"todo_list"} class={list}>
                 @for todo in todos.iter() {
                     <div class={item}>
@@ -333,8 +333,8 @@ fn render_todo_list(todos: &[TodoItem]) -> String {
 /// Page handler — renders full page with shell
 pub async fn page_handler(todos: axum::extract::State<TodoList>) -> impl axum::response::IntoResponse {
     let list = todos.lock().await;
-    let page = TodoPage(todos: list.clone());
-    let html = azumi::render_to_string(&AppShell(children: page));
+    let page = TodoPage { todos: list.clone() };
+    let html = azumi::render_to_string(&AppShell { children: page });
     Html(html)
 }
 
