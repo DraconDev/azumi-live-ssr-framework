@@ -179,7 +179,7 @@ async fn handle_socket(mut socket: WebSocket) {
                 }
             }
             _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
-                if socket.send(Message::Ping(vec![])).await.is_err() {
+                if socket.send(Message::Ping(axum::body::Bytes::new())).await.is_err() {
                     break;
                 }
             }
