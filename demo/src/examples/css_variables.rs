@@ -5,10 +5,10 @@ pub fn css_variables_demo() -> impl azumi::Component {
     let percentage = "50%";
     html! {
 
-        <div class={progress_bar} --width={percentage}>
+        <div class={progress_bar} style={format_css_var("--width", percentage)}>
             <div class={progress_value}></div>
         </div>
-        <div --static-var="100px">
+        <div style="--static-var: 100px">
             "Static Var"
         </div>
         <style>
