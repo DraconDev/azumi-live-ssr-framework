@@ -122,7 +122,7 @@ class Azumi {
 
     pollForReload() {
         let attempts = 0;
-        const maxAttempts = 30;
+        const maxAttempts = 150; // 30 seconds at 200ms intervals
         const interval = setInterval(() => {
             attempts++;
             if (attempts >= maxAttempts) {

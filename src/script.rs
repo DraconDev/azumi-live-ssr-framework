@@ -20,7 +20,7 @@ use crate::Component;
 #[must_use]
 pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
     if tag_name.is_empty() {
-        return content.to_string();
+        panic!("escape_tag_content called with empty tag_name");
     }
     
     let tag_lower = tag_name.to_lowercase();
