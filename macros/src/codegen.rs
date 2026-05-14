@@ -503,7 +503,7 @@ pub(crate) fn generate_body_with_context(
                         #func_mod_path::Props::builder()
                         #(#setters)*
                         .build()
-                        .unwrap_or_else(|| panic!("Failed to build props for component {}", stringify!(#func_mod_path)))
+                        .unwrap_or_else(|__e| panic!("Failed to build props for component {}: {}", stringify!(#func_mod_path), __e))
                     };
 
                     if call_block.children.is_empty() {
