@@ -80,6 +80,8 @@ criterion_group!(
     bench_render_to_writer_vs_string
 );
 
+criterion_main!(benches);
+
 fn bench_render_1000_components(c: &mut Criterion) {
     c.bench_function("render_1000_simple_divs", |b| {
         b.iter(|| {
