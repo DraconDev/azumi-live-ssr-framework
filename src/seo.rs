@@ -362,9 +362,7 @@ fn normalize_path(path: &str) -> Option<String> {
         match *segment {
             "" | "." => {} // Ignore empty and current-dir segments
             ".." => {
-                if segments.pop().is_none() {
-                    return None; // Path traversal attempt: .. above root
-                }
+                segments.pop()?; // Path traversal attempt: .. above root
             }
             _ => segments.push(segment),
         }

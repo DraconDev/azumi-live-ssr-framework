@@ -115,7 +115,7 @@ impl<'a> FieldValidator<'a> {
         }
         let is_valid = self.value.contains('@')
             && !self.value.starts_with('@')
-            && self.value.split('@').nth(1).map_or(false, |domain| domain.contains('.'));
+            && self.value.split('@').nth(1).is_some_and(|domain| domain.contains('.'));
         if !is_valid {
             self.errors.add(self.name, "Please enter a valid email address");
         }

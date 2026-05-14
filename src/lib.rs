@@ -495,6 +495,7 @@ pub struct Raw<T: std::fmt::Display>(T);
 
 impl<T: std::fmt::Display> Raw<T> {
     #[doc(hidden)]
+    #[allow(dead_code)]
     pub(crate) fn new(value: T) -> Self {
         Self(value)
     }
