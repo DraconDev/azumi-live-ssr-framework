@@ -8,6 +8,8 @@ fn MyComp() -> impl Component {
 }
 
 #[test]
-fn test_my_comp() {
+fn test_html_macro() {
     let _comp = html! { @MyComp() };
+    // Force a type error to see what the compiler thinks the type is
+    let _: () = _comp;
 }
