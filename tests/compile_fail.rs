@@ -16,6 +16,7 @@ fn ui_tests() {
     t.compile_fail("tests/ui/09-raw-azumi-path.rs");
     t.compile_fail("tests/ui/11-raw-in-for.rs");
     t.compile_fail("tests/ui/12-raw-in-match.rs");
+    t.compile_fail("tests/ui/13-raw-in-attribute.rs");
 
     // Positive test: safe macros should compile
     t.pass("tests/ui/06-macros-work.rs");
