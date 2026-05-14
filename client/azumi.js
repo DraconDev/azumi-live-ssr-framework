@@ -996,7 +996,19 @@ class Azumi {
             const hasFiles = element.querySelector('input[type="file"]') !== null;
             if (!hasFiles) {
                 // No file inputs: convert to JSON for simple server handling
-                const data = Object.fromEntries(body.entries());
+                // Use a loop instead of Object.fromEntries to preserve multiple values
+                const data = {};
+                for (const [key, value] of body.entries()) {
+                    if (data.hasOwnProperty(key)) {
+                        // Multiple values for same key: convert to array
+                        if (!Array.isArray(data[key])) {
+                            data[key] = [data[key]];
+                        }
+                        data[key].push(value);
+                    } else {
+                        data[key] = value;
+                    }
+                }
                 if (scopeElement) {
                     data._azumi_scope = scopeElement.getAttribute("az-scope") || "";
                 }
@@ -1105,6 +1117,10 @@ class Azumi {
                 // Update target to the morphed element (original may have been replaced)
                 if (morphed && morphed.length > 0) {
                     target = morphed[0];
+                    // Also update scopeElement if it was the same as target
+                    if (scopeElement === (scopeElement || element)) {
+                        scopeElement = target;
+                    }
                 }
 
                 // Restore local state after morphing
