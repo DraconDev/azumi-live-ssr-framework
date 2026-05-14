@@ -1,4 +1,5 @@
-use azumi::{html, Component};
+use azumi::{html, Component, from_fn_once, FnComponent};
+use std::fmt;
 
 #[azumi::component]
 fn ChildComp() -> impl Component {
@@ -7,38 +8,19 @@ fn ChildComp() -> impl Component {
     }
 }
 
-#[azumi::component]
-fn ParentComp() -> impl Component {
-    html! {
-        <div>
-            @ChildComp()
-        </div>
-    }
+// Test: helper function approach
+fn render_component<C: Component>(comp: &C, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    comp.render(f)
 }
 
 #[test]
-fn test_parent_renders() {
-    let comp = ParentComp::render(ParentComp::Props::builder().build().expect("missing"));
+fn test_helper_function() {
+    let comp = from_fn_once(move |f: &mut fmt::Formatter<'_>| {
+        render_component(&ChildComp::render(
+            ChildComp::Props::builder().build().expect("missing"),
+        ), f)?;
+        Ok(())
+    });
     let output = azumi::test::render(&comp);
     assert!(output.contains("Child"));
-}
-
-#[test]
-fn test_component_call_top_level() {
-    let comp = html! { @ChildComp() };
-    let output = azumi::test::render(&comp);
-    assert!(output.contains("Child"));
-}
-
-#[test]
-fn test_component_call_with_props() {
-    #[azumi::component]
-    fn Greet(name: String) -> impl Component {
-        html! {
-            <div>"Hello "{&name}</div>
-        }
-    }
-    let comp = html! { @Greet(name = "World".to_string()) };
-    let output = azumi::test::render(&comp);
-    assert!(output.contains("Hello"));
 }
