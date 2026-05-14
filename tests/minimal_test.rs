@@ -1,6 +1,14 @@
 use azumi::{html, Component};
 
+#[azumi::component]
+fn MyComp() -> impl Component {
+    html! {
+        <div>"Hello"</div>
+    }
+}
+
 #[test]
-fn test_plain() {
-    let _comp = html! { <div>"Hello"</div> };
+fn test_html_macro() {
+    let comp = html! { @MyComp() };
+    compile_error!(stringify!(comp));
 }
