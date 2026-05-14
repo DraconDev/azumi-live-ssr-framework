@@ -482,6 +482,12 @@ let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
 // Produces:
 // default-src 'self'; script-src 'self' 'nonce-abc123'; style-src 'self' 'nonce-abc123'; ...
 
+// For environments where the system RNG may be unavailable (embedded, sandboxed):
+let nonce = CspNonce::try_generate().expect("RNG unavailable");
+```
+
+**`CspNonce::generate()` vs `try_generate()`:** `generate()` panics if the system RNG is unavailable — this is deliberate, since CSP without a nonce is a security downgrade. Use `try_generate()` in environments where you need graceful degradation (e.g., early boot, restricted sandboxes).
+
 // Use nonce in html! — <style nonce={nonce.as_str()}>
 html! {
     <style nonce={nonce.as_str()}>

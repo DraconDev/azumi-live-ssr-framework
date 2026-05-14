@@ -87,6 +87,10 @@ async fn main() {
         // Safe because it only "checks" the cookie, doesn't "block" the request.
         .layer(axum::middleware::from_fn(examples::lessons::components::auth_infra::auth_middleware))
 
+        // 🛡️ CSP Nonce Middleware — auto-generates per-request nonce
+        // Sets Content-Security-Policy header; CspNonce extractor available in handlers
+        .layer(axum::middleware::from_fn(azumi::csp::csp_nonce_layer()))
+
         // 📁 Static files (Legacy)
         .nest_service("/static", ServeDir::new("static"))
 

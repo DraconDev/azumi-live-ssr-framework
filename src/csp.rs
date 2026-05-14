@@ -145,22 +145,27 @@ impl ContentSecurityPolicy {
         self.add_directive("object-src", value)
     }
 
+    #[must_use]
     pub fn frame_src(self, value: &str) -> Self {
         self.add_directive("frame-src", value)
     }
 
+    #[must_use]
     pub fn form_action(self, value: &str) -> Self {
         self.add_directive("form-action", value)
     }
 
+    #[must_use]
     pub fn base_uri(self, value: &str) -> Self {
         self.add_directive("base-uri", value)
     }
 
+    #[must_use]
     pub fn frame_ancestors(self, value: &str) -> Self {
         self.add_directive("frame-ancestors", value)
     }
 
+    #[must_use]
     pub fn upgrade_insecure_requests(mut self) -> Self {
         self.directives
             .push(("upgrade-insecure-requests".to_string(), String::new()));
@@ -223,7 +228,7 @@ impl Default for ContentSecurityPolicy {
 ///     </style>
 /// }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, std::hash::Hash)]
 pub struct CspNonce(String);
 
 impl CspNonce {

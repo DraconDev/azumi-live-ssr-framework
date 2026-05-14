@@ -207,6 +207,8 @@ jobs:
           cargo bench -- --warm-up-time 1 --measurement-time 2 2>&1 | tee bench_output.txt
           echo "--- Benchmark Results ---"
           grep -E "time:|Benchmarking" bench_output.txt | tail -30
+          echo "--- render_to_writer streaming regression ---"
+          grep -E "render_to_writer|render_to_string" bench_output.txt || echo "No streaming bench found"
           echo "--- Baseline Comparison (manual check required) ---"
           echo "Compare against docs/perf/baseline_v47.0.0.md"
 

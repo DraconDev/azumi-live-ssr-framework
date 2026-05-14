@@ -97,6 +97,12 @@ impl SseEvent {
         &self.data
     }
 
+    /// Access the event name.
+    #[must_use]
+    pub fn event(&self) -> &str {
+        &self.event
+    }
+
     #[cfg(feature = "axum")]
     fn into_axum_event(self) -> Event {
         let mut event = Event::default().event(self.event).data(self.data);
