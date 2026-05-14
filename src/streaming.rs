@@ -37,6 +37,7 @@ use crate::Component;
 ///
 /// Construct with `SseEvent::fragment(component)` for HTML fragments
 /// or `SseEvent::json(data)` for JSON payloads.
+#[must_use]
 pub struct SseEvent {
     event: String,
     data: String,
