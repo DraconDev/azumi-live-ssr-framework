@@ -76,7 +76,8 @@ criterion_group!(
     bench_render_with_json_data,
     bench_render_nested_components,
     bench_render_1000_components,
-    bench_render_concurrent
+    bench_render_concurrent,
+    bench_render_to_writer_vs_string
 );
 
 fn bench_render_1000_components(c: &mut Criterion) {

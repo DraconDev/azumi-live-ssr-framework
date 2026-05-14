@@ -442,8 +442,47 @@ let signed = "{json}|{timestamp}|{signature_base64}";
 | CSS Injection | Semicolons/braces escaped |
 | State Tampering | HMAC-SHA256 signature |
 | Replay Prevention | 1-hour timestamp + user scoping |
+| Content Injection | Content-Security-Policy builder |
 
 **Important:** Signed state prevents tampering, but **authorization is your responsibility**. Any user with valid signed state CAN trigger any action. Add authorization checks in your action methods.
+
+### Content-Security-Policy Builder
+
+Azumi provides a CSP builder that generates headers compatible with its architecture:
+
+```rust
+use azumi::csp::ContentSecurityPolicy;
+
+// Recommended defaults for Azumi apps
+let csp = ContentSecurityPolicy::azumi_defaults().build();
+// Produces:
+// default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
+// img-src 'self' data:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'
+
+// Customize for your app (e.g., WebSocket dev server, external fonts)
+let csp = ContentSecurityPolicy::azumi_defaults()
+    .connect_src("'self' ws://localhost:8080")
+    .font_src("'self' https://fonts.gstatic.com")
+    .upgrade_insecure_requests()
+    .build();
+```
+
+**Why `style-src` includes `'unsafe-inline'`:** Azumi uses scoped `<style>` blocks in HTML for zero-JS CSS. Nonce-based CSP requires server-side nonce injection on every render, which contradicts Azumi's static-HTML-first model. If your threat model demands nonce-based CSP, you can remove `'unsafe-inline'` and add a nonce system.
+
+### Streaming Render
+
+For high-throughput servers, `render_to_writer()` writes directly to any `std::io::Write` implementation, avoiding the intermediate `String` allocation:
+
+```rust
+use azumi::render_to_writer;
+
+// Write directly to an Axum response body
+let mut body = Vec::new();
+render_to_writer(&my_component, &mut body)?;
+let html_bytes = axum::body::Bytes::from(body);
+```
+
+Use `render_to_writer()` when serving many concurrent requests or rendering large pages. Use `render_to_string()` for simplicity when performance isn't critical.
 
 ---
 

@@ -85,8 +85,48 @@
 ## Recommendations
 
 1. **No action required** — Security posture is strong.
-2. **Future enhancement:** Consider adding a `Content-Security-Policy` helper for common directives.
+2. **Implemented:** `ContentSecurityPolicy` builder (`src/csp.rs`) — see below.
 3. **Future enhancement:** Document a threat model guide for application developers (auth, CSRF, XSS beyond framework scope).
+
+---
+
+## 5. Content-Security-Policy Builder (`src/csp.rs`)
+
+### What's Provided
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| CSP builder | ✅ | Fluent API for all standard directives |
+| Azumi defaults | ✅ | `azumi_defaults()` with recommended policy |
+| `style-src 'unsafe-inline'` | ✅ | Required for Azumi's scoped `<style>` blocks |
+| `upgrade-insecure-requests` | ✅ | Opt-in for HTTPS-only deployments |
+| `frame-ancestors 'none'` | ✅ | Prevents clickjacking by default |
+
+### Azumi Default Policy
+
+```
+default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
+img-src 'self' data:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'
+```
+
+### Why `'unsafe-inline'` in `style-src`
+
+Azumi uses scoped `<style>` blocks embedded in HTML for zero-JS CSS. This requires `'unsafe-inline'` in `style-src`. Alternatives:
+
+| Approach | Tradeoff |
+|----------|----------|
+| `'unsafe-inline'` (default) | Simple, no server-side nonce injection |
+| Nonce-based CSP | Stronger XSS protection, requires nonce on every `<style>` tag per render |
+| Hash-based CSP | Strongest, but impractical — every component variation produces a new hash |
+
+For most applications, `'unsafe-inline'` for styles is acceptable because:
+1. Azumi's CSS scoping prevents style injection from user content (escaped via `escape_css_string`)
+2. Style-only XSS cannot execute JavaScript (no JS execution from CSS)
+3. The `script-src` directive does NOT include `'unsafe-inline'`, blocking inline script injection
+
+### Test Coverage
+
+7 unit tests covering: empty CSP, single directive, multiple directives, Azumi defaults, upgrade-insecure, custom connect-src, and builder chainability.
 
 ---
 

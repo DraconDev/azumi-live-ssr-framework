@@ -402,6 +402,23 @@ pub fn render_to_string<C: Component + ?Sized>(component: &C) -> String {
 ///
 /// Avoids the intermediate `String` allocation of `render_to_string`.
 /// Useful for writing directly to a response body or buffer.
+///
+/// # Performance
+///
+/// Prefer this over `render_to_string()` in high-throughput scenarios:
+/// - Serving many concurrent requests
+/// - Rendering large pages (avoids a full-page `String` allocation)
+/// - Writing directly to `Vec<u8>` for Axum `Bytes` responses
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use azumi::render_to_writer;
+///
+/// let mut buf = Vec::new();
+/// render_to_writer(&my_component, &mut buf)?;
+/// // buf now contains the rendered HTML as bytes
+/// ```
 pub fn render_to_writer<C: Component + ?Sized, W: std::io::Write>(
     component: &C,
     writer: &mut W,
