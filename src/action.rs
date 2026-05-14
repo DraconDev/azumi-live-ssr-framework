@@ -136,8 +136,8 @@ fn escape_js_string(s: &str) -> String {
     for c in s.chars() {
         match c {
             '\\' => out.push_str("\\\\"),
-            '\'' => out.push_str("\\'"),
-            '"' => out.push_str("\\\""),
+            '\'' => out.push_str("\\x27"),
+            '"' => out.push_str("\\x22"),
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             _ => out.push(c),
