@@ -4,7 +4,7 @@ version = "8.0.0"
 edition = "2021"
 description = "Procedural macros for Azumi web framework"
 repository = "https://github.com/DraconDev/azumi"
-license-file = "../LICENSE"
+license = "MIT"
 keywords = ["html", "template", "macro", "web"]
 categories = ["template-engine", "web-programming"]
 

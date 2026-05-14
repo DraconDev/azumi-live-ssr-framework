@@ -5,7 +5,10 @@ targets = []
 feature-depth = 1
 
 [advisories]
-ignore = []
+ignore = [
+    # fxhash is unmaintained (RUSTSEC-2025-0057) but transitive via scraper/selectors — cannot upgrade directly
+    { id = "RUSTSEC-2025-0057", reason = "transitive dep via scraper, no direct fix available" },
+]
 
 [licenses]
 allow = [
@@ -16,7 +19,6 @@ allow = [
     "BSD-3-Clause",
     "ISC",
     "Zlib",
-    "0BSD",
     "Unlicense",
     "CC0-1.0",
 ]
