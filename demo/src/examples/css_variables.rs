@@ -4,12 +4,13 @@ use azumi::html;
 pub fn css_variables_demo() -> impl azumi::Component {
     let percentage = "50%";
     let progress_style = format!("--width: {}", percentage);
+    let static_var_style = "--static-var: 100px";
     html! {
 
         <div class={progress_bar} style={progress_style}>
             <div class={progress_value}></div>
         </div>
-        <div style="--static-var: 100px">
+        <div style={static_var_style}>
             "Static Var"
         </div>
         <style>
