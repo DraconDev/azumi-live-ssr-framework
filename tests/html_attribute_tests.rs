@@ -1,9 +1,11 @@
+// Tests for HTML attribute rendering and validation
+// These verify that various HTML5 attributes, data-* attributes, aria-* attributes,
+// and multiple attributes render correctly in the html! macro.
+
 use azumi::{html, render_to_string};
 
 #[test]
-fn test_named_arguments_work() {
-    // This test verifies that the html! macro compiles successfully
-    // and that basic named argument patterns work in the macro
+fn test_html_attributes_basic() {
     let simple = html! {
         <div>"Simple HTML test"</div>
     };
@@ -13,9 +15,7 @@ fn test_named_arguments_work() {
 }
 
 #[test]
-fn test_named_args_in_component_call() {
-    // Verify that the macro correctly handles named arguments syntax
-    // in component-like invocations (using the @ComponentName syntax)
+fn test_html_attributes_multiple() {
     let class_name = "test";
     let output = html! {
         <div class={class_name}>"content"</div>
@@ -28,7 +28,6 @@ fn test_named_args_in_component_call() {
 
 #[test]
 fn test_multiple_attributes() {
-    // Test that multiple named attributes compile and render correctly
     let output = html! {
         <input type="text" name="username" placeholder="Enter username" />
     };
@@ -41,7 +40,6 @@ fn test_multiple_attributes() {
 
 #[test]
 fn test_data_attributes() {
-    // Test data-* attributes which use hyphens
     let output = html! {
         <div data-user-id="123" data-role="admin">"User"</div>
     };
@@ -53,7 +51,6 @@ fn test_data_attributes() {
 
 #[test]
 fn test_aria_attributes() {
-    // Test aria-* accessibility attributes
     let output = html! {
         <button aria-label="Close dialog" aria-pressed="false">"X"</button>
     };
