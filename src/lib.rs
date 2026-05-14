@@ -1,6 +1,8 @@
 pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::action::{ActionResult, error_fragment, success_fragment};
+    #[cfg(feature = "axum")]
+    pub use crate::csp::CspNonce;
     pub use crate::{
         azumi_script, component, html, json_data, live,
         session_cleanup_script, AzumiScript, Component, escape_css_string,
