@@ -87,27 +87,60 @@ azumi/
 │   │   ├── component.rs                # #[azumi::component] attribute macro
 │   │   ├── page.rs                     # #[azumi::page] attribute macro
 │   │   ├── action.rs                   # #[azumi::action] attribute macro
-│   │   └── live.rs                     # #[azumi::live] attribute macro
+│   │   ├── live.rs                     # #[azumi::live] attribute macro
+│   │   ├── schema.rs                   # #[azumi::schema] (gated behind "schema" feature)
+│   │   ├── style.rs                    # CSS scoping + processing
+│   │   ├── codegen.rs                  # Code generation helpers
+│   │   ├── css.rs                      # CSS parsing/transformation
+│   │   ├── context.rs                  # Macro context tracking
+│   │   ├── head.rs                     # <head> content generation
+│   │   ├── asset_rewriter.rs           # Asset hash rewriting
+│   │   ├── style_processing.rs         # Style block processing
+│   │   ├── validators.rs              # Shared validation logic
+│   │   └── accessibility_validator.rs  # A11y attribute validation
 ├── src/
-│   ├── lib.rs                          # Public API, Component trait, AZUMI_RULES
+│   ├── lib.rs                          # Public API, Component trait, AZUMI_RULES, prelude
 │   ├── script.rs                       # TrustedHtml, azumi_script(), escape helpers
 │   ├── seo.rs                          # SEO helpers (uses Raw internally, outside html!)
 │   ├── security.rs                     # HMAC state signing
 │   ├── csp.rs                          # ContentSecurityPolicy builder + CspNonce + Axum middleware
 │   ├── streaming.rs                    # SSE helpers (SseEvent, sse())
-│   ├── test/mod.rs                     # Test utilities (render, assert_selector)
-│   └── context.rs                      # Page metadata context
+│   ├── css_scoping.rs                  # CSS scope isolation (compute_scope_id, scope_css)
+│   ├── form.rs                         # Form validation (FormValidator, ValidatedForm)
+│   ├── action.rs                       # Action handlers (#[cfg(feature = "axum")])
+│   ├── context.rs                      # Page metadata context
+│   ├── hot_reload.rs                   # Hot reload (#[cfg(feature = "devtools")])
+│   ├── devtools.rs                     # Dev tools (#[cfg(feature = "devtools")])
+│   └── tests.rs                        # Test utilities (render, assert_selector)
+├── cli/                                # CLI tool
 ├── tests/
 │   ├── inline_inject_tests.rs          # json_data! + auto-escape tests
 │   ├── security_xss_tests.rs           # XSS breakout prevention tests
-│   ├── integration_inject_tests.rs     # Integration tests for injection patterns
-│   └── ... (36 other test files)
+│   ├── integration_inject_tests.rs      # Integration tests for injection patterns
+│   ├── csp_middleware_tests.rs          # CSP middleware + nonce integration tests
+│   ├── live_handler_integration_tests.rs # Live handler security tests
+│   └── ... (40+ other test files)
 ├── client/
 │   ├── azumi.js                        # Client runtime (~3KB)
 │   └── idiomorph.js                    # DOM morphing library
-├── AI_GUIDE_FOR_WRITING_AZUMI.md       # Comprehensive AI reference
 └── AGENTS.md                           # This file — AI agent instructions
 ```
+
+## Prelude
+
+`use azumi::prelude::*;` provides:
+
+| Item | Notes |
+|------|-------|
+| `html`, `component`, `json_data`, `live` | Core macros |
+| `Component` | Trait for renderable types |
+| `AzumiScript`, `azumi_script`, `session_cleanup_script` | Client runtime helpers |
+| `render_to_string`, `render_to_writer` | Render functions |
+| `FnComponent` | Closure-based component type |
+| `escape_css_string` | CSS string escaping |
+| `CspNonce` | CSP nonce (from `csp` module) |
+| `FormValidator`, `ValidatedForm`, `ValidationErrors` | Form validation |
+| `ActionResult`, `error_fragment`, `success_fragment` | Action responses (`axum` feature only) |
 
 ## Common Anti-Patterns (caught at compile time)
 
