@@ -405,15 +405,15 @@ pub fn render_to_string<C: Component + ?Sized>(component: &C) -> String {
 ///
 /// # Performance
 ///
-/// Prefer this over `render_to_string()` in high-throughput scenarios:
-/// - Serving many concurrent requests
-/// - Rendering large pages (avoids a full-page `String` allocation)
-/// - Writing directly to `Vec<u8>` for Axum `Bytes` responses
+/// For small components, `render_to_string` may be slightly faster due to
+/// the `fmt::Write` → `io::Write` adapter overhead. For large pages with
+/// many concurrent requests, `render_to_writer` avoids allocating a full
+/// intermediate `String`, reducing memory pressure.
 ///
-/// Benchmarks (release mode, 1000 simple divs):
-/// - `render_to_string`: ~124 µs
-/// - `render_to_writer`: ~124 µs (similar for bulk; advantage is avoiding
-///   intermediate `String` when writing to a pre-allocated buffer or stream)
+/// Benchmarks (release mode):
+/// - Small component (1 div): `render_to_string` ~150ns, `render_to_writer` ~150ns
+/// - Component with style: `render_to_string` ~340ns, `render_to_writer` ~580ns
+/// - 1000 divs bulk: both ~124µs (memory advantage for `render_to_writer`)
 ///
 /// # Example
 ///

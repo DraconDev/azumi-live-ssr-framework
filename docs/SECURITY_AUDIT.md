@@ -99,6 +99,8 @@
 | CSP builder | ✅ | Fluent API for all standard directives |
 | Azumi defaults | ✅ | `azumi_defaults()` with recommended policy |
 | `style-src 'unsafe-inline'` | ✅ | Required for Azumi's scoped `<style>` blocks |
+| Nonce-based CSP | ✅ | `CspNonce::generate()` + `azumi_nonce_defaults()` |
+| Axum middleware | ✅ | `csp_nonce_layer()` auto-injects nonce + CSP header |
 | `upgrade-insecure-requests` | ✅ | Opt-in for HTTPS-only deployments |
 | `frame-ancestors 'none'` | ✅ | Prevents clickjacking by default |
 
@@ -108,6 +110,15 @@
 default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
 img-src 'self' data:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'
 ```
+
+### Nonce-based Policy
+
+```
+default-src 'self'; script-src 'self' 'nonce-{base64}'; style-src 'self' 'nonce-{base64}';
+img-src 'self' data:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'
+```
+
+Generated via `ContentSecurityPolicy::azumi_nonce_defaults(&nonce)`. The `csp_nonce_layer()` Axum middleware generates a fresh 128-bit nonce per request, stores it in request extensions (extractable as `CspNonce`), and injects the CSP response header automatically.
 
 ### Why `'unsafe-inline'` in `style-src`
 
@@ -126,7 +137,7 @@ For most applications, `'unsafe-inline'` for styles is acceptable because:
 
 ### Test Coverage
 
-7 unit tests covering: empty CSP, single directive, multiple directives, Azumi defaults, upgrade-insecure, custom connect-src, and builder chainability.
+12 unit tests covering: empty CSP, single directive, multiple directives, Azumi defaults, upgrade-insecure, custom connect-src, builder chainability, nonce generation, nonce uniqueness, nonce display, nonce as_ref, and nonce-based Azumi defaults.
 
 ---
 

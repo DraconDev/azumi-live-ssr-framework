@@ -453,7 +453,7 @@ Azumi provides a CSP builder that generates headers compatible with its architec
 ```rust
 use azumi::csp::ContentSecurityPolicy;
 
-// Recommended defaults for Azumi apps
+// Recommended defaults for Azumi apps (uses 'unsafe-inline' for styles)
 let csp = ContentSecurityPolicy::azumi_defaults().build();
 // Produces:
 // default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
@@ -468,6 +468,59 @@ let csp = ContentSecurityPolicy::azumi_defaults()
 ```
 
 **Why `style-src` includes `'unsafe-inline'`:** Azumi uses scoped `<style>` blocks in HTML for zero-JS CSS. Nonce-based CSP requires server-side nonce injection on every render, which contradicts Azumi's static-HTML-first model. If your threat model demands nonce-based CSP, you can remove `'unsafe-inline'` and add a nonce system.
+
+### Nonce-based CSP (Stronger XSS Protection)
+
+For applications that need to eliminate `'unsafe-inline'`, Azumi provides per-request nonce generation:
+
+```rust
+use azumi::csp::{CspNonce, ContentSecurityPolicy};
+
+// Manual usage — generate nonce and build CSP
+let nonce = CspNonce::generate();
+let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
+// Produces:
+// default-src 'self'; script-src 'self' 'nonce-abc123'; style-src 'self' 'nonce-abc123'; ...
+
+// Use nonce in html! — <style nonce={nonce.as_str()}>
+html! {
+    <style nonce={nonce.as_str()}>
+        .my_class { color: "red"; }
+    </style>
+}
+```
+
+**Axum middleware** — auto-generates nonce and sets CSP header per request:
+
+```rust
+use azumi::csp::csp_nonce_layer;
+
+let app = Router::new()
+    .route("/", home_handler)
+    .layer(csp_nonce_layer());
+
+// In your handler, extract the nonce:
+async fn home_handler(nonce: CspNonce) -> impl IntoResponse {
+    let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
+    // nonce.as_str() available for <style> and <script> tags
+    (
+        [("content-security-policy", csp)],
+        axum::response::Html(body)
+    )
+}
+```
+
+Custom CSP policy with nonce middleware:
+
+```rust
+use azumi::csp::csp_nonce_layer_with;
+
+let app = Router::new()
+    .layer(csp_nonce_layer_with(|nonce| {
+        ContentSecurityPolicy::azumi_nonce_defaults(nonce)
+            .connect_src("'self' ws://localhost:8080")
+    }));
+```
 
 ### Streaming Render
 
