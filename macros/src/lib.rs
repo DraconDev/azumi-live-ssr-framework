@@ -86,7 +86,8 @@ pub fn html(input: TokenStream) -> TokenStream {
     let (style_bindings, _scoped_css, _global_css) = style_processing::process_styles(&nodes);
 
     // 2. Generate HTML string construction code
-    let html_construction = generate_nodes(&nodes);
+    let f_ident = proc_macro2::Ident::new("f", proc_macro2::Span::call_site());
+    let html_construction = generate_nodes(&nodes, &f_ident);
 
     // 3. Generate bind validation checks
     let mut validation_checks = Vec::new();
@@ -114,7 +115,7 @@ pub fn html(input: TokenStream) -> TokenStream {
             //
             // `FnOnceComponent` caches its rendered result, so the closure is only
             // invoked once - which is the typical case for a complete HTML page.
-            azumi::from_fn_once(move |f| {
+            azumi::from_fn_once(move |#f_ident| {
                 #html_construction
             })
         }
@@ -123,8 +124,8 @@ pub fn html(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-fn generate_nodes(nodes: &[token_parser::Node]) -> proc_macro2::TokenStream {
-    let body = generate_body(nodes, codegen::first_node_span(nodes));
+fn generate_nodes(nodes: &[token_parser::Node], f_ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
+    let body = generate_body(nodes, codegen::first_node_span(nodes), f_ident);
     quote! {
         #body
         Ok(())
@@ -135,6 +136,7 @@ fn generate_nodes(nodes: &[token_parser::Node]) -> proc_macro2::TokenStream {
 fn generate_body(
     nodes: &[token_parser::Node],
     span: Option<(usize, usize)>,
+    f_ident: &proc_macro2::Ident,
 ) -> proc_macro2::TokenStream {
     // Collect ALL validation errors from all validators instead of short-circuiting
     let mut all_errors = proc_macro2::TokenStream::new();
@@ -225,12 +227,12 @@ fn generate_body(
                 valid_classes.clone(),
                 valid_ids.clone(),
             );
-            (codegen::generate_body_with_context(&working_nodes, &ctx), injected)
+            (codegen::generate_body_with_context(&working_nodes, &ctx, f_ident), injected)
         } else {
             let mut temp_nodes = nodes.to_vec();
             let injected = style_processing::inject_css_into_head(&mut temp_nodes, &css_to_inject);
             (
-                codegen::generate_body_with_context(&temp_nodes, &GenerationContext::normal()),
+                codegen::generate_body_with_context(&temp_nodes, &GenerationContext::normal(), f_ident),
                 injected,
             )
         };
@@ -244,7 +246,7 @@ fn generate_body(
             }
         }
     } else {
-        codegen::generate_body_with_context(nodes, &GenerationContext::normal())
+        codegen::generate_body_with_context(nodes, &GenerationContext::normal(), f_ident)
     }
 }
 

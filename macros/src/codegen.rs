@@ -174,6 +174,7 @@ pub(crate) fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 pub(crate) fn generate_body_with_context(
     nodes: &[token_parser::Node],
     ctx: &GenerationContext,
+    f_ident: &proc_macro2::Ident,
 ) -> proc_macro2::TokenStream {
     let mut instructions = Vec::new();
 
