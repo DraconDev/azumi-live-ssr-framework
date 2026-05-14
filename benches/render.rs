@@ -114,3 +114,53 @@ fn bench_render_concurrent(c: &mut Criterion) {
         })
     });
 }
+
+fn bench_render_to_writer_vs_string(c: &mut Criterion) {
+    let mut group = c.benchmark_group("render_to_writer_vs_string");
+
+    group.bench_function("render_to_string_1000_divs", |b| {
+        b.iter(|| {
+            let mut output = String::with_capacity(20_000);
+            for _ in 0..1000 {
+                let component = html! { <div>"Hello"</div> };
+                output.push_str(&azumi::render_to_string(&component));
+            }
+            black_box(&output);
+        })
+    });
+
+    group.bench_function("render_to_writer_1000_divs", |b| {
+        b.iter(|| {
+            let mut output = Vec::with_capacity(20_000);
+            for _ in 0..1000 {
+                let component = html! { <div>"Hello"</div> };
+                azumi::render_to_writer(&component, &mut output).unwrap();
+            }
+            black_box(&output);
+        })
+    });
+
+    group.bench_function("render_to_string_with_style", |b| {
+        b.iter(|| {
+            let component = html! {
+                <div class={my_class}>"Content"</div>
+                <style>.my_class { color: "red"; padding: "1rem"; }</style>
+            };
+            black_box(azumi::render_to_string(&component));
+        })
+    });
+
+    group.bench_function("render_to_writer_with_style", |b| {
+        b.iter(|| {
+            let component = html! {
+                <div class={my_class}>"Content"</div>
+                <style>.my_class { color: "red"; padding: "1rem"; }</style>
+            };
+            let mut buf = Vec::new();
+            azumi::render_to_writer(&component, &mut buf).unwrap();
+            black_box(&buf);
+        })
+    });
+
+    group.finish();
+}
