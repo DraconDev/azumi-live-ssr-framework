@@ -32,18 +32,22 @@ fn is_action_result(return_type: &syn::ReturnType) -> bool {
 }
 
 fn is_impl_component(return_type: &syn::ReturnType) -> bool {
-    if let syn::ReturnType::Type(_, ty) = return_type {
-        if let Type::ImplTrait(impl_trait) = ty.as_ref() {
-            if let Some(bounds) = impl_trait.bounds.first() {
-                if let syn::TypeParamBound::Trait(trait_bound) = bounds {
-                    if let Some(seg) = trait_bound.path.segments.last() {
-                        return seg.ident == "Component";
-                    }
-                }
-            }
-        }
-    }
-    false
+    let syn::ReturnType::Type(_, ty) = return_type else {
+        return false;
+    };
+    let Type::ImplTrait(impl_trait) = ty.as_ref() else {
+        return false;
+    };
+    let Some(bounds) = impl_trait.bounds.first() else {
+        return false;
+    };
+    let syn::TypeParamBound::Trait(trait_bound) = bounds else {
+        return false;
+    };
+    let Some(seg) = trait_bound.path.segments.last() else {
+        return false;
+    };
+    seg.ident == "Component"
 }
 
 pub fn expand_action(item: TokenStream) -> TokenStream {

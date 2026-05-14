@@ -396,7 +396,7 @@ pub(crate) fn generate_body_with_context(
                 } else if name == "style" {
                     Context::Style
                 } else {
-                    ctx.mode.clone()
+                    ctx.mode
                 });
                 instructions
                     .push(generate_body_with_context(&elem.children, &child_ctx));
