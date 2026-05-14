@@ -128,3 +128,41 @@ where
             .text("ping"),
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fragment_event_name() {
+        struct Dummy;
+        impl Component for Dummy {
+            fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.write_str("<div>hi</div>")
+            }
+        }
+        let e = SseEvent::fragment(Dummy);
+        assert_eq!(e.event(), "fragment");
+        assert!(!e.data().is_empty());
+    }
+
+    #[test]
+    fn test_json_event_name() {
+        let e = SseEvent::json(&{"key": "val"});
+        assert_eq!(e.event(), "json");
+        assert!(e.data().contains("key"));
+    }
+
+    #[test]
+    fn test_heartbeat_event_name() {
+        let e = SseEvent::heartbeat();
+        assert_eq!(e.event(), "ping");
+        assert_eq!(e.data(), "");
+    }
+
+    #[test]
+    fn test_custom_name() {
+        let e = SseEvent::heartbeat().name("custom");
+        assert_eq!(e.event(), "custom");
+    }
+}
