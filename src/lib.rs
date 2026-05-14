@@ -1,12 +1,11 @@
 pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::action::{ActionResult, error_fragment, success_fragment};
-    #[cfg(feature = "axum")]
     pub use crate::csp::CspNonce;
     pub use crate::{
         azumi_script, component, html, json_data, live,
         session_cleanup_script, AzumiScript, Component, escape_css_string,
-        from_fn, FnComponent, render_to_writer,
+        FnComponent, render_to_string, render_to_writer,
     };
     pub use crate::form::{FormValidator, ValidatedForm, ValidationErrors};
 }

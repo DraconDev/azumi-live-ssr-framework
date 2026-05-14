@@ -81,12 +81,14 @@ impl SseEvent {
     }
 
     /// Set the event ID for replay/resume support.
+    #[must_use]
     pub fn id(mut self, id: impl Into<String>) -> Self {
         self.id = Some(id.into());
         self
     }
 
     /// Set a custom event name.
+    #[must_use]
     pub fn name(mut self, name: impl Into<String>) -> Self {
         self.event = name.into();
         self
@@ -102,6 +104,12 @@ impl SseEvent {
     #[must_use]
     pub fn event(&self) -> &str {
         &self.event
+    }
+
+    /// Access the event ID (for replay/resume support).
+    #[must_use]
+    pub fn get_id(&self) -> Option<&str> {
+        self.id.as_deref()
     }
 
     #[cfg(feature = "axum")]
@@ -167,5 +175,20 @@ mod tests {
     fn test_custom_name() {
         let e = SseEvent::heartbeat().name("custom");
         assert_eq!(e.event(), "custom");
+    }
+
+    #[test]
+    fn test_id_setter_and_getter() {
+        let e = SseEvent::heartbeat().id("42");
+        assert_eq!(e.get_id(), Some("42"));
+        assert!(SseEvent::heartbeat().get_id().is_none());
+    }
+
+    #[test]
+    fn test_builder_chaining() {
+        let e = SseEvent::heartbeat().id("1").name("custom");
+        assert_eq!(e.event(), "custom");
+        assert_eq!(e.get_id(), Some("1"));
+        assert_eq!(e.data(), "");
     }
 }

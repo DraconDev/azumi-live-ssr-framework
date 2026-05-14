@@ -543,6 +543,45 @@ let html_bytes = axum::body::Bytes::from(body);
 
 Use `render_to_writer()` when serving many concurrent requests or rendering large pages. Use `render_to_string()` for simplicity when performance isn't critical.
 
+`render_to_writer()` returns `std::io::Result<()>`, so use `?` to propagate errors.
+
+### Server-Sent Events (SSE)
+
+Azumi provides `SseEvent` for streaming HTML fragments or JSON to connected clients:
+
+```rust
+use azumi::streaming::{sse, SseEvent};
+use std::time::Duration;
+use tokio::time::interval;
+
+async fn notifications() -> impl axum::response::IntoResponse {
+    let stream = async_stream::stream! {
+        let mut ticker = interval(Duration::from_secs(5));
+        loop {
+            ticker.tick().await;
+            yield SseEvent::fragment(html! {
+                <div class="notification">"New message received"</div>
+            });
+        }
+    };
+    sse(stream)
+}
+```
+
+**Event constructors:**
+- `SseEvent::fragment(component)` — HTML fragment (event name: `"fragment"`)
+- `SseEvent::json(&data)` — JSON payload (event name: `"json"`)
+- `SseEvent::heartbeat()` — keep-alive ping (event name: `"ping"`)
+
+**Builder methods:**
+- `.id("42")` — set event ID for replay/resume support
+- `.name("custom")` — override the event name
+
+**Accessors:**
+- `.event()` — get the event name
+- `.data()` — get the data payload
+- `.get_id()` — get the event ID (returns `Option<&str>`)
+
 ---
 
 ## Client Features
