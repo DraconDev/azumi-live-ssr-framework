@@ -163,7 +163,11 @@ class Azumi {
         });
 
         // Dedicated form submission handler for az-action forms
-        document.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        // Only fires if the event hasn't already been handled by handleEvent
+        document.addEventListener('submit', (e) => {
+            if (e.defaultPrevented) return;
+            this.handleFormSubmit(e);
+        });
     }
 
     // Parse az-on attribute
@@ -179,11 +183,6 @@ class Azumi {
 
         if (trigger !== e.type) return;
 
-        // Only prevent default for click and submit events
-        if (e.type === "click" || e.type === "submit") {
-            e.preventDefault();
-        }
-
         // Check for confirmation dialog
         const confirmMsg = target.getAttribute("az-confirm");
         if (confirmMsg && !window.confirm(confirmMsg)) {
@@ -193,7 +192,14 @@ class Azumi {
         // Parse the rest: "call toggle_like -> #box"
         // This is a very basic parser for the prototype
         const action = this.parseAction(parts.slice(1).join(" "), target);
-        if (action) this.execute(action, target);
+        if (!action) return; // Malformed action, don't prevent default
+
+        // Only prevent default for click and submit events AFTER validating action
+        if (e.type === "click" || e.type === "submit") {
+            e.preventDefault();
+        }
+
+        this.execute(action, target);
     }
 
     // Handle form submissions with az-action attribute (simpler than az-on)
