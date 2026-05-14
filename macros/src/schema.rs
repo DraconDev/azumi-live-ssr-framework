@@ -1,8 +1,9 @@
 use heck::ToLowerCamelCase;
-use proc_macro::TokenStream;
 use quote::quote;
 use syn::Lit;
 
+#[cfg(feature = "schema")]
+use proc_macro::TokenStream;
 #[cfg(feature = "schema")]
 use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
