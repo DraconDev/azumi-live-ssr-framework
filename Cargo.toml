@@ -1,6 +1,6 @@
 [package]
 name = "azumi"
-version = "47.20.154"
+version = "47.20.155"
 edition = "2021"
 rust-version = "1.70"
 authors = ["DraconDev <dracsharp@gmail.com>"]
@@ -45,6 +45,8 @@ azumi = { version = "47", path = ".", features = ["test-utils"] }
 trybuild = "1.0"
 criterion = { version = "0.5", features = ["html_reports"] }
 proptest = "1.5"
+tower = "0.5"
+http-body-util = "0.1"
 
 [[bench]]
 name = "escape"
