@@ -618,7 +618,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "must not contain ';'")]
     fn test_semicolon_rejected_in_value() {
-        ContentSecurityPolicy::new()
+        let _csp = ContentSecurityPolicy::new()
             .script_src("'self'; style-src 'unsafe-inline'")
             .build();
     }
