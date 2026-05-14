@@ -516,4 +516,17 @@ mod tests {
         let nonce = CspNonce::try_generate().expect("try_generate should succeed on standard systems");
         assert_eq!(nonce.as_str().len(), 24);
     }
+
+    #[test]
+    fn test_nonce_eq_hash() {
+        let a = CspNonce::try_generate().unwrap();
+        let b = a.clone();
+        assert_eq!(a, b);
+        let mut set = std::collections::HashSet::new();
+        set.insert(a.clone());
+        assert!(set.contains(&a));
+        assert!(set.contains(&b));
+        let c = CspNonce::try_generate().unwrap();
+        assert_ne!(a, c);
+    }
 }
