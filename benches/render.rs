@@ -74,6 +74,42 @@ criterion_group!(
     bench_render_simple_div,
     bench_render_with_style,
     bench_render_with_json_data,
-    bench_render_nested_components
+    bench_render_nested_components,
+    bench_render_1000_components,
+    bench_render_concurrent
 );
-criterion_main!(benches);
+
+fn bench_render_1000_components(c: &mut Criterion) {
+    c.bench_function("render_1000_simple_divs", |b| {
+        b.iter(|| {
+            let mut output = String::with_capacity(20_000);
+            for _ in 0..1000 {
+                let component = html! { <div>"Hello"</div> };
+                output.push_str(&azumi::render_to_string(&component));
+            }
+            black_box(&output);
+        })
+    });
+}
+
+fn bench_render_concurrent(c: &mut Criterion) {
+    use std::thread;
+    c.bench_function("render_concurrent_8_threads", |b| {
+        b.iter(|| {
+            let handles: Vec<_> = (0..8)
+                .map(|_| {
+                    thread::spawn(|| {
+                        let mut output = String::with_capacity(10_000);
+                        for _ in 0..125 {
+                            let component = html! { <div>"Hello"</div> };
+                            output.push_str(&azumi::render_to_string(&component));
+                        }
+                        output
+                    })
+                })
+                .collect();
+            let results: Vec<String> = handles.into_iter().map(|h| h.join().unwrap()).collect();
+            black_box(&results);
+        })
+    });
+}

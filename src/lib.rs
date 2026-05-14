@@ -35,6 +35,7 @@ pub mod devtools;
 pub mod seo;
 pub mod form;
 pub mod streaming;
+pub mod csp;
 pub use script::{AzumiScript, escape_script_content, escape_style_content, escape_tag_content, session_cleanup_script};
 // Re-export CSS scoping for backward compatibility
 pub use css_scoping::{compute_scope_id, scope_css};
