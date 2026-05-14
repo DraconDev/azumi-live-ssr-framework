@@ -130,14 +130,17 @@ impl ContentSecurityPolicy {
         self.add_directive("font-src", value)
     }
 
+    #[must_use]
     pub fn connect_src(self, value: &str) -> Self {
         self.add_directive("connect-src", value)
     }
 
+    #[must_use]
     pub fn media_src(self, value: &str) -> Self {
         self.add_directive("media-src", value)
     }
 
+    #[must_use]
     pub fn object_src(self, value: &str) -> Self {
         self.add_directive("object-src", value)
     }
