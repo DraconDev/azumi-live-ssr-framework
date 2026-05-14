@@ -465,7 +465,6 @@ fn validate_hex_color(value: &str) -> Option<String> {
     None
 }
 
-/// Process global style macro - validates but doesn't scope or generate bindings
 /// Generate bindings for classes and IDs extracted from CSS.
 /// When `skip_dashed` is true, dashed class/ID names are skipped (for process_style_macro).
 /// When `skip_dashed` is false, all names are included (for process_global_style_macro).
@@ -513,6 +512,9 @@ fn generate_bindings(classes: Vec<String>, ids: Vec<String>, skip_dashed: bool) 
 
     bindings
 }
+
+/// Process global style macro - validates but doesn't scope or generate bindings
+pub fn process_global_style_macro(input: TokenStream) -> StyleOutput {
     // 1. Parse the input
     let style_input: StyleInput = match parse2(input.clone()) {
         Ok(input) => input,
@@ -531,26 +533,7 @@ fn generate_bindings(classes: Vec<String>, ids: Vec<String>, skip_dashed: bool) 
     let (classes, ids) = extract_selectors(&raw_css);
 
     // 4. Generate Bindings for both classes and IDs (without scoping)
-    let mut bindings = TokenStream::new();
-
-    // Generate class bindings (no scoping, just the original class name)
-    for class in classes {
-        let snake_name = class.to_snake_case();
-        let ident = format_ident!("{}", snake_name);
-
-        bindings.extend(quote! {
-            let #ident = #class;
-        });
-    }
-
-    // Generate ID bindings (no scoping, just the original ID)
-    for id in ids {
-        let ident = format_ident!("{}", id);
-
-        bindings.extend(quote! {
-            let #ident = #id;
-        });
-    }
+    let bindings = generate_bindings(classes, ids, false);
 
     // 5. Return unscoped CSS with bindings
     StyleOutput {
