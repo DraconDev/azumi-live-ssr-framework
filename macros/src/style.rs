@@ -473,11 +473,9 @@ fn generate_bindings(classes: Vec<String>, ids: Vec<String>, skip_dashed: bool) 
     let mut skipped_dashed_classes: Vec<String> = Vec::new();
 
     for class in classes {
-        if class.contains('-') {
-            if skip_dashed {
-                skipped_dashed_classes.push(class);
-                continue;
-            }
+        if class.contains('-') && skip_dashed {
+            skipped_dashed_classes.push(class);
+            continue;
         }
         let snake_name = class.to_snake_case();
         let ident = format_ident!("{}", snake_name);
