@@ -1,10 +1,11 @@
-# cargo-deny configuration
-# Run: cargo deny check
+[graph]
+targets = []
+
+[output]
+feature-depth = 1
 
 [advisories]
-db-path = "~/.cargo/advisory-db"
-vulnerability = "deny"
-unmaintained = "warn"
+ignore = []
 
 [licenses]
 allow = [
@@ -19,13 +20,24 @@ allow = [
     "Unlicense",
     "CC0-1.0",
 ]
-copyleft = "warn"
-default = "deny"
+confidence-threshold = 0.8
+
+[licenses.private]
+ignore = false
 
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
+highlight = "all"
+workspace-default-features = "allow"
+external-default-features = "allow"
+allow = []
+deny = []
+skip = []
+skip-tree = []
 
 [sources]
 unknown-registry = "deny"
 unknown-git = "warn"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
