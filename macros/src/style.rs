@@ -564,7 +564,7 @@ pub fn process_style_macro(input: TokenStream) -> StyleOutput {
     // Note: We do NOT rename classes here (e.g. .class-s123).
     // Instead, we use Attribute Scoping in generate_body (macros/src/lib.rs).
     // So we just bind `let class = "class";` and the runtime adds `[data-sID]` to the CSS and element.
-    let bindings = generate_bindings(classes, ids, true);
+    let bindings = generate_bindings(classes.into_iter().collect(), ids.into_iter().collect(), true);
 
     StyleOutput {
         bindings,
