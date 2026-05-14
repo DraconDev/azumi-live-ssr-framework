@@ -93,6 +93,8 @@ azumi/
 │   ├── script.rs                       # TrustedHtml, azumi_script(), escape helpers
 │   ├── seo.rs                          # SEO helpers (uses Raw internally, outside html!)
 │   ├── security.rs                     # HMAC state signing
+│   ├── csp.rs                          # ContentSecurityPolicy builder + CspNonce + Axum middleware
+│   ├── streaming.rs                    # SSE helpers (SseEvent, sse())
 │   ├── test/mod.rs                     # Test utilities (render, assert_selector)
 │   └── context.rs                      # Page metadata context
 ├── tests/

@@ -1,8 +1,21 @@
-error: Azumi: `@{Raw(...)}` is not allowed inside `html!`.
-  It bypasses all escaping and is a major XSS risk.
-  Found in attribute `class`.
-  Use safe interpolation `{value}` or auto-escaping tags instead.
+error: Azumi: `@{{Raw(...)}}` is not allowed inside `html!`.
+       It bypasses all escaping and is a major XSS risk.
+       Found in attribute `class`.
+       Use safe interpolation `{{value}}` or auto-escaping tags instead.
  --> tests/ui/13-raw-in-attribute.rs:5:22
   |
-5 |         <div class={Raw("test")}></div>
-  |                      ^
+5 |       let _component = html! {
+  |  ______________________^
+6 | |         <div class={Raw("test")}></div>
+7 | |     };
+  | |_____^
+  |
+  = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused import: `azumi::Raw`
+ --> tests/ui/13-raw-in-attribute.rs:2:5
+  |
+2 | use azumi::Raw;
+  |     ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

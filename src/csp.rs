@@ -221,13 +221,28 @@ impl CspNonce {
     /// Uses 16 bytes of randomness base64-encoded (128 bits of entropy).
     /// This meets the [CSP spec recommendation](https://w3c.github.io/webappsec-csp/#security-nonce-size)
     /// of at least 128 bits.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the system random number generator is unavailable.
+    /// This is deliberate — a missing CSP nonce is a security downgrade.
+    /// For environments where this may fail (e.g., early boot), use [`CspNonce::try_generate`].
     pub fn generate() -> Self {
+        Self::try_generate().expect("failed to generate CSP nonce: system RNG unavailable")
+    }
+
+    /// Try to generate a nonce, returning `Err` if the system RNG is unavailable.
+    ///
+    /// Use this in environments where the RNG may not be available (e.g.,
+    /// embedded, early boot, or sandboxed contexts). On success, the nonce
+    /// has the same properties as [`CspNonce::generate`].
+    pub fn try_generate() -> Result<Self, getrandom::Error> {
         use base64::engine::general_purpose::STANDARD;
         use base64::Engine;
 
         let mut bytes = [0u8; 16];
-        getrandom::fill(&mut bytes).expect("failed to generate random nonce");
-        CspNonce(STANDARD.encode(bytes))
+        getrandom::fill(&mut bytes)?;
+        Ok(CspNonce(STANDARD.encode(bytes)))
     }
 
     /// Get the nonce value as a string for use in HTML attributes.
@@ -478,5 +493,11 @@ mod tests {
         assert!(!csp.contains("'unsafe-inline'"));
         assert!(csp.contains("form-action 'self'"));
         assert!(csp.contains("frame-ancestors 'none'"));
+    }
+
+    #[test]
+    fn test_try_generate_ok() {
+        let nonce = CspNonce::try_generate().expect("try_generate should succeed on standard systems");
+        assert_eq!(nonce.as_str().len(), 24);
     }
 }
