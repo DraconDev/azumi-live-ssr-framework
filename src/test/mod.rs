@@ -19,6 +19,16 @@ pub fn render(component: &impl Component) -> String {
     crate::render_to_string(component)
 }
 
+/// Renders a component to a `Vec<u8>` via `render_to_writer`.
+///
+/// Useful for testing that `render_to_writer` produces the same output
+/// as `render_to_string`.
+pub fn render_to_vec(component: &impl Component) -> Vec<u8> {
+    let mut buf = Vec::new();
+    crate::render_to_writer(component, &mut buf).expect("render_to_writer should not fail");
+    buf
+}
+
 /// Parses HTML and asserts that a selector exists and optionally matches text.
 ///
 /// # Example

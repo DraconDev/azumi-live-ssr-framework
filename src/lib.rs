@@ -4,7 +4,7 @@ pub mod prelude {
     pub use crate::{
         azumi_script, component, html, json_data, live,
         session_cleanup_script, AzumiScript, Component, escape_css_string,
-        from_fn, FnComponent,
+        from_fn, FnComponent, render_to_writer,
     };
     pub use crate::form::{FormValidator, ValidatedForm, ValidationErrors};
 }
@@ -391,11 +391,47 @@ where
 pub fn render_to_string<C: Component + ?Sized>(component: &C) -> String {
     struct DisplayWrapper<'a, C: Component + ?Sized>(&'a C);
     impl<'a, C: Component + ?Sized> std::fmt::Display for DisplayWrapper<'a, C> {
-fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-self.0.render(_f)
+ fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+ self.0.render(_f)
         }
     }
     format!("{}", DisplayWrapper(component))
+}
+
+/// Render a component directly to a `Write` implementation.
+///
+/// Avoids the intermediate `String` allocation of `render_to_string`.
+/// Useful for writing directly to a response body or buffer.
+pub fn render_to_writer<C: Component + ?Sized, W: std::io::Write>(
+    component: &C,
+    writer: &mut W,
+) -> std::io::Result<()> {
+    struct IoAdapter<'a, 'b, W: std::io::Write> {
+        inner: &'a mut W,
+        _marker: std::marker::PhantomData<&'b ()>,
+    }
+
+    impl<W: std::io::Write> std::fmt::Write for IoAdapter<'_, '_, W> {
+        fn write_str(&mut self, s: &str) -> std::fmt::Result {
+            self.inner.write_all(s.as_bytes()).map_err(|_| std::fmt::Error)
+        }
+    }
+
+    struct FmtToIoComponent<'a, C: Component + ?Sized>(&'a C);
+    impl<C: Component + ?Sized> std::fmt::Display for FmtToIoComponent<'_, C> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.render(f)
+        }
+    }
+
+    let mut adapter = IoAdapter {
+        inner: writer,
+        _marker: std::marker::PhantomData,
+    };
+    write!(adapter, "{}", FmtToIoComponent(component)).map_err(|_| std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "failed to render component to writer",
+    ))
 }
 
 pub struct Escaped<T: std::fmt::Display>(pub T);
