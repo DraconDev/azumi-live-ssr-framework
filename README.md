@@ -177,7 +177,7 @@ azumi/
 
 ## Stability Promise
 
-**Current release:** `v47.20.46` — rapid iteration phase to find the right API shape.
+**Current release:** `v47.20.137` — rapid iteration phase to find the right API shape.
 
 **Starting with v48.0.0:** Azumi follows strict [Semantic Versioning](https://semver.org/):
 
