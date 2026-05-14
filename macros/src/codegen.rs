@@ -166,7 +166,7 @@ pub(crate) fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 // Core code-generation function
 // ---------------------------------------------------------------------------
 
-/// Recursively generate `write!(f, ...)` instructions for a list of AST nodes.
+/// Recursively generate `write!(#f_ident, ...)` instructions for a list of AST nodes.
 ///
 /// The `ctx` parameter carries rendering mode (Normal / Script / Style),
 /// CSS scope ID, and valid class/ID sets so that child nodes are generated
@@ -184,7 +184,7 @@ pub(crate) fn generate_body_with_context(
                 let content = &text.content;
                 if !content.is_empty() {
                     instructions.push(quote! {
-                        write!(f, "{}", azumi::Escaped(#content))?;
+                        write!(#f_ident, "{}", azumi::Escaped(#content))?;
                     });
                 }
             }
@@ -192,7 +192,7 @@ pub(crate) fn generate_body_with_context(
                 let content = &text.content;
                 if !content.is_empty() {
                     instructions.push(quote! {
-                        write!(f, "{}", #content)?;
+                        write!(#f_ident, "{}", #content)?;
                     });
                 }
             }
@@ -200,7 +200,7 @@ pub(crate) fn generate_body_with_context(
                 let name = &elem.name;
 
                 instructions.push(quote! {
-                   write!(f, "<{}", #name)?;
+                   write!(#f_ident, "<{}", #name)?;
                 });
 
                 for attr in &elem.attrs {
@@ -215,12 +215,12 @@ pub(crate) fn generate_body_with_context(
                                     // Evaluate the expression and escape for HTML attribute
                                     instructions.push(quote! {
                                         let __scope_val: String = #tokens;
-                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&__scope_val))?;
+                                        write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(&__scope_val))?;
                                     });
                                 }
                                 token_parser::AttributeValue::Static(val) => {
                                     instructions.push(quote! {
-                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                        write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                     });
                                 }
                                 _ => {}
@@ -233,12 +233,12 @@ pub(crate) fn generate_body_with_context(
                             token_parser::AttributeValue::Dynamic(tokens) => {
                                 let s = tokens.to_string(); // Stringify tokens
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#s))?;
+                                    write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(&#s))?;
                                 });
                             }
                             token_parser::AttributeValue::Static(val) => {
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                    write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                 });
                             }
                             _ => {}
@@ -281,7 +281,7 @@ pub(crate) fn generate_body_with_context(
                                     attr_name.strip_prefix("on:").unwrap_or(attr_name);
                                 let dsl = format!("{} call {}", event_name, s);
                                 instructions.push(quote! {
-                                    write!(f, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
+                                    write!(#f_ident, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
                                 });
                             }
                             token_parser::AttributeValue::Static(val) => {
@@ -289,7 +289,7 @@ pub(crate) fn generate_body_with_context(
                                     attr_name.strip_prefix("on:").unwrap_or(attr_name);
                                 let dsl = format!("{} call {}", event_name, val);
                                 instructions.push(quote! {
-                                    write!(f, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
+                                    write!(#f_ident, " az-on=\"{}\"", azumi::Escaped(&#dsl))?;
                                 });
                             }
                             _ => {}
@@ -301,7 +301,7 @@ pub(crate) fn generate_body_with_context(
                         match &attr.value {
                             token_parser::AttributeValue::Static(val) => {
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                    write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                 });
                             }
                             token_parser::AttributeValue::Dynamic(tokens) => {
@@ -315,12 +315,12 @@ pub(crate) fn generate_body_with_context(
                                             format_args.push(quote! { #e });
                                         }
                                         instructions.push(quote! {
-                                            write!(f, " class=\"{}\"", azumi::Escaped(&format!(#fmt, #(#format_args),*)))?;
+                                            write!(#f_ident, " class=\"{}\"", azumi::Escaped(&format!(#fmt, #(#format_args),*)))?;
                                         });
                                     }
                                     _ => {
                                         instructions.push(quote! {
-                                            write!(f, " class=\"{}\"", azumi::Escaped(&#tokens))?;
+                                            write!(#f_ident, " class=\"{}\"", azumi::Escaped(&#tokens))?;
                                         });
                                     }
                                 }
@@ -334,27 +334,27 @@ pub(crate) fn generate_body_with_context(
                         match &attr.value {
                             token_parser::AttributeValue::StyleDsl(props) => {
                                 instructions
-                                    .push(quote! { write!(f, " style=\"")?; });
+                                    .push(quote! { write!(#f_ident, " style=\"")?; });
                                 for (i, (key, val)) in props.iter().enumerate() {
                                     if i > 0 {
                                         instructions
-                                            .push(quote! { write!(f, "; ")?; });
+                                            .push(quote! { write!(#f_ident, "; ")?; });
                                     }
                                     instructions.push(quote! {
-                                        write!(f, "{}: {}", azumi::Escaped(&#key), azumi::escape_css_string(&#val))?;
+                                        write!(#f_ident, "{}: {}", azumi::Escaped(&#key), azumi::escape_css_string(&#val))?;
                                     });
                                 }
-                                instructions.push(quote! { write!(f, "\"")?; });
+                                instructions.push(quote! { write!(#f_ident, "\"")?; });
                             }
                             _ => match &attr.value {
                                 token_parser::AttributeValue::Static(val) => {
                                     instructions.push(quote! {
-                                        write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                        write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                     });
                                 }
                                 token_parser::AttributeValue::Dynamic(expr) => {
                                     instructions.push(quote! {
-                                              write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#expr))?;
+                                              write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(&#expr))?;
                                           });
                                 }
                                 _ => {}
@@ -365,17 +365,17 @@ pub(crate) fn generate_body_with_context(
                     match &attr.value {
                             token_parser::AttributeValue::Static(val) => {
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
+                                    write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(#val))?;
                                 });
                             }
                             token_parser::AttributeValue::Dynamic(expr) => {
                                 instructions.push(quote! {
-                                    write!(f, " {}=\"{}\"", #attr_name, azumi::Escaped(&#expr))?;
+                                    write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(&#expr))?;
                                 });
                             }
                             token_parser::AttributeValue::None => {
                                 instructions.push(quote! {
-                                    write!(f, " {}", #attr_name)?;
+                                    write!(#f_ident, " {}", #attr_name)?;
                                 });
                             }
                             _ => {}
@@ -384,12 +384,12 @@ pub(crate) fn generate_body_with_context(
 
                 if let Some(sid) = &ctx.scope_id {
                     instructions.push(quote! {
-                        write!(f, " data-{}=\"{}\"", #sid, #sid)?;
+                        write!(#f_ident, " data-{}=\"{}\"", #sid, #sid)?;
                     });
                 }
 
                 instructions.push(quote! {
-                   write!(f, ">")?;
+                   write!(#f_ident, ">")?;
                 });
 
                 let child_ctx = ctx.with_mode(if name == "script" {
@@ -408,7 +408,7 @@ pub(crate) fn generate_body_with_context(
                 ];
                 if !void_elements.contains(&name.as_str()) {
                     instructions.push(quote! {
-                        write!(f, "</{}>", #name)?;
+                        write!(#f_ident, "</{}>", #name)?;
                     });
                 }
             }
@@ -417,17 +417,17 @@ pub(crate) fn generate_body_with_context(
                 match ctx.mode {
                     Context::Script => {
                         instructions.push(quote! {
-                            write!(f, "{}", azumi::escape_script_content(&(#tokens)))?;
+                            write!(#f_ident, "{}", azumi::escape_script_content(&(#tokens)))?;
                         });
                     }
                     Context::Style => {
                         instructions.push(quote! {
-                            write!(f, "{}", azumi::escape_style_content(&(#tokens)))?;
+                            write!(#f_ident, "{}", azumi::escape_style_content(&(#tokens)))?;
                         });
                     }
                     Context::Normal => {
                         instructions.push(quote! {
-                            azumi::RenderWrapper(&(#tokens)).render_azumi(f)?;
+                            azumi::RenderWrapper(&(#tokens)).render_azumi(#f_ident)?;
                         });
                     }
                 }
@@ -508,20 +508,20 @@ pub(crate) fn generate_body_with_context(
 
                     if call_block.children.is_empty() {
                         instructions.push(quote! {
-                            azumi::RenderWrapper(&#func_mod_path::render(#builder_expr)).render_azumi(f)?;
+                            azumi::RenderWrapper(&#func_mod_path::render(#builder_expr)).render_azumi(#f_ident)?;
                         });
                     } else {
                         let children_body =
                             generate_body_with_context(&call_block.children, ctx);
                         let children_arg = quote! {
-                            azumi::from_fn_once(move |f| {
+                            azumi::from_fn_once(move |#f_ident| {
                                 #children_body
                                 Ok(())
                             })
                         };
 
                         instructions.push(quote! {
-                            azumi::RenderWrapper(&#func_mod_path::render(#builder_expr, #children_arg)).render_azumi(f)?;
+                            azumi::RenderWrapper(&#func_mod_path::render(#builder_expr, #children_arg)).render_azumi(#f_ident)?;
                         });
                     }
                 }
