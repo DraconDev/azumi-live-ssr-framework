@@ -241,7 +241,7 @@ fn generate_body(
             body_content
         } else {
             quote! {
-                write!(f, "{}", #css_to_inject)?;
+                write!(#f_ident, "{}", #css_to_inject)?;
                 #body_content
             }
         }

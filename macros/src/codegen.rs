@@ -166,7 +166,7 @@ pub(crate) fn azumi_scope_id_from_span(line: usize, col: usize) -> String {
 // Core code-generation function
 // ---------------------------------------------------------------------------
 
-/// Recursively generate `write!(#f_ident, ...)` instructions for a list of AST nodes.
+/// Recursively generate `write!` instructions for a list of AST nodes.
 ///
 /// The `ctx` parameter carries rendering mode (Normal / Script / Style),
 /// CSS scope ID, and valid class/ID sets so that child nodes are generated
@@ -400,7 +400,7 @@ pub(crate) fn generate_body_with_context(
                     ctx.mode
                 });
                 instructions
-                    .push(generate_body_with_context(&elem.children, &child_ctx));
+                    .push(generate_body_with_context(&elem.children, &child_ctx, f_ident));
 
                 let void_elements = [
                     "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
@@ -433,16 +433,16 @@ pub(crate) fn generate_body_with_context(
                 }
             }
             token_parser::Node::Fragment(frag) => {
-                instructions.push(generate_body_with_context(&frag.children, ctx));
+                instructions.push(generate_body_with_context(&frag.children, ctx, f_ident));
             }
             token_parser::Node::Block(block) => match block {
                 token_parser::Block::If(if_block) => {
                     let cond = &if_block.condition;
                     let then_body =
-                        generate_body_with_context(&if_block.then_branch, ctx);
+                        generate_body_with_context(&if_block.then_branch, ctx, f_ident);
                     let else_part = if let Some(else_branch) = &if_block.else_branch {
                         let else_body =
-                            generate_body_with_context(else_branch, ctx);
+                            generate_body_with_context(else_branch, ctx, f_ident);
                         quote! { else { #else_body } }
                     } else {
                         quote! {}
@@ -457,7 +457,7 @@ pub(crate) fn generate_body_with_context(
                 token_parser::Block::For(for_block) => {
                     let pat = &for_block.pattern;
                     let iter = &for_block.iterator;
-                    let body = generate_body_with_context(&for_block.body, ctx);
+                    let body = generate_body_with_context(&for_block.body, ctx, f_ident);
 
                     instructions.push(quote! {
                         for #pat in #iter {
@@ -470,7 +470,7 @@ pub(crate) fn generate_body_with_context(
                     let mut arms = Vec::new();
                     for arm in &match_block.arms {
                         let pat = &arm.pattern;
-                        let body = generate_body_with_context(&arm.body, ctx);
+                        let body = generate_body_with_context(&arm.body, ctx, f_ident);
                         arms.push(quote! {
                             #pat => { #body }
                         });
@@ -512,7 +512,7 @@ pub(crate) fn generate_body_with_context(
                         });
                     } else {
                         let children_body =
-                            generate_body_with_context(&call_block.children, ctx);
+                            generate_body_with_context(&call_block.children, ctx, f_ident);
                         let children_arg = quote! {
                             azumi::from_fn_once(move |#f_ident| {
                                 #children_body
