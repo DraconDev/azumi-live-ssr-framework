@@ -55,6 +55,42 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                 for child in &elem.children {
                     check_node(child, errors);
                 }
+                // Rule: Raw() is also banned inside attribute values
+                for attr in &elem.attrs {
+                    match &attr.value {
+                        crate::token_parser::AttributeValue::Dynamic(tokens) => {
+                            let normalized = tokens.to_string().replace(' ', "");
+                            if normalized.contains("Raw(") {
+                                let attr_name = &attr.name;
+                                errors.push(quote! {
+                                    compile_error!(concat!(
+                                        "Azumi: `@{{Raw(...)}}` is not allowed inside `html!`.\n",
+                                        "It bypasses all escaping and is a major XSS risk.\n",
+                                        "Found in attribute `", #attr_name, "`.\n",
+                                        "Use safe interpolation `{{value}}` or auto-escaping tags instead."
+                                    ));
+                                });
+                            }
+                        }
+                        crate::token_parser::AttributeValue::StyleDsl(pairs) => {
+                            for (_, value_tokens) in pairs {
+                                let normalized = value_tokens.to_string().replace(' ', "");
+                                if normalized.contains("Raw(") {
+                                    let attr_name = &attr.name;
+                                    errors.push(quote! {
+                                        compile_error!(concat!(
+                                            "Azumi: `@{{Raw(...)}}` is not allowed inside `html!`.\n",
+                                            "It bypasses all escaping and is a major XSS risk.\n",
+                                            "Found in style DSL of attribute `", #attr_name, "`.\n",
+                                            "Use safe interpolation `{{value}}` or auto-escaping tags instead."
+                                        ));
+                                    });
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
             }
             Node::Fragment(frag) => {
                 for child in &frag.children {
