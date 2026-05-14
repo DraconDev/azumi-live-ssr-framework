@@ -533,7 +533,7 @@ pub fn process_global_style_macro(input: TokenStream) -> StyleOutput {
     let (classes, ids) = extract_selectors(&raw_css);
 
     // 4. Generate Bindings for both classes and IDs (without scoping)
-    let bindings = generate_bindings(classes, ids, false);
+    let bindings = generate_bindings(classes.into_iter().collect(), ids.into_iter().collect(), false);
 
     // 5. Return unscoped CSS with bindings
     StyleOutput {
