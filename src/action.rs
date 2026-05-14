@@ -182,10 +182,12 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
     let msg = escape_html(&message.into());
     let retry = form_id.map(|id| {
+        // Escape for BOTH JavaScript and HTML contexts since this goes into an HTML attribute
         let safe_id = escape_js_string(id);
+        let safe_id_html = escape_html(&safe_id);
         format!(
             r#"<button type="button" onclick="document.getElementById('{}').style.display='flex';this.parentElement.remove()" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
-            safe_id
+            safe_id_html
         )
     });
 
