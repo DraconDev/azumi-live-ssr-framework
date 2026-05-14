@@ -1012,9 +1012,9 @@ fn parse_script_content(input: ParseStream, tag_name: &str) -> Result<Vec<Node>>
             if !tokens.is_empty() {
                 let content = tokens_to_string(&tokens);
                 if debug {
-                    eprintln!("Created Text node: {:?}", content);
+                    eprintln!("Created RawText node: {:?}", content);
                 }
-                nodes.push(Node::Text(Text { content, span }));
+                nodes.push(Node::RawText(Text { content, span }));
             }
         }
     }
