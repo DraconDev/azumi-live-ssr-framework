@@ -55,6 +55,7 @@ pub struct ContentSecurityPolicy {
 
 impl ContentSecurityPolicy {
     /// Create a new empty CSP builder.
+    #[must_use]
     pub fn new() -> Self {
         ContentSecurityPolicy {
             directives: Vec::new(),
@@ -69,6 +70,7 @@ impl ContentSecurityPolicy {
     /// - `form-action 'self'`
     /// - `base-uri 'self'`
     /// - `frame-ancestors 'none'`
+    #[must_use]
     pub fn azumi_defaults() -> Self {
         Self::new()
             .default_src("'self'")
@@ -86,6 +88,7 @@ impl ContentSecurityPolicy {
     /// with per-request nonces for stronger XSS protection.
     ///
     /// Requires that `<style>` and `<script>` tags include `nonce="{nonce}"`.
+    #[must_use]
     pub fn azumi_nonce_defaults(nonce: &CspNonce) -> Self {
         Self::new()
             .default_src("'self'")
@@ -102,22 +105,27 @@ impl ContentSecurityPolicy {
         self
     }
 
+    #[must_use]
     pub fn default_src(self, value: &str) -> Self {
         self.add_directive("default-src", value)
     }
 
+    #[must_use]
     pub fn script_src(self, value: &str) -> Self {
         self.add_directive("script-src", value)
     }
 
+    #[must_use]
     pub fn style_src(self, value: &str) -> Self {
         self.add_directive("style-src", value)
     }
 
+    #[must_use]
     pub fn img_src(self, value: &str) -> Self {
         self.add_directive("img-src", value)
     }
 
+    #[must_use]
     pub fn font_src(self, value: &str) -> Self {
         self.add_directive("font-src", value)
     }
