@@ -649,6 +649,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
                 match serde_json::to_string(self) {
                     Ok(json) => azumi::security::sign_state(&json),
                     Err(e) => {
+                        #[cfg(debug_assertions)]
                         eprintln!("Azumi Warning: Failed to serialize LiveState: {}", e);
                         String::new()
                     }

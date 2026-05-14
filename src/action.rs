@@ -51,11 +51,13 @@ pub enum ActionResult {
 
 impl ActionResult {
     /// Create a success result from any Component.
+    #[must_use = "ActionResult must be returned from a handler to produce a response"]
     pub fn ok<C: Component + ?Sized>(component: &C) -> Self {
         Self::Ok(crate::render_to_string(component))
     }
 
     /// Create an error result.
+    #[must_use = "ActionResult must be returned from a handler to produce a response"]
     pub fn err(message: impl Into<String>) -> Self {
         Self::Err {
             message: message.into(),
@@ -64,6 +66,7 @@ impl ActionResult {
     }
 
     /// Create an error result with a form ID for retry UI.
+    #[must_use = "ActionResult must be returned from a handler to produce a response"]
     pub fn err_with_form(message: impl Into<String>, form_id: impl Into<String>) -> Self {
         Self::Err {
             message: message.into(),
@@ -72,6 +75,7 @@ impl ActionResult {
     }
 
     /// Create a redirect result.
+    #[must_use = "ActionResult must be returned from a handler to produce a response"]
     pub fn redirect(url: impl Into<String>) -> Self {
         Self::Redirect(url.into())
     }
