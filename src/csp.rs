@@ -101,6 +101,11 @@ impl ContentSecurityPolicy {
     }
 
     fn add_directive(mut self, name: &str, value: &str) -> Self {
+        assert!(
+            !value.contains(';'),
+            "CSP directive value must not contain ';' — it is the directive delimiter. \
+             Found in {name}: {value:?}"
+        );
         if let Some(existing) = self.directives.iter_mut().find(|(n, _)| n == name) {
             existing.1 = value.to_string();
         } else {
@@ -194,6 +199,9 @@ impl ContentSecurityPolicy {
     /// If the same directive was set multiple times, the last value wins
     /// (per CSP spec, only the first occurrence is used by browsers, so
     /// this builder deduplicates to match intended behavior).
+    ///
+    /// **Note:** Directive values containing `;` are rejected — semicolons
+    /// are the CSP directive delimiter and cannot appear inside values.
     #[must_use]
     pub fn build(&self) -> String {
         let mut seen = std::collections::HashSet::new();
@@ -209,8 +217,6 @@ impl ContentSecurityPolicy {
             .map(|(name, value)| {
                 if value.is_empty() {
                     name.clone()
-                } else if value.contains(';') {
-                    format!("{} {}", name, value.replace(';', "\\;"))
                 } else {
                     format!("{} {}", name, value)
                 }
@@ -610,10 +616,10 @@ mod tests {
     }
 
     #[test]
-    fn test_semicolon_escaped_in_value() {
-        let csp = ContentSecurityPolicy::new()
+    #[should_panic(expected = "must not contain ';'")]
+    fn test_semicolon_rejected_in_value() {
+        ContentSecurityPolicy::new()
             .script_src("'self'; style-src 'unsafe-inline'")
             .build();
-        assert!(!csp.contains("; style-src"), "semicolon should be escaped, not split directive");
     }
 }
