@@ -507,7 +507,7 @@ pub(crate) fn generate_body_with_context(
 
                     if call_block.children.is_empty() {
                         instructions.push(quote! {
-                            #func_mod_path::render(#builder_expr).render(f)?;
+                            azumi::RenderWrapper(&#func_mod_path::render(#builder_expr)).render_azumi(f)?;
                         });
                     } else {
                         let children_body =
@@ -520,7 +520,7 @@ pub(crate) fn generate_body_with_context(
                         };
 
                         instructions.push(quote! {
-                            #func_mod_path::render(#builder_expr, #children_arg).render(f)?;
+                            azumi::RenderWrapper(&#func_mod_path::render(#builder_expr, #children_arg)).render_azumi(f)?;
                         });
                     }
                 }

@@ -1,23 +1,44 @@
-use azumi::{html, Component, from_fn_once, RenderWrapper};
-use std::fmt;
+use azumi::{html, Component};
 
 #[azumi::component]
-fn MyComp() -> impl Component {
+fn ChildComp() -> impl Component {
     html! {
-        <div>"Hello"</div>
+        <div>"Child"</div>
     }
 }
 
-// Test using RenderWrapper instead of direct .render()
+#[azumi::component]
+fn ParentComp() -> impl Component {
+    html! {
+        <div>
+            @ChildComp()
+        </div>
+    }
+}
+
 #[test]
-fn test_workaround_render_wrapper() {
-    let comp = from_fn_once(move |f: &mut fmt::Formatter<'_>| {
-        RenderWrapper(&MyComp::render(
-            MyComp::Props::builder().build().expect("Missing required props"),
-        ))
-        .render_azumi(f)?;
-        Ok(())
-    });
+fn test_parent_renders() {
+    let comp = ParentComp::render(ParentComp::Props::builder().build().expect("missing"));
+    let output = azumi::test::render(&comp);
+    assert!(output.contains("Child"));
+}
+
+#[test]
+fn test_component_call_top_level() {
+    let comp = html! { @ChildComp() };
+    let output = azumi::test::render(&comp);
+    assert!(output.contains("Child"));
+}
+
+#[test]
+fn test_component_call_with_props() {
+    #[azumi::component]
+    fn Greet(name: String) -> impl Component {
+        html! {
+            <div>"Hello "{&name}</div>
+        }
+    }
+    let comp = html! { @Greet(name = "World".to_string()) };
     let output = azumi::test::render(&comp);
     assert!(output.contains("Hello"));
 }
