@@ -466,7 +466,53 @@ fn validate_hex_color(value: &str) -> Option<String> {
 }
 
 /// Process global style macro - validates but doesn't scope or generate bindings
-pub fn process_global_style_macro(input: TokenStream) -> StyleOutput {
+/// Generate bindings for classes and IDs extracted from CSS.
+/// When `skip_dashed` is true, dashed class/ID names are skipped (for process_style_macro).
+/// When `skip_dashed` is false, all names are included (for process_global_style_macro).
+fn generate_bindings(classes: Vec<String>, ids: Vec<String>, skip_dashed: bool) -> TokenStream {
+    let mut bindings = TokenStream::new();
+    let mut skipped_dashed_classes: Vec<String> = Vec::new();
+
+    for class in classes {
+        if class.contains('-') {
+            if skip_dashed {
+                skipped_dashed_classes.push(class);
+                continue;
+            }
+        }
+        let snake_name = class.to_snake_case();
+        let ident = format_ident!("{}", snake_name);
+
+        bindings.extend(quote! {
+            let #ident = #class;
+        });
+    }
+
+    if skip_dashed && !skipped_dashed_classes.is_empty() {
+        let class_list: Vec<String> = skipped_dashed_classes
+            .iter()
+            .map(|s| format!("'.{}'", s))
+            .collect();
+        eprintln!(
+            "WARNING: Dashed CSS classes cannot be used as Rust bindings: {} \
+             These must use class={{\"class-name\"}} syntax, not class={{dashed_name}}.",
+            class_list.join(", ")
+        );
+    }
+
+    for id in ids {
+        if id.contains('-') && skip_dashed {
+            continue;
+        }
+        let ident = format_ident!("{}", id);
+
+        bindings.extend(quote! {
+            let #ident = #id;
+        });
+    }
+
+    bindings
+}
     // 1. Parse the input
     let style_input: StyleInput = match parse2(input.clone()) {
         Ok(input) => input,
