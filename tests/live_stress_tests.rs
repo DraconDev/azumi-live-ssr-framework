@@ -1,4 +1,4 @@
-use azumi::{html, test, Component};
+use azumi::{html, test};
 
 // ════════════════════════════════════════════════════════════════════════════
 // Counter Component Module

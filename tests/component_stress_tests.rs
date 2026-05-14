@@ -1,4 +1,4 @@
-use azumi::{html, test, Component};
+use azumi::{html, test};
 
 // Since I don't have paste crate available in the workspace easily without adding it,
 // I will just write a macro that takes the name manually or just create them.

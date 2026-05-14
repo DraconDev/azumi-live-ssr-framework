@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo test --features test-utils
 
-use azumi::{from_fn_once, html, test, Component, FnOnceComponent};
+use azumi::{from_fn_once, html, test, FnOnceComponent};
 
 // ════════════════════════════════════════════════════════════════════════════
 // SECTION 1: Basic FnOnceComponent Functionality (6 tests)
