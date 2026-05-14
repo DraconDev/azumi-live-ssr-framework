@@ -142,6 +142,10 @@ pub trait LiveState:
 
     /// Attempt to serialize state to a signed scope string.
     /// Returns an error if serialization fails instead of panicking.
+    ///
+    /// Prefer this over `to_scope()` in production code where serialization
+    /// failures should be handled gracefully rather than causing a panic.
+    #[inline]
     fn try_to_scope(&self) -> Result<String, serde_json::Error> {
         let json = serde_json::to_string(self)?;
         Ok(crate::security::sign_state(&json))
@@ -381,6 +385,7 @@ where
     FnOnceComponent::from_fn_once(f)
 }
 
+#[inline]
 #[must_use]
 pub fn render_to_string<C: Component + ?Sized>(component: &C) -> String {
     struct DisplayWrapper<'a, C: Component + ?Sized>(&'a C);
@@ -423,6 +428,7 @@ impl<T: std::fmt::Display> std::fmt::Display for Escaped<T> {
 /// Escape a string for safe inclusion in a CSS property value.
 /// Prevents CSS injection by escaping semicolons, backslashes, braces, quotes, and forward slashes.
 /// Forward slashes are escaped to prevent `</style>` injection attacks.
+#[inline]
 #[must_use]
 pub fn escape_css_string(s: &str) -> String {
     let mut result = String::with_capacity(s.len());

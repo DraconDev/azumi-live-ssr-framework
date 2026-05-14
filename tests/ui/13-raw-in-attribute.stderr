@@ -1,0 +1,8 @@
+error: Azumi: `@{Raw(...)}` is not allowed inside `html!`.
+  It bypasses all escaping and is a major XSS risk.
+  Found in attribute `class`.
+  Use safe interpolation `{value}` or auto-escaping tags instead.
+ --> tests/ui/13-raw-in-attribute.rs:5:20
+  |
+5 |         <div class={Raw("test")}></div>
+  |                    ^

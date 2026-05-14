@@ -17,6 +17,7 @@ use crate::Component;
 /// let css = escape_tag_content(".btn { color: red; } </style>", "style");
 /// assert_eq!(css, r".btn { color: red; } <\/style>");
 /// ```
+#[inline]
 #[must_use]
 pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
     if tag_name.is_empty() {
@@ -76,6 +77,7 @@ pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
 /// Escape `</script>` in JavaScript strings (case-insensitive) to prevent XSS.
 /// 
 /// Delegates to [`escape_tag_content`] with tag_name="script".
+#[inline]
 #[must_use]
 pub fn escape_script_content(js: &str) -> String {
     escape_tag_content(js, "script")
@@ -84,6 +86,7 @@ pub fn escape_script_content(js: &str) -> String {
 /// Escape `</style>` in CSS strings (case-insensitive) to prevent XSS.
 /// 
 /// Delegates to [`escape_tag_content`] with tag_name="style".
+#[inline]
 #[must_use]
 pub fn escape_style_content(css: &str) -> String {
     escape_tag_content(css, "style")
