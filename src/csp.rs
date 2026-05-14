@@ -101,70 +101,87 @@ impl ContentSecurityPolicy {
     }
 
     fn add_directive(mut self, name: &str, value: &str) -> Self {
-        self.directives.push((name.to_string(), value.to_string()));
+        if let Some(existing) = self.directives.iter_mut().find(|(n, _)| n == name) {
+            existing.1 = value.to_string();
+        } else {
+            self.directives.push((name.to_string(), value.to_string()));
+        }
         self
     }
 
+    /// Set the `default-src` directive.
     #[must_use]
     pub fn default_src(self, value: &str) -> Self {
         self.add_directive("default-src", value)
     }
 
+    /// Set the `script-src` directive.
     #[must_use]
     pub fn script_src(self, value: &str) -> Self {
         self.add_directive("script-src", value)
     }
 
+    /// Set the `style-src` directive.
     #[must_use]
     pub fn style_src(self, value: &str) -> Self {
         self.add_directive("style-src", value)
     }
 
+    /// Set the `img-src` directive.
     #[must_use]
     pub fn img_src(self, value: &str) -> Self {
         self.add_directive("img-src", value)
     }
 
+    /// Set the `font-src` directive.
     #[must_use]
     pub fn font_src(self, value: &str) -> Self {
         self.add_directive("font-src", value)
     }
 
+    /// Set the `connect-src` directive.
     #[must_use]
     pub fn connect_src(self, value: &str) -> Self {
         self.add_directive("connect-src", value)
     }
 
+    /// Set the `media-src` directive.
     #[must_use]
     pub fn media_src(self, value: &str) -> Self {
         self.add_directive("media-src", value)
     }
 
+    /// Set the `object-src` directive.
     #[must_use]
     pub fn object_src(self, value: &str) -> Self {
         self.add_directive("object-src", value)
     }
 
+    /// Set the `frame-src` directive.
     #[must_use]
     pub fn frame_src(self, value: &str) -> Self {
         self.add_directive("frame-src", value)
     }
 
+    /// Set the `form-action` directive.
     #[must_use]
     pub fn form_action(self, value: &str) -> Self {
         self.add_directive("form-action", value)
     }
 
+    /// Set the `base-uri` directive.
     #[must_use]
     pub fn base_uri(self, value: &str) -> Self {
         self.add_directive("base-uri", value)
     }
 
+    /// Set the `frame-ancestors` directive.
     #[must_use]
     pub fn frame_ancestors(self, value: &str) -> Self {
         self.add_directive("frame-ancestors", value)
     }
 
+    /// Add the `upgrade-insecure-requests` directive.
     #[must_use]
     pub fn upgrade_insecure_requests(mut self) -> Self {
         self.directives
@@ -173,12 +190,27 @@ impl ContentSecurityPolicy {
     }
 
     /// Build the CSP header value string.
+    ///
+    /// If the same directive was set multiple times, the last value wins
+    /// (per CSP spec, only the first occurrence is used by browsers, so
+    /// this builder deduplicates to match intended behavior).
+    #[must_use]
     pub fn build(&self) -> String {
-        self.directives
+        let mut seen = std::collections::HashSet::new();
+        let mut deduped: Vec<&(String, String)> = Vec::new();
+        for directive in self.directives.iter().rev() {
+            if seen.insert(&directive.0) {
+                deduped.push(directive);
+            }
+        }
+        deduped.reverse();
+        deduped
             .iter()
             .map(|(name, value)| {
                 if value.is_empty() {
                     name.clone()
+                } else if value.contains(';') {
+                    format!("{} {}", name, value.replace(';', "\\;"))
                 } else {
                     format!("{} {}", name, value)
                 }
@@ -188,6 +220,10 @@ impl ContentSecurityPolicy {
     }
 }
 
+/// Produces an empty CSP builder (no directives = no restrictions).
+///
+/// **Note:** An empty CSP provides no security. Use [`ContentSecurityPolicy::azumi_defaults`]
+/// or [`ContentSecurityPolicy::azumi_nonce_defaults`] for a secure starting point.
 impl Default for ContentSecurityPolicy {
     fn default() -> Self {
         Self::new()
@@ -243,6 +279,7 @@ impl CspNonce {
     /// Panics if the system random number generator is unavailable.
     /// This is deliberate — a missing CSP nonce is a security downgrade.
     /// For environments where this may fail (e.g., early boot), use [`CspNonce::try_generate`].
+    #[must_use]
     pub fn generate() -> Self {
         Self::try_generate().expect("failed to generate CSP nonce: system RNG unavailable")
     }
@@ -252,6 +289,7 @@ impl CspNonce {
     /// Use this in environments where the RNG may not be available (e.g.,
     /// embedded, early boot, or sandboxed contexts). On success, the nonce
     /// has the same properties as [`CspNonce::generate`].
+    #[must_use]
     pub fn try_generate() -> Result<Self, getrandom::Error> {
         use base64::engine::general_purpose::STANDARD;
         use base64::Engine;
@@ -528,5 +566,54 @@ mod tests {
         assert!(set.contains(&b));
         let c = CspNonce::try_generate().unwrap();
         assert_ne!(a, c);
+    }
+
+    #[test]
+    fn test_duplicate_directive_last_wins() {
+        let csp = ContentSecurityPolicy::new()
+            .script_src("'self'")
+            .script_src("'unsafe-eval'")
+            .build();
+        assert_eq!(csp, "script-src 'unsafe-eval'");
+    }
+
+    #[test]
+    fn test_media_src() {
+        let csp = ContentSecurityPolicy::new()
+            .media_src("'self' https://media.example.com")
+            .build();
+        assert!(csp.contains("media-src 'self' https://media.example.com"));
+    }
+
+    #[test]
+    fn test_object_src() {
+        let csp = ContentSecurityPolicy::new()
+            .object_src("'none'")
+            .build();
+        assert!(csp.contains("object-src 'none'"));
+    }
+
+    #[test]
+    fn test_frame_src() {
+        let csp = ContentSecurityPolicy::new()
+            .frame_src("'self'")
+            .build();
+        assert!(csp.contains("frame-src 'self'"));
+    }
+
+    #[test]
+    fn test_default_matches_new() {
+        assert_eq!(
+            ContentSecurityPolicy::default().build(),
+            ContentSecurityPolicy::new().build()
+        );
+    }
+
+    #[test]
+    fn test_semicolon_escaped_in_value() {
+        let csp = ContentSecurityPolicy::new()
+            .script_src("'self'; style-src 'unsafe-inline'")
+            .build();
+        assert!(!csp.contains("; style-src"), "semicolon should be escaped, not split directive");
     }
 }
