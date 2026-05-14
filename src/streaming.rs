@@ -148,7 +148,9 @@ mod tests {
 
     #[test]
     fn test_json_event_name() {
-        let e = SseEvent::json(&{"key": "val"});
+        #[derive(serde::Serialize)]
+        struct Payload { key: &'static str }
+        let e = SseEvent::json(&Payload { key: "val" });
         assert_eq!(e.event(), "json");
         assert!(e.data().contains("key"));
     }
