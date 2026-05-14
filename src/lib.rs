@@ -406,12 +406,12 @@ pub fn render_to_writer<C: Component + ?Sized, W: std::io::Write>(
     component: &C,
     writer: &mut W,
 ) -> std::io::Result<()> {
-    struct IoAdapter<'a, 'b, W: std::io::Write> {
+    use std::fmt::Write;
+    struct IoAdapter<'a, W: std::io::Write> {
         inner: &'a mut W,
-        _marker: std::marker::PhantomData<&'b ()>,
     }
 
-    impl<W: std::io::Write> std::fmt::Write for IoAdapter<'_, '_, W> {
+    impl<W: std::io::Write> std::fmt::Write for IoAdapter<'_, W> {
         fn write_str(&mut self, s: &str) -> std::fmt::Result {
             self.inner.write_all(s.as_bytes()).map_err(|_| std::fmt::Error)
         }
@@ -424,10 +424,7 @@ pub fn render_to_writer<C: Component + ?Sized, W: std::io::Write>(
         }
     }
 
-    let mut adapter = IoAdapter {
-        inner: writer,
-        _marker: std::marker::PhantomData,
-    };
+    let mut adapter = IoAdapter { inner: writer };
     write!(adapter, "{}", FmtToIoComponent(component)).map_err(|_| std::io::Error::new(
         std::io::ErrorKind::Other,
         "failed to render component to writer",
