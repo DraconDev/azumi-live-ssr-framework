@@ -564,51 +564,7 @@ pub fn process_style_macro(input: TokenStream) -> StyleOutput {
     // Note: We do NOT rename classes here (e.g. .class-s123).
     // Instead, we use Attribute Scoping in generate_body (macros/src/lib.rs).
     // So we just bind `let class = "class";` and the runtime adds `[data-sID]` to the CSS and element.
-    let mut bindings = TokenStream::new();
-
-    // Generate class bindings (only for valid Rust identifiers - no dashes)
-    let mut skipped_dashed_classes: Vec<&String> = Vec::new();
-    for class in &classes {
-        // Skip dashed class names - they can only be used via class="..." syntax
-        if class.contains('-') {
-            skipped_dashed_classes.push(class);
-            continue;
-        }
-        let snake_name = class.to_snake_case();
-        let ident = format_ident!("{}", snake_name);
-
-        bindings.extend(quote! {
-            let #ident = #class;
-        });
-    }
-
-    // Emit warning for skipped dashed classes
-    // NOTE: In stable Rust, proc macros cannot emit proper warnings - only errors.
-    // Using eprintln! to notify developers during compilation.
-    if !skipped_dashed_classes.is_empty() {
-        let class_list: Vec<String> = skipped_dashed_classes
-            .iter()
-            .map(|s| format!("'.{}'", s))
-            .collect();
-        eprintln!(
-            "WARNING: Dashed CSS classes cannot be used as Rust bindings: {} \
-             These must use class={{\"class-name\"}} syntax, not class={{dashed_name}}.",
-            class_list.join(", ")
-        );
-    }
-
-    // Generate ID bindings (IDs are NOT scoped, they remain as-is)
-    // Skip dashed IDs - they can only be used via id="..." syntax
-    for id in ids {
-        if id.contains('-') {
-            continue;
-        }
-        let ident = format_ident!("{}", id);
-
-        bindings.extend(quote! {
-            let #ident = #id;
-        });
-    }
+    let bindings = generate_bindings(classes, ids, true);
 
     StyleOutput {
         bindings,
