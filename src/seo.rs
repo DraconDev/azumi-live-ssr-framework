@@ -6,35 +6,13 @@ use crate::Component;
 /// Escape a string for safe inclusion in an HTML attribute value (double-quoted).
 /// Prevents XSS by escaping `"`, `<`, `>`, `&`, and `'`.
 fn html_attr_escape(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            '"' => out.push_str("&quot;"),
-            '\'' => out.push_str("&#x27;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '&' => out.push_str("&amp;"),
-            _ => out.push(c),
-        }
-    }
-    out
+    crate::escape_html(s)
 }
 
 /// Escape a string for safe inclusion in XML text content or attribute values.
 /// Prevents malformed XML from special characters.
 fn xml_escape(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '"' => out.push_str("&quot;"),
-            '\'' => out.push_str("&apos;"),
-            _ => out.push(c),
-        }
-    }
-    out
+    crate::escape_xml(s)
 }
 
 static SITE_CONFIG: RwLock<Option<SeoConfig>> = RwLock::new(None);
