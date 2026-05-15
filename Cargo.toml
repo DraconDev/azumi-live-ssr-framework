@@ -1,6 +1,6 @@
 [package]
 name = "azumi"
-version = "47.20.210"
+version = "47.20.211"
 edition = "2021"
 rust-version = "1.70"
 authors = ["DraconDev <dracsharp@gmail.com>"]

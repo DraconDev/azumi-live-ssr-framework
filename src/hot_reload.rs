@@ -216,9 +216,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn test_is_dev_token_valid_exact_match() {
+        let _lock = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
         assert!(is_dev_token_valid(Some("secret123")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
@@ -226,6 +230,7 @@ mod tests {
 
     #[test]
     fn test_is_dev_token_valid_wrong_token() {
+        let _lock = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
         assert!(!is_dev_token_valid(Some("wrongtoken")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
@@ -233,6 +238,7 @@ mod tests {
 
     #[test]
     fn test_is_dev_token_valid_partial_match_rejected() {
+        let _lock = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
         assert!(!is_dev_token_valid(Some("secret")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
@@ -240,6 +246,7 @@ mod tests {
 
     #[test]
     fn test_is_dev_token_valid_empty_token() {
+        let _lock = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
         assert!(!is_dev_token_valid(Some("")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
@@ -247,12 +254,14 @@ mod tests {
 
     #[test]
     fn test_is_dev_token_valid_no_env_var() {
+        let _lock = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         std::env::remove_var("AZUMI_DEV_TOKEN");
         assert!(!is_dev_token_valid(Some("secret123")));
     }
 
     #[test]
     fn test_is_dev_token_valid_none_token() {
+        let _lock = ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
         assert!(!is_dev_token_valid(None));
         std::env::remove_var("AZUMI_DEV_TOKEN");

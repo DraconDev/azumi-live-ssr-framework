@@ -214,9 +214,14 @@ use std::sync::Mutex;
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 #[cfg(feature = "devtools")]
+fn lock_env() -> std::sync::MutexGuard<'static, ()> {
+    ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+#[cfg(feature = "devtools")]
 #[test]
 fn test_dev_token_valid_when_matching() {
-    let _lock = ENV_LOCK.lock().unwrap();
+    let _lock = lock_env();
     std::env::set_var("AZUMI_DEV_TOKEN", "test-secret-token");
     let result = azumi::hot_reload::is_dev_token_valid(Some("test-secret-token"));
     std::env::remove_var("AZUMI_DEV_TOKEN");
@@ -226,7 +231,7 @@ fn test_dev_token_valid_when_matching() {
 #[cfg(feature = "devtools")]
 #[test]
 fn test_dev_token_invalid_when_mismatched() {
-    let _lock = ENV_LOCK.lock().unwrap();
+    let _lock = lock_env();
     std::env::set_var("AZUMI_DEV_TOKEN", "test-secret-token");
     let result = azumi::hot_reload::is_dev_token_valid(Some("wrong-token"));
     std::env::remove_var("AZUMI_DEV_TOKEN");
@@ -236,7 +241,7 @@ fn test_dev_token_invalid_when_mismatched() {
 #[cfg(feature = "devtools")]
 #[test]
 fn test_dev_token_invalid_when_none() {
-    let _lock = ENV_LOCK.lock().unwrap();
+    let _lock = lock_env();
     std::env::remove_var("AZUMI_DEV_TOKEN");
     let result = azumi::hot_reload::is_dev_token_valid(None);
     assert!(!result);
@@ -245,7 +250,7 @@ fn test_dev_token_invalid_when_none() {
 #[cfg(feature = "devtools")]
 #[test]
 fn test_dev_token_invalid_when_env_not_set() {
-    let _lock = ENV_LOCK.lock().unwrap();
+    let _lock = lock_env();
     std::env::remove_var("AZUMI_DEV_TOKEN");
     let result = azumi::hot_reload::is_dev_token_valid(Some("any-token"));
     assert!(!result);
@@ -254,7 +259,7 @@ fn test_dev_token_invalid_when_env_not_set() {
 #[cfg(feature = "devtools")]
 #[test]
 fn test_dev_token_invalid_length_mismatch() {
-    let _lock = ENV_LOCK.lock().unwrap();
+    let _lock = lock_env();
     std::env::set_var("AZUMI_DEV_TOKEN", "short");
     let result = azumi::hot_reload::is_dev_token_valid(Some("much-longer-token"));
     std::env::remove_var("AZUMI_DEV_TOKEN");

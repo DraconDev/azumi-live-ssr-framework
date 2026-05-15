@@ -100,3 +100,31 @@ fn test_cloned_page_meta_guard_preserves_state_until_all_dropped() {
         "State must reset only after ALL guards are dropped"
     );
 }
+
+#[test]
+fn test_multiple_set_page_meta_calls_share_refcount() {
+    use azumi::context::{set_page_meta, get_page_meta, has_page_meta_scope};
+
+    assert!(!has_page_meta_scope());
+
+    let _g1 = set_page_meta(Some("First".to_string()), None, None);
+    let _g2 = set_page_meta(Some("Second".to_string()), None, None);
+
+    let meta = get_page_meta();
+    assert_eq!(meta.title.as_deref(), Some("Second"), "Last set_page_meta wins");
+
+    drop(_g1);
+    let meta_after_first_drop = get_page_meta();
+    assert_eq!(
+        meta_after_first_drop.title.as_deref(),
+        Some("Second"),
+        "Dropping first guard must not reset state while second guard is alive"
+    );
+
+    drop(_g2);
+    let meta_after_second_drop = get_page_meta();
+    assert!(
+        meta_after_second_drop.title.is_none(),
+        "State must reset only after ALL guards are dropped"
+    );
+}

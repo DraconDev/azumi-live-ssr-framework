@@ -126,11 +126,14 @@ impl<'a> FieldValidator<'a> {
         if self.value.is_empty() {
             return self;
         }
-        let scheme_pos = self.value.find("://").unwrap_or(0);
-        let after_scheme = &self.value[scheme_pos + 3..];
-        let is_valid = (self.value.starts_with("http://") || self.value.starts_with("https://"))
-            && !after_scheme.is_empty()
-            && !after_scheme.starts_with('@');
+        let after_scheme = if self.value.starts_with("http://") {
+            &self.value[7..]
+        } else if self.value.starts_with("https://") {
+            &self.value[8..]
+        } else {
+            ""
+        };
+        let is_valid = !after_scheme.is_empty() && !after_scheme.starts_with('@');
         if !is_valid {
             self.errors.add(self.name, "Please enter a valid URL");
         }
@@ -397,5 +400,49 @@ mod tests {
         v.field("code", "abc").custom(|s| s == "xyz", "Code must be xyz");
         let errors = v.finish();
         assert_eq!(errors.get("code"), Some("Code must be xyz"));
+    }
+
+    #[test]
+    fn test_url_short_strings_dont_panic() {
+        for input in &["", "a", "ab", "abc", "://", "http:", "https:", "ftp://example.com"] {
+            let mut v = FormValidator::new();
+            v.field("url", input).url();
+            let _ = v.finish();
+        }
+    }
+
+    #[test]
+    fn test_url_valid_https() {
+        let mut v = FormValidator::new();
+        v.field("url", "https://example.com").url();
+        assert!(!v.finish().has_field("url"));
+    }
+
+    #[test]
+    fn test_url_valid_http() {
+        let mut v = FormValidator::new();
+        v.field("url", "http://example.com/path").url();
+        assert!(!v.finish().has_field("url"));
+    }
+
+    #[test]
+    fn test_url_rejects_scheme_only() {
+        let mut v = FormValidator::new();
+        v.field("url", "https://").url();
+        assert!(v.finish().has_field("url"));
+    }
+
+    #[test]
+    fn test_url_rejects_at_sign_after_scheme() {
+        let mut v = FormValidator::new();
+        v.field("url", "https://@evil.com").url();
+        assert!(v.finish().has_field("url"));
+    }
+
+    #[test]
+    fn test_url_rejects_no_scheme() {
+        let mut v = FormValidator::new();
+        v.field("url", "example.com").url();
+        assert!(v.finish().has_field("url"));
     }
 }

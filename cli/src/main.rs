@@ -94,20 +94,22 @@ fn create_project(name: &str, dir: &PathBuf, template: &str) {
         std::process::exit(1);
     }
 
-    if !is_valid_rust_ident(name) {
-        eprintln!("Error: project name '{}' is not a valid Rust identifier.", name);
-        eprintln!("Use lowercase letters, digits, and underscores. Must start with a letter or underscore.");
+    if !is_valid_crate_name(name) {
+        eprintln!("Error: project name '{}' is not a valid Cargo package name.", name);
+        eprintln!("Use lowercase letters, digits, hyphens, and underscores. Must start with a letter or underscore.");
         std::process::exit(1);
     }
 
-    if name.contains("{{") || name.contains("}}") {
+    if contains_template_injection(name) {
         eprintln!("Error: project name contains template syntax.");
         std::process::exit(1);
     }
 
+    let rust_ident = crate_name_to_rust_ident(name);
+
     match template {
-        "default" => create_default_project(name, dir),
-        "components" => create_components_project(name, dir),
+        "default" => create_default_project(&rust_ident, dir),
+        "components" => create_components_project(&rust_ident, dir),
         _ => {
             eprintln!("Error: unknown template '{template}'");
             eprintln!("Available templates: default, components");
@@ -170,7 +172,7 @@ fn print_success(dir: &PathBuf) {
     println!("  📖 Learn more: https://github.com/DraconDev/azumi");
 }
 
-fn is_valid_rust_ident(name: &str) -> bool {
+fn is_valid_crate_name(name: &str) -> bool {
     let mut chars = name.chars();
     match chars.next() {
         None => false,
@@ -178,9 +180,17 @@ fn is_valid_rust_ident(name: &str) -> bool {
             if !c.is_ascii_alphabetic() && c != '_' {
                 return false;
             }
-            chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+            chars.all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         }
     }
+}
+
+fn crate_name_to_rust_ident(name: &str) -> String {
+    name.replace('-', "_")
+}
+
+fn contains_template_injection(s: &str) -> bool {
+    s.contains("{{") || s.contains("}}")
 }
 
 #[cfg(test)]
@@ -188,19 +198,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_valid_rust_ident() {
-        assert!(is_valid_rust_ident("my_project"));
-        assert!(is_valid_rust_ident("hello"));
-        assert!(is_valid_rust_ident("_private"));
+    fn test_valid_crate_name() {
+        assert!(is_valid_crate_name("my_project"));
+        assert!(is_valid_crate_name("hello"));
+        assert!(is_valid_crate_name("_private"));
+        assert!(is_valid_crate_name("my-project"));
+        assert!(is_valid_crate_name("azumi-web-app"));
     }
 
     #[test]
-    fn test_invalid_rust_ident() {
-        assert!(!is_valid_rust_ident(""));
-        assert!(!is_valid_rust_ident("123start"));
-        assert!(!is_valid_rust_ident("my-project"));
-        assert!(!is_valid_rust_ident("has space"));
-        assert!(!is_valid_rust_ident("../../etc"));
-        assert!(!is_valid_rust_ident("foo\";bad=\"bar"));
+    fn test_invalid_crate_name() {
+        assert!(!is_valid_crate_name(""));
+        assert!(!is_valid_crate_name("123start"));
+        assert!(!is_valid_crate_name("has space"));
+        assert!(!is_valid_crate_name("../../etc"));
+        assert!(!is_valid_crate_name("foo\";bad=\"bar"));
+        assert!(!is_valid_crate_name("my.project"));
+    }
+
+    #[test]
+    fn test_crate_name_to_rust_ident() {
+        assert_eq!(crate_name_to_rust_ident("my-project"), "my_project");
+        assert_eq!(crate_name_to_rust_ident("already_underscore"), "already_underscore");
+        assert_eq!(crate_name_to_rust_ident("multi-hyphen-name"), "multi_hyphen_name");
+        assert_eq!(crate_name_to_rust_ident("noupper"), "noupper");
+    }
+
+    #[test]
+    fn test_template_injection_detection() {
+        assert!(contains_template_injection("{{project_name}}"));
+        assert!(contains_template_injection("foo}}bar"));
+        assert!(contains_template_injection("{{evil}}"));
+        assert!(!contains_template_injection("normal_name"));
+        assert!(!contains_template_injection("single{brace}"));
+        assert!(!contains_template_injection("my-project"));
     }
 }

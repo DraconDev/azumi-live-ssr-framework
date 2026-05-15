@@ -69,16 +69,92 @@ impl syn::parse::Parse for JsonDataInput {
 
         let valid = target_str.split('.').all(|seg| {
             !seg.is_empty()
-            && seg.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
-            && seg.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+            && seg.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_' || c == '$')
+            && seg.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '$')
         });
         if !valid {
             return Err(syn::Error::new(
                 target.span(),
-                "json_data! target must be a valid JS identifier path (e.g., \"APP_DATA\" or \"window.config\")"
+                "json_data! target must be a valid JS identifier path (e.g., \"APP_DATA\", \"window.config\", or \"$selector\")"
             ));
         }
 
         Ok(JsonDataInput { target, _eq, value })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use syn::parse2;
+
+    fn parse_target(target_lit: &str) -> Result<JsonDataInput, syn::Error> {
+        let tokens: proc_macro2::TokenStream = format!(r#""{}" = value"#, target_lit).parse().unwrap();
+        parse2::<JsonDataInput>(tokens)
+    }
+
+    #[test]
+    fn test_simple_identifier() {
+        assert!(parse_target("APP_DATA").is_ok());
+    }
+
+    #[test]
+    fn test_dotted_path() {
+        assert!(parse_target("window.config").is_ok());
+    }
+
+    #[test]
+    fn test_deep_dotted_path() {
+        assert!(parse_target("a.b.c").is_ok());
+    }
+
+    #[test]
+    fn test_underscore_prefix() {
+        assert!(parse_target("__DATA__").is_ok());
+    }
+
+    #[test]
+    fn test_dollar_prefix() {
+        assert!(parse_target("$app").is_ok());
+    }
+
+    #[test]
+    fn test_dollar_in_path() {
+        assert!(parse_target("$.data").is_ok());
+    }
+
+    #[test]
+    fn test_jquery_style() {
+        assert!(parse_target("jQuery.fn").is_ok());
+    }
+
+    #[test]
+    fn test_numeric_start_rejected() {
+        assert!(parse_target("0data").is_err());
+    }
+
+    #[test]
+    fn test_empty_segment_rejected() {
+        assert!(parse_target("window..data").is_err());
+    }
+
+    #[test]
+    fn test_dot_only_rejected() {
+        assert!(parse_target(".").is_err());
+    }
+
+    #[test]
+    fn test_hyphen_rejected() {
+        assert!(parse_target("my-data").is_err());
+    }
+
+    #[test]
+    fn test_closing_script_rejected() {
+        assert!(parse_target("</script").is_err());
+    }
+
+    #[test]
+    fn test_closing_style_mixed_case_rejected() {
+        assert!(parse_target("</STYLE").is_err());
     }
 }

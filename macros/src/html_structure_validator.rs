@@ -1031,6 +1031,69 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_raw_colon_colon_turbofish_detected() {
+        let node = create_expression_node(r#"Raw::<str>("hello")"#);
+        let errors = validate_raw_usage(&[node]);
+        assert!(
+            !errors.is_empty(),
+            "Raw::<str> turbofish should be detected"
+        );
+    }
+
+    #[test]
+    fn test_raw_qualified_path_detected() {
+        let node = create_expression_node(r#"azumi::Raw("hello")"#);
+        let errors = validate_raw_usage(&[node]);
+        assert!(
+            !errors.is_empty(),
+            "azumi::Raw(...) qualified path should be detected"
+        );
+    }
+
+    #[test]
+    fn test_r_raw_raw_ident_detected() {
+        let node = create_expression_node(r#"r#Raw("hello")"#);
+        let errors = validate_raw_usage(&[node]);
+        assert!(
+            !errors.is_empty(),
+            "r#Raw(...) raw identifier should be detected"
+        );
+    }
+
+    #[test]
+    fn test_draw_raw_renderer_no_false_positive() {
+        let node = create_expression_node(r#"draw::RawRenderer::new()"#);
+        let errors = validate_raw_usage(&[node]);
+        assert!(
+            errors.is_empty(),
+            "draw::RawRenderer should NOT be flagged as Raw(), got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_raw_data_no_false_positive() {
+        let node = create_expression_node(r#"raw_data.to_string()"#);
+        let errors = validate_raw_usage(&[node]);
+        assert!(
+            errors.is_empty(),
+            "raw_data variable should NOT be flagged, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_get_raw_value_no_false_positive() {
+        let node = create_expression_node(r#"get_raw_value()"#);
+        let errors = validate_raw_usage(&[node]);
+        assert!(
+            errors.is_empty(),
+            "get_raw_value() should NOT be flagged, got: {:?}",
+            errors
+        );
+    }
+
     // =========================================================================
     // Structural Validator Tests
     // =========================================================================
