@@ -50,6 +50,243 @@ html! {
 // Renders: <script>APP_DATA = {"key":"value"};</script>
 ```
 
+## Control Flow in `html!`
+
+### `@for` Iteration
+
+Use `@for` to render dynamic lists. Works with any Rust iterator.
+
+```rust
+// Simple iteration
+html! {
+    <ul>
+        @for item in &items {
+            <li>{item}</li>
+        }
+    </ul>
+}
+
+// With index
+html! {
+    @for (i, item) in items.iter().enumerate() {
+        <div>{i + 1}". "{item}</div>
+    }
+}
+
+// Ranges
+html! {
+    @for i in 1..=5 {
+        <span>{i}</span>
+    }
+}
+
+// Iterator adapters (filter, map, take, skip, rev, chain, etc.)
+html! {
+    @for n in nums.iter().filter(|x| **x % 2 == 0) {
+        <div>{n}</div>
+    }
+}
+
+// Nested iteration
+html! {
+    @for row in &matrix {
+        <tr>
+            @for cell in row {
+                <td>{cell}</td>
+            }
+        </tr>
+    }
+}
+
+// Key-value pairs
+html! {
+    @for (name, url) in &links {
+        <a href={url}>{name}</a>
+    }
+}
+```
+
+**Why this matters**: `@for` replaces `format!` + `Raw()` patterns. If you find yourself building HTML strings with `format!` and injecting with `Raw()`, use `@for` inside `html!` instead — it's compile-time validated and auto-escaped.
+
+### `@if` / `@match`
+
+```rust
+html! {
+    @if user.is_admin {
+        <div>"Admin panel"</div>
+    }
+
+    @match status {
+        200 => <span>"OK"</span>,
+        404 => <span>"Not Found"</span>,
+        _ => <span>"Error"</span>,
+    }
+}
+```
+
+## Interpolation Patterns
+
+### `{&field}` — Borrow, Don't Clone
+
+`html!` interpolation consumes values by default. For borrowed data (`&self` fields), use `{&field}` to avoid `.clone()`:
+
+```rust
+struct Card {
+    title: String,
+    description: String,
+}
+
+impl Component for Card {
+    fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // ❌ Unnecessary .clone() — allocates for no reason
+        // html! { <div>{self.title.clone()}</div> }
+
+        // ✅ Borrow instead — zero allocation
+        html! { <div>{&self.title}</div> }
+    }
+}
+```
+
+**Rule**: If the value implements `Display` (which `&String`, `&str`, numbers, etc. do), `{&field}` works without cloning. Use `.clone()` only when you need ownership (e.g., moving into a closure that outlives the borrow).
+
+### `{component}` — Auto-Escaped Display
+
+All `{expression}` interpolation in `html!` is auto-escaped via `Escaped<T>`:
+
+```rust
+// Text content — auto-escaped (XSS safe)
+html! { <p>{user_input}</p> }
+// Renders: <p>safe &amp; escaped</p>
+
+// Component — rendered directly (not double-escaped)
+html! { <div>{my_component}</div> }
+```
+
+## `#[azumi::component]` — Struct-Based Props with Builder
+
+The `#[azumi::component]` attribute macro converts a function into a module with a `Props` struct and `PropsBuilder`. This eliminates manual parameter passing and enables zero-clone rendering.
+
+```rust
+#[azumi::component]
+fn user_card(name: String, role: String, active: bool) -> impl Component {
+    html! {
+        <div>
+            <h3>{name}</h3>
+            <p>{role}</p>
+            @if active { <span>"Active"</span> }
+        </div>
+    }
+}
+
+// Usage — builder pattern, move semantics (no clones needed)
+let card = user_card::render(
+    user_card::Props::builder()
+        .name("Alice".to_string())
+        .role("Admin".to_string())
+        .active(true)
+        .build()
+        .expect("all required props provided"),
+);
+```
+
+### Props with Defaults
+
+```rust
+#[azumi::component]
+fn alert(message: String, #[prop(default = "\"info\".to_string()")] level: String) -> impl Component {
+    html! { <div class={level}>{message}</div> }
+}
+
+// level defaults to "info" when omitted
+alert::Props::builder()
+    .message("Saved!".to_string())
+    .build()
+    .expect("missing message");
+```
+
+### Props with Children
+
+```rust
+#[azumi::component]
+fn card(title: String, children: impl Component) -> impl Component {
+    html! {
+        <div>
+            <h2>{title}</h2>
+            {children}
+        </div>
+    }
+}
+
+// children is passed separately
+card::render(
+    card::Props::builder().title("Hello".to_string()).build().unwrap(),
+    html! { <p>"Body content"</p> },
+);
+```
+
+### Live State Components
+
+If the first parameter is named `state` and is a reference to a non-primitive type, `#[azumi::component]` auto-wraps the output with an `az-scope` div for live updates:
+
+```rust
+#[azumi::live]
+struct Counter { count: i32 }
+
+#[azumi::component]
+fn counter(state: &Counter) -> impl Component {
+    html! { <span>{state.count}</span> }
+    // Auto-wrapped: <div az-scope="..." az-struct="Counter" style="display: contents">...</div>
+}
+```
+
+## Manual Escaping Outside `html!`
+
+### `escape_html(&str) -> String`
+
+For HTML entity escaping outside `html!` (SEO helpers, meta tags, attribute building):
+
+```rust
+use azumi::escape_html;
+
+let safe = escape_html("<script>alert('xss')</script>");
+// "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
+```
+
+### `escape_xml(&str) -> String`
+
+Same as `escape_html` but uses `&apos;` (XML spec) instead of `&#x27;` (HTML convention):
+
+```rust
+use azumi::escape_xml;
+
+let safe = escape_xml("Tom & Jerry's");
+// "Tom &amp; Jerry&apos;s"
+```
+
+### `Escaped<T>` — Display Wrapper
+
+`Escaped<T: Display>` wraps any `Display` type to produce HTML-escaped output. Used internally by `html!` interpolation:
+
+```rust
+use azumi::Escaped;
+use std::fmt::Display;
+
+fn make_safe<T: Display>(val: T) -> String {
+    format!("{}", Escaped(val))
+}
+```
+
+### `escape_css_string(&str) -> String`
+
+Escapes CSS injection characters (`;`, `\`, `{`, `}`, quotes, `/`):
+
+```rust
+use azumi::escape_css_string;
+
+let safe = escape_css_string("red; }");
+// "red\\; \\}"
+```
+
 ## Validation Pipeline (in order)
 
 The `html!` macro runs these validators sequentially, short-circuiting on first error:
@@ -163,6 +400,26 @@ html! { {format!(".btn {{ color: {}; }}", c)} }
 // ✅ Use <style> tag with auto-escape:
 html! { <style>{css_var}</style> }
 ```
+
+## `format!` Outside `html!` — The Safe Pattern
+
+The validator blocks `format!` + web patterns (HTML/CSS/JS/DOM keywords) inside `html!` expressions. But `format!` **outside** `html!` is fully allowed:
+
+```rust
+// ❌ Blocked: format! with web content inside html!
+html! { {format!("<div>{}</div>", name)} }
+// ✅ Allowed: build the string outside, inject safely
+let js_code = format!("window.location = '{}'", url);
+html! { <script>{js_code}</script> }
+
+// ❌ Blocked: format! building CSS inside html!
+html! { {format!(".btn {{ color: {}; }}", color)} }
+// ✅ Allowed: build CSS outside, inject via <style>
+let css = format!(".btn {{ color: {}; }}", color);
+html! { <style>{css}</style> }
+```
+
+**Boundary**: blocked when `format!` AND web-content patterns (`<`, `>`, `class=`, `window.`, etc.) coexist in the same `{expr}` inside `html!`. `format!` outside `html!` (building a variable) is fully allowed.
 
 ## Notes
 
