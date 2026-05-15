@@ -426,6 +426,9 @@ html! { <style>{css}</style> }
 - `<style>{var}</style>` and `<script>{var}</script>` auto-escape `</style>` and `</script>` sequences (case-insensitive). You do NOT need a macro for this.
 - `json_data!("VAR" = &data)` is the only safe injection macro. It does real work: serde serialization + variable naming + `<script>` tag wrapping.
 - For external JS/CSS, use `<script src="...">` and `<style src="...">`.
+- `@for` is the preferred way to render dynamic lists inside `html!` — never use `format!` + `Raw()` for iteration.
+- `{&field}` borrows instead of cloning — prefer it over `.clone()` for `&self` fields in `render()`.
+- `escape_html()` and `escape_xml()` are for manual escaping outside `html!` — inside `html!`, all `{expr}` is auto-escaped.
 
 ## Tests
 
