@@ -4,7 +4,7 @@ pub mod prelude {
     pub use crate::csp::CspNonce;
     pub use crate::{
         azumi_script, component, html, json_data, live,
-        session_cleanup_script, AzumiScript, Component, escape_css_string,
+        session_cleanup_script, AzumiScript, escape_css_string, escape_html, escape_xml,
         FnComponent, render_to_string, render_to_writer,
     };
     pub use crate::form::{FormValidator, ValidatedForm, ValidationErrors};
@@ -37,7 +37,7 @@ pub mod seo;
 pub mod form;
 pub mod streaming;
 pub mod csp;
-pub use script::{AzumiScript, escape_script_content, escape_style_content, escape_tag_content, session_cleanup_script};
+pub use script::{AzumiScript, escape_html, escape_script_content, escape_style_content, escape_tag_content, escape_xml, session_cleanup_script};
 // Re-export CSS scoping for backward compatibility
 pub use css_scoping::{compute_scope_id, scope_css};
 

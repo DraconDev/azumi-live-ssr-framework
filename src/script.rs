@@ -1,5 +1,64 @@
 use crate::Component;
 
+/// Escape HTML entities in a string to prevent XSS.
+///
+/// Escapes the five dangerous HTML characters: `&`, `<`, `>`, `"`, `'`.
+/// This is the standard HTML entity escaping function used internally by Azumi
+/// for all text interpolation inside `html!`.
+///
+/// Use this when you need HTML entity escaping outside of `html!` (e.g., for
+/// meta tags, SEO helpers, or when building attribute values programmatically).
+///
+/// Inside `html!`, all `{expression}` interpolation is auto-escaped — you do
+/// NOT need to call this manually.
+///
+/// # Examples
+///
+/// ```
+/// # use azumi::escape_html;
+/// assert_eq!(escape_html("<script>alert('xss')</script>"),
+///     "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;");
+/// assert_eq!(escape_html("Tom & Jerry"), "Tom &amp; Jerry");
+/// assert_eq!(escape_html(r#"class="foo""#), "class=&quot;foo&quot;");
+/// ```
+#[inline]
+#[must_use]
+pub fn escape_html(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#x27;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+/// Escape a string for safe inclusion in XML text content or attribute values.
+///
+/// Same as [`escape_html`] but uses `&apos;` for single quotes (XML standard)
+/// instead of `&#x27;` (HTML convention).
+#[inline]
+#[must_use]
+pub fn escape_xml(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&apos;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
 /// Escape closing tag sequences in content strings to prevent XSS.
 /// 
 /// Covers all case variants: lowercase, titlecase, uppercase, and with space.
@@ -144,6 +203,102 @@ impl TrustedHtml {
 mod tests {
     use super::*;
     use crate::test;
+
+    // =========================================================================
+    // escape_html
+    // =========================================================================
+
+    #[test]
+    fn test_escape_html_amp() {
+        assert_eq!(escape_html("Tom & Jerry"), "Tom &amp; Jerry");
+    }
+
+    #[test]
+    fn test_escape_html_angle_brackets() {
+        assert_eq!(escape_html("<script>"), "&lt;script&gt;");
+    }
+
+    #[test]
+    fn test_escape_html_double_quote() {
+        assert_eq!(escape_html(r#"class="foo""#), "class=&quot;foo&quot;");
+    }
+
+    #[test]
+    fn test_escape_html_single_quote() {
+        assert_eq!(escape_html("it's"), "it&#x27;s");
+    }
+
+    #[test]
+    fn test_escape_html_no_special_chars() {
+        assert_eq!(escape_html("hello world"), "hello world");
+    }
+
+    #[test]
+    fn test_escape_html_empty() {
+        assert_eq!(escape_html(""), "");
+    }
+
+    #[test]
+    fn test_escape_html_all_five() {
+        assert_eq!(
+            escape_html("&<>\"'"),
+            "&amp;&lt;&gt;&quot;&#x27;"
+        );
+    }
+
+    #[test]
+    fn test_escape_html_xss_payload() {
+        assert_eq!(
+            escape_html("<script>alert('xss')</script>"),
+            "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
+        );
+    }
+
+    #[test]
+    fn test_escape_html_already_escaped() {
+        let input = "&amp;&lt;";
+        let output = escape_html(input);
+        assert_eq!(output, "&amp;amp;&amp;lt;");
+    }
+
+    #[test]
+    fn test_escape_html_unicode() {
+        assert_eq!(escape_html("hello 世界"), "hello 世界");
+    }
+
+    // =========================================================================
+    // escape_xml
+    // =========================================================================
+
+    #[test]
+    fn test_escape_xml_amp() {
+        assert_eq!(escape_xml("Tom & Jerry"), "Tom &amp; Jerry");
+    }
+
+    #[test]
+    fn test_escape_xml_single_quote() {
+        assert_eq!(escape_xml("it's"), "it&apos;s");
+    }
+
+    #[test]
+    fn test_escape_xml_all_five() {
+        assert_eq!(
+            escape_xml("&<>\"'"),
+            "&amp;&lt;&gt;&quot;&apos;"
+        );
+    }
+
+    #[test]
+    fn test_escape_xml_no_special_chars() {
+        assert_eq!(escape_xml("hello world"), "hello world");
+    }
+
+    #[test]
+    fn test_escape_xml_vs_html_quotes() {
+        let input = "'";
+        assert_eq!(escape_html(input), "&#x27;");
+        assert_eq!(escape_xml(input), "&apos;");
+    }
 
     // =========================================================================
     // escape_script_content
@@ -395,6 +550,33 @@ mod tests {
     use proptest::prelude::*;
 
     proptest! {
+        /// Property: escape_html never leaves unescaped < > & " ' in output
+        #[test]
+        fn prop_escape_html_always_escapes(s in ".*") {
+            let output = escape_html(&s);
+            let has_unescaped = output.contains('<')
+                || output.contains('>')
+                || output.contains('&') && !output.contains("&amp;") && !output.contains("&lt;") && !output.contains("&gt;") && !output.contains("&quot;") && !output.contains("&#x27;");
+            prop_assert!(!has_unescaped, "Output should not contain unescaped HTML chars");
+        }
+
+        /// Property: escape_html output length is always >= input length
+        #[test]
+        fn prop_escape_html_length_monotonic(s in ".*") {
+            let output = escape_html(&s);
+            prop_assert!(output.len() >= s.len(),
+                "Escape output should never be shorter than input (got {} < {})",
+                output.len(), s.len());
+        }
+
+        /// Property: escape_html is idempotent for safe content
+        #[test]
+        fn prop_escape_html_safe_passthrough(s in "[&<>\"'\\x00-\\x1f]+") {
+            let output = escape_html(&s);
+            prop_assert!(!output.contains('<') || output.contains("&lt;"), "No unescaped < in output");
+            prop_assert!(!output.contains('>') || output.contains("&gt;"), "No unescaped > in output");
+        }
+
         /// Property: escape_script_content never leaves </script> unescaped in output
         #[test]
         fn prop_escape_script_always_escapes(s in ".*") {
