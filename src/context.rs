@@ -69,7 +69,8 @@ pub async fn with_page_meta_scope<F: Future>(f: F) -> F::Output {
 /// guard resets the metadata on drop to prevent leakage between requests.
 ///
 /// Cloning is supported: the thread-local is only reset when the last guard
-/// (the one with `Arc` strong_count == 1) is dropped.
+/// drops (the one whose `Arc` strong_count == 2, meaning only the thread-local
+/// reference and this guard remain).
 pub struct PageMetaGuard {
     _refcount: std::sync::Arc<()>,
     _in_task_scope: bool,
