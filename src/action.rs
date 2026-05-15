@@ -124,15 +124,21 @@ fn escape_html(s: &str) -> String {
 }
 
 /// Escape a string for safe inclusion in a JavaScript string literal.
+/// Escapes: backslash, backtick, quotes, newline, carriage return, angle brackets.
+/// Backticks prevent template literal injection. Angle brackets prevent HTML breakout
+/// when the JS string will be embedded in an HTML attribute.
 fn escape_js_string(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
         match c {
             '\\' => out.push_str("\\\\"),
-            '\'' => out.push_str("\\x27"),
+            '`' => out.push_str("\\x60"),
             '"' => out.push_str("\\x22"),
+            '\'' => out.push_str("\\x27"),
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
+            '<' => out.push_str("\\x3c"),
+            '>' => out.push_str("\\x3e"),
             _ => out.push(c),
         }
     }
