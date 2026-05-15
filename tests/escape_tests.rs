@@ -38,7 +38,8 @@ fn test_escape_double_quote() {
     let text = r#"say "hello""#;
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("hello"));
+    assert!(html.contains("&quot;"), "Double quotes must be escaped to &quot;, got: {}", html);
+    assert!(!html.contains("\"hello\""), "Unescaped double quotes should not appear in output");
 }
 
 #[test]
@@ -64,8 +65,9 @@ fn test_nested_html_tags() {
     let text = "<div><span>nested</span></div>";
     let component = html! { <p>{text}</p> };
     let html = test::render(&component);
-    // Should be escaped
     assert!(html.contains("nested"));
+    assert!(!html.contains("<span>nested</span>"), "Nested tags should be escaped, not rendered as HTML");
+    assert!(html.contains("&lt;div&gt;"), "Nested <div> should be escaped");
 }
 
 #[test]
@@ -83,7 +85,11 @@ fn test_multiple_special_chars() {
     let text = "< > & \" '";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("span"));
+    assert!(html.contains("&lt;"), "< must be escaped to &lt;");
+    assert!(html.contains("&gt;"), "> must be escaped to &gt;");
+    assert!(html.contains("&amp;"), "& must be escaped to &amp;");
+    assert!(html.contains("&quot;"), "\" must be escaped to &quot;");
+    assert!(!html.contains("< >"), "Unescaped < > should not appear");
 }
 
 #[test]
@@ -133,6 +139,7 @@ fn test_null_char_replacement() {
     let html = test::render(&component);
     assert!(html.contains("hello"));
     assert!(html.contains("world"));
+    assert!(!html.contains('\0'), "Null character should be removed from output");
 }
 
 #[test]
