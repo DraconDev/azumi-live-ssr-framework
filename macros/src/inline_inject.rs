@@ -54,9 +54,31 @@ struct JsonDataInput {
 
 impl syn::parse::Parse for JsonDataInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let target = input.parse()?;
+        let target: LitStr = input.parse()?;
         let _eq = input.parse()?;
         let value = input.parse()?;
+
+        let target_str = target.value();
+        let lower = target_str.to_lowercase();
+        if lower.contains("</script") || lower.contains("</style") {
+            return Err(syn::Error::new(
+                target.span(),
+                "json_data! target name must not contain closing tag sequences"
+            ));
+        }
+
+        let valid = target_str.split('.').all(|seg| {
+            !seg.is_empty()
+            && seg.chars().next().map_or(false, |c| c.is_ascii_alphabetic() || c == '_')
+            && seg.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        });
+        if !valid {
+            return Err(syn::Error::new(
+                target.span(),
+                "json_data! target must be a valid JS identifier path (e.g., \"APP_DATA\" or \"window.config\")"
+            ));
+        }
+
         Ok(JsonDataInput { target, _eq, value })
     }
 }

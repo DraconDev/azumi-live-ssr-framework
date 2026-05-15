@@ -17,9 +17,11 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
         match node {
             Node::Expression(expr) => {
                 let content_str = expr.content.to_string();
-                // TokenStream may add spaces, so normalize by removing spaces for detection
                 let normalized_str = content_str.replace(' ', "");
-                let has_raw = normalized_str.contains("Raw(");
+                let has_raw = normalized_str.contains("Raw(")
+                    || normalized_str.contains("Raw::")
+                    || normalized_str.contains("r#Raw(")
+                    || normalized_str.contains("::Raw(");
 
                 if has_raw {
                     errors.push(quote_spanned! { expr.span =>
@@ -60,7 +62,11 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                     match &attr.value {
                         crate::token_parser::AttributeValue::Dynamic(tokens) => {
                             let normalized = tokens.to_string().replace(' ', "");
-                            if normalized.contains("Raw(") {
+                            let has_raw = normalized.contains("Raw(")
+                                || normalized.contains("Raw::")
+                                || normalized.contains("r#Raw(")
+                                || normalized.contains("::Raw(");
+                            if has_raw {
                                 let attr_name = &attr.name;
                                 errors.push(quote! {
                                     compile_error!(concat!(
@@ -75,7 +81,11 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                         crate::token_parser::AttributeValue::StyleDsl(pairs) => {
                             for (_, value_tokens) in pairs {
                                 let normalized = value_tokens.to_string().replace(' ', "");
-                                if normalized.contains("Raw(") {
+                                let has_raw = normalized.contains("Raw(")
+                                    || normalized.contains("Raw::")
+                                    || normalized.contains("r#Raw(")
+                                    || normalized.contains("::Raw(");
+                                if has_raw {
                                     let attr_name = &attr.name;
                                     errors.push(quote! {
                                         compile_error!(concat!(

@@ -91,18 +91,23 @@ pub(crate) fn process_styles(
 
 /// Collect all CSS from inline `<style>` tags and `style!` blocks.
 ///
-/// Returns `(global_css, scoped_css)` for injection into the HTML head.
-pub(crate) fn collect_all_styles(nodes: &[token_parser::Node]) -> (String, String) {
+/// Returns `(global_css, scoped_css, has_dynamic_styles)` for injection into the HTML head.
+/// `has_dynamic_styles` is true when a `<style>{variable}</style>` tag is found —
+/// these contain runtime CSS that cannot be analyzed at compile time, so class/ID
+/// validation should be skipped for that component.
+pub(crate) fn collect_all_styles(nodes: &[token_parser::Node]) -> (String, String, bool) {
     let mut global_css = String::new();
     let mut scoped_css = String::new();
-    collect_styles_recursive(nodes, &mut global_css, &mut scoped_css);
-    (global_css, scoped_css)
+    let mut has_dynamic_styles = false;
+    collect_styles_recursive(nodes, &mut global_css, &mut scoped_css, &mut has_dynamic_styles);
+    (global_css, scoped_css, has_dynamic_styles)
 }
 
 fn collect_styles_recursive(
     nodes: &[token_parser::Node],
     global_css: &mut String,
     scoped_css: &mut String,
+    has_dynamic_styles: &mut bool,
 ) {
     for node in nodes {
         match node {
@@ -111,18 +116,24 @@ fn collect_styles_recursive(
                     if let Some(_src_attr) = elem.attrs.iter().find(|a| a.name == "src") {
                     } else {
                         for child in &elem.children {
-                            if let token_parser::Node::Text(text) = child {
-                                scoped_css.push_str(&text.content);
-                                scoped_css.push('\n');
+                            match child {
+                                token_parser::Node::Text(text) => {
+                                    scoped_css.push_str(&text.content);
+                                    scoped_css.push('\n');
+                                }
+                                token_parser::Node::Expression(_) => {
+                                    *has_dynamic_styles = true;
+                                }
+                                _ => {}
                             }
                         }
                     }
                 } else {
-                    collect_styles_recursive(&elem.children, global_css, scoped_css);
+                    collect_styles_recursive(&elem.children, global_css, scoped_css, has_dynamic_styles);
                 }
             }
             token_parser::Node::Fragment(frag) => {
-                collect_styles_recursive(&frag.children, global_css, scoped_css);
+                collect_styles_recursive(&frag.children, global_css, scoped_css, has_dynamic_styles);
             }
             token_parser::Node::Block(block) => match block {
                 token_parser::Block::Style(style_block) => {
