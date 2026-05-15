@@ -833,9 +833,6 @@ fn parse_html_name(input: ParseStream, allow_double_dash: bool) -> Result<(Strin
     while input.peek(Token![-]) || input.peek(Token![:]) || input.peek(Token![.]) {
         // Check for double dash - stop if not allowed (consume dashes first to avoid leaving them unparsed)
         if input.peek(Token![-]) && input.peek2(Token![-]) && !allow_double_dash {
-            // Consume the dashes before breaking to avoid leaving them in the stream
-            let _ = input.parse::<Token![-]>();
-            let _ = input.parse::<Token![-]>();
             break;
         }
 
