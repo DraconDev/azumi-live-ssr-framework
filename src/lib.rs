@@ -4,7 +4,7 @@ pub mod prelude {
     pub use crate::csp::CspNonce;
     pub use crate::{
         azumi_script, component, html, json_data, live,
-        session_cleanup_script, AzumiScript, escape_css_string, escape_html, escape_xml,
+        session_cleanup_script, AzumiScript, Component, escape_css_string, escape_html, escape_xml,
         FnComponent, render_to_string, render_to_writer,
     };
     pub use crate::form::{FormValidator, ValidatedForm, ValidationErrors};
