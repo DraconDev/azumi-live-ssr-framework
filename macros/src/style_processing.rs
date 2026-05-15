@@ -148,21 +148,21 @@ fn collect_styles_recursive(
                     }
                 }
                 token_parser::Block::If(if_block) => {
-                    collect_styles_recursive(&if_block.then_branch, global_css, scoped_css);
+                    collect_styles_recursive(&if_block.then_branch, global_css, scoped_css, has_dynamic_styles);
                     if let Some(else_branch) = &if_block.else_branch {
-                        collect_styles_recursive(else_branch, global_css, scoped_css);
+                        collect_styles_recursive(else_branch, global_css, scoped_css, has_dynamic_styles);
                     }
                 }
                 token_parser::Block::For(for_block) => {
-                    collect_styles_recursive(&for_block.body, global_css, scoped_css);
+                    collect_styles_recursive(&for_block.body, global_css, scoped_css, has_dynamic_styles);
                 }
                 token_parser::Block::Match(match_block) => {
                     for arm in &match_block.arms {
-                        collect_styles_recursive(&arm.body, global_css, scoped_css);
+                        collect_styles_recursive(&arm.body, global_css, scoped_css, has_dynamic_styles);
                     }
                 }
                 token_parser::Block::Call(call_block) => {
-                    collect_styles_recursive(&call_block.children, global_css, scoped_css);
+                    collect_styles_recursive(&call_block.children, global_css, scoped_css, has_dynamic_styles);
                 }
                 _ => {}
             },
