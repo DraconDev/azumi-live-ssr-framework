@@ -12,6 +12,7 @@ tokio::task_local! {
 
 thread_local! {
     static PAGE_META_FALLBACK: RefCell<PageMeta> = RefCell::new(PageMeta::default());
+    static GUARD_ARC: RefCell<Option<std::sync::Arc<()>>> = RefCell::new(None);
 }
 
 pub async fn with_path<F: Future>(path: String, f: F) -> F::Output {
@@ -70,20 +71,26 @@ pub async fn with_page_meta_scope<F: Future>(f: F) -> F::Output {
 /// (the one with `Arc` strong_count == 1) is dropped.
 pub struct PageMetaGuard {
     _refcount: std::sync::Arc<()>,
+    _in_task_scope: bool,
 }
 
 impl Clone for PageMetaGuard {
     fn clone(&self) -> Self {
         PageMetaGuard {
             _refcount: std::sync::Arc::clone(&self._refcount),
+            _in_task_scope: self._in_task_scope,
         }
     }
 }
 
 impl Drop for PageMetaGuard {
     fn drop(&mut self) {
-        if std::sync::Arc::strong_count(&self._refcount) == 1 {
+        if self._in_task_scope {
+            return;
+        }
+        if std::sync::Arc::strong_count(&self._refcount) == 2 {
             PAGE_META_FALLBACK.with(|params| *params.borrow_mut() = PageMeta::default());
+            GUARD_ARC.with(|a| *a.borrow_mut() = None);
         }
     }
 }
@@ -120,8 +127,26 @@ pub fn set_page_meta(
         PAGE_META_FALLBACK.with(|params| *params.borrow_mut() = meta);
     }
 
-    PageMetaGuard {
-        _refcount: std::sync::Arc::new(()),
+    if task_local_ok {
+        PageMetaGuard {
+            _refcount: std::sync::Arc::new(()),
+            _in_task_scope: true,
+        }
+    } else {
+        let arc = GUARD_ARC.with(|a| {
+            let mut borrow = a.borrow_mut();
+            if let Some(existing) = borrow.as_ref() {
+                std::sync::Arc::clone(existing)
+            } else {
+                let new = std::sync::Arc::new(());
+                *borrow = Some(std::sync::Arc::clone(&new));
+                new
+            }
+        });
+        PageMetaGuard {
+            _refcount: arc,
+            _in_task_scope: false,
+        }
     }
 }
 

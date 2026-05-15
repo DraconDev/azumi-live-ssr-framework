@@ -1094,6 +1094,17 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_word_boundary_raw_colon_colon_no_false_positive() {
+        let node = create_expression_node(r#"get_Raw::value()"#);
+        let errors = validate_raw_usage(&[node]);
+        assert!(
+            errors.is_empty(),
+            "get_Raw::value() should NOT be flagged (not the Raw type), got: {:?}",
+            errors
+        );
+    }
+
     // =========================================================================
     // Structural Validator Tests
     // =========================================================================

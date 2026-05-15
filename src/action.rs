@@ -180,27 +180,57 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 /// This matters because `form_id` goes into an HTML attribute (`id="..."`) which is
 /// itself inside a JavaScript string literal inside an `onclick` attribute handler.
 /// The double-escape ensures the value is safe in both contexts.
-pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
-    let msg = escape_html(&message.into());
-    let retry = form_id.map(|id| {
-        // Escape for BOTH JavaScript and HTML contexts since this goes into an HTML attribute
-        let safe_id = escape_js_string(id);
-        let safe_id_html = escape_html(&safe_id);
-        format!(
-            r#"<button type="button" onclick="document.getElementById('{}').style.display='flex';this.parentElement.remove()" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
-            safe_id_html
-        )
-    });
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    axum::response::Html(match retry {
-        Some(btn) => format!(
-            r#"<div class="error_message"><p class="error_text">{}</p>{}</div>"#,
-            msg, btn
-        ),
-        None => format!(
-            r#"<div class="error_message"><p class="error_text">{}</p></div>"#,
-            msg
-        ),
-    })
-    .into_response()
+    #[test]
+    fn test_escape_js_string_backslash() {
+        assert_eq!(escape_js_string(r"a\b"), r"a\\b");
+    }
+
+    #[test]
+    fn test_escape_js_string_backtick() {
+        assert_eq!(escape_js_string("a`b"), r"a\x60b");
+    }
+
+    #[test]
+    fn test_escape_js_string_double_quote() {
+        assert_eq!(escape_js_string("a\"b"), r"a\x22b");
+    }
+
+    #[test]
+    fn test_escape_js_string_single_quote() {
+        assert_eq!(escape_js_string("a'b"), r"a\x27b");
+    }
+
+    #[test]
+    fn test_escape_js_string_newline() {
+        assert_eq!(escape_js_string("a\nb"), r"a\nb");
+    }
+
+    #[test]
+    fn test_escape_js_string_carriage_return() {
+        assert_eq!(escape_js_string("a\rb"), r"a\rb");
+    }
+
+    #[test]
+    fn test_escape_js_string_angle_brackets() {
+        assert_eq!(escape_js_string("<script>"), r"\x3cscript\x3e");
+    }
+
+    #[test]
+    fn test_escape_js_string_forward_slash() {
+        assert_eq!(escape_js_string("a/b"), r"a\/b");
+    }
+
+    #[test]
+    fn test_escape_js_string_semicolon() {
+        assert_eq!(escape_js_string("a;b"), r"a\x3bb");
+    }
+
+    #[test]
+    fn test_escape_js_string_noop() {
+        assert_eq!(escape_js_string("hello world"), "hello world");
+    }
 }
