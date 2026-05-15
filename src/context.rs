@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::future::Future;
 use std::sync::Mutex;
 
@@ -9,6 +10,10 @@ tokio::task_local! {
     static PAGE_META: Mutex<PageMeta>;
 }
 
+thread_local! {
+    static PAGE_META_FALLBACK: RefCell<PageMeta> = RefCell::new(PageMeta::default());
+}
+
 pub async fn with_path<F: Future>(path: String, f: F) -> F::Output {
     CURRENT_PATH.scope(path, f).await
 }
@@ -18,7 +23,7 @@ pub fn get_current_path() -> Option<String> {
 }
 
 // ============================================================================
-// Page Metadata (Task-Local, Async-Safe)
+// Page Metadata (Task-Local primary, Thread-Local fallback)
 // ============================================================================
 
 #[derive(Clone, Default, Debug)]
@@ -31,24 +36,22 @@ pub struct PageMeta {
 /// Run a future with a page metadata scope.
 ///
 /// This establishes a task-local `PAGE_META` that is automatically cleaned up
-/// when the scope ends. Call this at the entry point of each request handler
-/// (typically via `render_to_string` or the `#[azumi::page]` macro).
+/// when the scope ends. When the scope is active, `set_page_meta` and
+/// `get_page_meta` use the task-local store, which is async-safe — no data
+/// races when tasks yield at `.await` points.
 ///
-/// # Async Safety
-///
-/// Unlike the previous `thread_local!` implementation, `PAGE_META` is now
-/// task-local. This means:
-/// - Each tokio task has its own isolated metadata
-/// - No data races when tasks migrate between threads at `.await` points
-/// - Metadata is automatically cleaned up when the scope ends
+/// When the scope is NOT active (e.g., synchronous `render_to_string` calls
+/// outside an async context), the functions fall back to a thread-local store.
+/// The thread-local fallback is NOT async-safe but preserves backward
+/// compatibility for non-async rendering paths.
 ///
 /// # Example
 ///
 /// ```ignore
 /// async fn handler() -> impl IntoResponse {
 ///     azumi::context::with_page_meta_scope(async {
-///         let component = my_page();
-///         axum::response::Html(azumi::render_to_string(&component))
+///         let html = azumi::render_to_string(&my_page());
+///         axum::response::Html(html)
 ///     }).await
 /// }
 /// ```
@@ -56,46 +59,79 @@ pub async fn with_page_meta_scope<F: Future>(f: F) -> F::Output {
     PAGE_META.scope(Mutex::new(PageMeta::default()), f).await
 }
 
-/// RAII guard for page metadata. Kept for API compatibility.
+/// RAII guard that resets the fallback `PAGE_META` to default when all
+/// guards are dropped.
 ///
-/// With the task-local implementation, cleanup happens automatically when the
-/// scope ends (via `with_page_meta_scope`). The guard no longer needs to
-/// reset `PAGE_META` on drop, but is retained for backward compatibility.
-#[derive(Clone, Default)]
-pub struct PageMetaGuard(());
+/// When the task-local scope is active, this guard is a no-op — the scope
+/// handles cleanup automatically. When using the thread-local fallback, the
+/// guard resets the metadata on drop to prevent leakage between requests.
+#[derive(Clone)]
+pub struct PageMetaGuard {
+    _refcount: std::sync::Arc<std::sync::atomic::AtomicU32>,
+}
+
+impl Drop for PageMetaGuard {
+    fn drop(&mut self) {
+        if self._refcount.fetch_sub(1, std::sync::atomic::Ordering::Relaxed) == 1 {
+            PAGE_META_FALLBACK.with(|params| *params.borrow_mut() = PageMeta::default());
+        }
+    }
+}
 
 /// Set the metadata for the current page render and return a guard.
 ///
-/// The guard is retained for API compatibility but no longer performs cleanup
-/// on drop — the task-local scope handles that automatically.
+/// When called inside a `with_page_meta_scope`, writes to the task-local
+/// store (async-safe). Otherwise, falls back to the thread-local store.
 ///
-/// # Panics
-///
-/// This function will not panic. If called outside a `with_page_meta_scope`,
-/// the metadata is silently discarded and `get_page_meta()` returns defaults.
+/// The guard resets the thread-local fallback on drop. When using the
+/// task-local scope, the guard is a no-op but retained for API compatibility.
 pub fn set_page_meta(
     title: Option<String>,
     description: Option<String>,
     image: Option<String>,
 ) -> PageMetaGuard {
-    let _ = PAGE_META.try_with(|m| {
+    let meta = PageMeta {
+        title,
+        description,
+        image,
+    };
+
+    let task_local_ok = PAGE_META.try_with(|m| {
         if let Ok(mut guard) = m.lock() {
-            *guard = PageMeta {
-                title,
-                description,
-                image,
-            };
+            *guard = meta.clone();
+            true
+        } else {
+            false
         }
-    });
-    PageMetaGuard(())
+    })
+    .unwrap_or(false);
+
+    if !task_local_ok {
+        PAGE_META_FALLBACK.with(|params| *params.borrow_mut() = meta);
+    }
+
+    PageMetaGuard {
+        _refcount: std::sync::Arc::new(std::sync::atomic::AtomicU32::new(1)),
+    }
 }
 
 /// Get the current page metadata.
 ///
-/// Returns `PageMeta::default()` if called outside a `with_page_meta_scope`.
-/// This is used by the `head!` macro or layout components.
+/// When called inside a `with_page_meta_scope`, reads from the task-local
+/// store (async-safe). Otherwise, falls back to the thread-local store.
+///
+/// Returns `PageMeta::default()` if neither store has been set.
 pub fn get_page_meta() -> PageMeta {
     PAGE_META
         .try_with(|m| m.lock().map(|g| g.clone()).unwrap_or_default())
-        .unwrap_or_default()
+        .unwrap_or_else(|_| {
+            PAGE_META_FALLBACK.with(|params| {
+                params.try_borrow().map(|b| b.clone()).unwrap_or_default()
+            })
+        })
+}
+
+/// Returns `true` if a page metadata task-local scope is active.
+pub fn has_page_meta_scope() -> bool {
+    PAGE_META.try_with(|_| true).unwrap_or(false)
 }
