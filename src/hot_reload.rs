@@ -145,7 +145,7 @@ pub fn push_style_update(scope_id: &str, css: &str) {
     let _ = get_broadcast_channel().send(msg.to_string());
 }
 
-async fn is_dev_token_valid(
+async fn check_dev_token(
     req: axum::http::Request<axum::body::Body>,
     next: axum::middleware::Next,
 ) -> Result<axum::response::Response, StatusCode> {

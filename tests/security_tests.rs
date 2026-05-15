@@ -207,8 +207,10 @@ fn test_verify_rejects_unicode_in_signature() {
 // NOTE: These tests modify AZUMI_DEV_TOKEN env var, which is NOT thread-safe.
 // If running in parallel causes flaky failures, run with: --test-threads=1
 
+#[cfg(feature = "devtools")]
 use std::sync::Mutex;
 
+#[cfg(feature = "devtools")]
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 #[cfg(feature = "devtools")]
