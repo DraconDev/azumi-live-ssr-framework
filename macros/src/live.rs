@@ -548,7 +548,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
                             .build()
                         {
                             Ok(props) => props,
-                            Err(e) => return axum::response::IntoResponse::into_response((axum::http::StatusCode::INTERNAL_SERVER_ERROR, format!("Component Build Error: {}", e))),
+                            Err(e) => return axum::response::IntoResponse::into_response((axum::http::StatusCode::INTERNAL_SERVER_ERROR, format!("Component Build Error: {}. Note: the component referenced by #[azumi::live_impl] must have a `state: &StateType` parameter as its first argument.", e))),
                         };
                         let html = azumi::render_to_string(&#comp_mod::render(props));
 
