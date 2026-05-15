@@ -24,6 +24,7 @@ pub(crate) fn validate_nodes(
     valid_classes: &HashSet<String>,
     valid_ids: &HashSet<String>,
     has_scoped_css: bool,
+    has_dynamic_styles: bool,
 ) -> proc_macro2::TokenStream {
     let mut errors = vec![];
 
@@ -32,7 +33,8 @@ pub(crate) fn validate_nodes(
         nodes: &[token_parser::Node],
         valid_classes: &HashSet<String>,
         valid_ids: &HashSet<String>,
-        _has_scoped_css: bool,
+        has_scoped_css: bool,
+        has_dynamic_styles: bool,
         errors: &mut Vec<proc_macro2::TokenStream>,
         is_inside_form: bool,
         is_inside_button: bool,
@@ -76,6 +78,7 @@ pub(crate) fn validate_nodes(
                                             });
                                         } else if !valid_classes.contains(&var_name)
                                             && !valid_ids.contains(&var_name)
+                                            && !has_dynamic_styles
                                         {
                                             let dashed = var_name.replace('_', "-");
                                             if valid_classes.contains(&dashed) {
@@ -112,6 +115,7 @@ pub(crate) fn validate_nodes(
                                         let var_name = ident.to_string();
                                         if valid_classes.contains(&var_name)
                                             && !valid_ids.contains(&var_name)
+                                            && !has_dynamic_styles
                                         {
                                             let msg = format!(
                                                 "Variable '{}' refers to a Class selector (.{}) but is used in 'id' attribute. Did you mean to use 'class={}'?",
@@ -194,7 +198,8 @@ pub(crate) fn validate_nodes(
                         &elem.children,
                         valid_classes,
                         valid_ids,
-                        _has_scoped_css,
+                        has_scoped_css,
+                        has_dynamic_styles,
                         errors,
                         new_inside_form,
                         new_inside_button,
@@ -206,7 +211,8 @@ pub(crate) fn validate_nodes(
                         &frag.children,
                         valid_classes,
                         valid_ids,
-                        _has_scoped_css,
+                        has_scoped_css,
+                        has_dynamic_styles,
                         errors,
                         is_inside_form,
                         is_inside_button,
@@ -219,7 +225,8 @@ pub(crate) fn validate_nodes(
                             &if_block.then_branch,
                             valid_classes,
                             valid_ids,
-                            _has_scoped_css,
+                            has_scoped_css,
+                            has_dynamic_styles,
                             errors,
                             is_inside_form,
                             is_inside_button,
@@ -230,7 +237,8 @@ pub(crate) fn validate_nodes(
                                 else_branch,
                                 valid_classes,
                                 valid_ids,
-                                _has_scoped_css,
+                                has_scoped_css,
+                                has_dynamic_styles,
                                 errors,
                                 is_inside_form,
                                 is_inside_button,
@@ -243,7 +251,8 @@ pub(crate) fn validate_nodes(
                             &for_block.body,
                             valid_classes,
                             valid_ids,
-                            _has_scoped_css,
+                            has_scoped_css,
+                            has_dynamic_styles,
                             errors,
                             is_inside_form,
                             is_inside_button,
@@ -256,7 +265,8 @@ pub(crate) fn validate_nodes(
                                 &arm.body,
                                 valid_classes,
                                 valid_ids,
-                                _has_scoped_css,
+                                has_scoped_css,
+                                has_dynamic_styles,
                                 errors,
                                 is_inside_form,
                                 is_inside_button,
@@ -276,6 +286,7 @@ pub(crate) fn validate_nodes(
         valid_classes,
         valid_ids,
         has_scoped_css,
+        has_dynamic_styles,
         &mut errors,
         false,
         false,
