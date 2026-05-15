@@ -120,18 +120,7 @@ async fn azumi_js_handler() -> impl IntoResponse {
 
 /// Escape HTML entities to prevent XSS in action fragments.
 fn escape_html(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for c in s.chars() {
-        match c {
-            '"' => out.push_str("&quot;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '&' => out.push_str("&amp;"),
-            '\'' => out.push_str("&#x27;"),
-            _ => out.push(c),
-        }
-    }
-    out
+    crate::escape_html(s)
 }
 
 /// Escape a string for safe inclusion in a JavaScript string literal.
