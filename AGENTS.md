@@ -337,7 +337,7 @@ azumi/
 │   │   └── accessibility_validator.rs  # A11y attribute validation
 ├── src/
 │   ├── lib.rs                          # Public API, Component trait, AZUMI_RULES, prelude
-│   ├── script.rs                       # TrustedHtml, azumi_script(), escape helpers
+│   ├── script.rs                       # TrustedHtml, azumi_script(), escape_html(), escape_xml(), escape_tag_content()
 │   ├── seo.rs                          # SEO helpers (uses Raw internally, outside html!)
 │   ├── security.rs                     # HMAC state signing
 │   ├── csp.rs                          # ContentSecurityPolicy builder + CspNonce + Axum middleware
