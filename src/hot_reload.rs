@@ -317,14 +317,16 @@ mod tests {
 
     #[test]
     fn test_size_limits_are_consistent() {
-        assert!(
-            MAX_TOTAL_CSS_SIZE < MAX_REGISTRY_SIZE * MAX_PART_SIZE,
-            "MAX_TOTAL_CSS_SIZE should be less than the theoretical max from parts × MAX_PART_SIZE"
-        );
-        assert!(
-            MAX_TOTAL_CSS_SIZE <= MAX_REGISTRY_SIZE * MAX_PART_SIZE,
-            "CSS size limit must be reachable (not dead code)"
-        );
+        const _: () = {
+            assert!(
+                MAX_TOTAL_CSS_SIZE < MAX_REGISTRY_SIZE * MAX_PART_SIZE,
+                "MAX_TOTAL_CSS_SIZE should be less than the theoretical max from parts × MAX_PART_SIZE"
+            );
+            assert!(
+                MAX_TOTAL_CSS_SIZE <= MAX_REGISTRY_SIZE * MAX_PART_SIZE,
+                "CSS size limit must be reachable (not dead code)"
+            );
+        };
     }
 
     #[test]
