@@ -138,6 +138,8 @@ azumi/
 | `render_to_string`, `render_to_writer` | Render functions |
 | `FnComponent` | Closure-based component type |
 | `escape_css_string` | CSS string escaping |
+| `escape_html` | HTML entity escaping (`&`, `<`, `>`, `"`, `'`) |
+| `escape_xml` | XML entity escaping (uses `&apos;` per XML spec) |
 | `CspNonce` | CSP nonce (from `csp` module) |
 | `FormValidator`, `ValidatedForm`, `ValidationErrors` | Form validation |
 | `ActionResult`, `error_fragment`, `success_fragment` | Action responses (`axum` feature only) |
