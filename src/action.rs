@@ -124,9 +124,11 @@ fn escape_html(s: &str) -> String {
 }
 
 /// Escape a string for safe inclusion in a JavaScript string literal.
-/// Escapes: backslash, backtick, quotes, newline, carriage return, angle brackets.
-/// Backticks prevent template literal injection. Angle brackets prevent HTML breakout
-/// when the JS string will be embedded in an HTML attribute.
+/// Escapes: backslash, backtick, quotes, newline, carriage return, angle brackets,
+/// forward slash, and semicolon.
+/// Backticks prevent template literal injection. Angle brackets and forward slash
+/// prevent HTML breakout when the JS string will be embedded in an HTML attribute.
+/// Semicolons prevent early statement termination in JS contexts.
 fn escape_js_string(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
@@ -139,6 +141,8 @@ fn escape_js_string(s: &str) -> String {
             '\r' => out.push_str("\\r"),
             '<' => out.push_str("\\x3c"),
             '>' => out.push_str("\\x3e"),
+            '/' => out.push_str("\\/"),
+            ';' => out.push_str("\\x3b"),
             _ => out.push(c),
         }
     }
@@ -174,12 +178,36 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 /// # Escaping Order
 ///
 /// When `form_id` is provided, it is escaped in two steps:
-/// 1. `escape_js_string(id)` — escapes `\`, `/`, `*`, `"`, `'`, `;`, `<`, `>`, `` ` ``
+/// 1. `escape_js_string(id)` — escapes `\`, `` ` ``, `"`, `'`, `\n`, `\r`, `<`, `>`, `/`, `;`
 /// 2. `escape_html(&safe_id)` — escapes `&`, `<`, `>`, `"`, `'` for HTML context
 ///
 /// This matters because `form_id` goes into an HTML attribute (`id="..."`) which is
 /// itself inside a JavaScript string literal inside an `onclick` attribute handler.
 /// The double-escape ensures the value is safe in both contexts.
+pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
+    let msg = escape_html(&message.into());
+    let retry = form_id.map(|id| {
+        let safe_id = escape_js_string(id);
+        let safe_id_html = escape_html(&safe_id);
+        format!(
+            r#"<button type="button" onclick="document.getElementById('{}').style.display='flex';this.parentElement.remove()" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
+            safe_id_html
+        )
+    });
+
+    axum::response::Html(match retry {
+        Some(btn) => format!(
+            r#"<div class="error_message"><p class="error_text">{}</p>{}</div>"#,
+            msg, btn
+        ),
+        None => format!(
+            r#"<div class="error_message"><p class="error_text">{}</p></div>"#,
+            msg
+        ),
+    })
+    .into_response()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

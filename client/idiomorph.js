@@ -447,17 +447,38 @@ var Idiomorph = (function () {
             let promises = [];
             for (const newNode of nodesToAppend) {
                 log("adding: ", newNode);
-                let newElt = document.createRange().createContextualFragment(newNode.outerHTML).firstChild;
-                // Security: reject <script> elements from head morphing to prevent XSS
-                // Scripts in <head> updates should only come from trusted server responses,
-                // but createContextualFragment will execute them. Use DOMParser instead.
-                if (newElt && newElt.nodeName === 'SCRIPT') {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(newNode.outerHTML, 'text/html');
-                    newElt = doc.head.firstChild;
+                // Security: use DOMParser instead of createContextualFragment for ALL
+                // head elements. createContextualFragment executes script elements and
+                // event handlers (onerror on <img>, onload on <link/iframe>, etc.).
+                // DOMParser parses without executing anything, preventing XSS via head morphing.
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(newNode.outerHTML, 'text/html');
+                let newElt = doc.head.firstElementChild || doc.body.firstElementChild;
+                // DOMParser creates inert <script> elements. External scripts (<script src>)
+                // need to be re-created to actually load. Inline scripts from head morphing
+                // are intentionally kept inert (they shouldn't re-execute on morph).
+                if (newElt && newElt.nodeName === 'SCRIPT' && newElt.src) {
+                    const activeScript = document.createElement('script');
+                    if (newElt.src) activeScript.src = newElt.src;
+                    if (newElt.type) activeScript.type = newElt.type;
+                    if (newElt.async) activeScript.async = true;
+                    if (newElt.defer) activeScript.defer = true;
+                    if (newElt.crossOrigin) activeScript.crossOrigin = newElt.crossOrigin;
+                    if (newElt.integrity) activeScript.integrity = newElt.integrity;
+                    newElt = activeScript;
+                }
+                // Strip dangerous event handler attributes from all elements
+                // (e.g., <link onload="...">, <img onerror="...">, <iframe on...>)
+                if (newElt && newElt.attributes) {
+                    for (let i = newElt.attributes.length - 1; i >= 0; i--) {
+                        const attrName = newElt.attributes[i].name;
+                        if (attrName.startsWith('on') && attrName.length > 2) {
+                            newElt.removeAttribute(attrName);
+                        }
+                    }
                 }
                 log(newElt);
-                if (ctx.callbacks.beforeNodeAdded(newElt) !== false) {
+                if (newElt && ctx.callbacks.beforeNodeAdded(newElt) !== false) {
                     if (newElt.href || newElt.src) {
                         let resolve = null;
                         let promise = new Promise(function (_resolve) {

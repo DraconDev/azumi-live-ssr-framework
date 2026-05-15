@@ -3,6 +3,17 @@ use crate::token_parser::Node;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 
+/// Check if a normalized token string contains a reference to Azumi's `Raw` type.
+///
+/// Detects: `Raw(`, `Raw::<`, `::Raw(`, `r#Raw(`
+/// Avoids false positives on identifiers ending in `Raw` (e.g., `get_Raw::value()`).
+fn contains_raw_reference(normalized: &str) -> bool {
+    normalized.contains("Raw(")
+        || normalized.contains("Raw::<")
+        || normalized.contains("::Raw(")
+        || normalized.contains("r#Raw(")
+}
+
 /// Validate Raw usage patterns - ERROR on ANY Raw() in html! expressions.
 ///
 /// Raw() bypasses ALL of Azumi's safety guarantees. Use the safe alternatives:
@@ -18,12 +29,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
             Node::Expression(expr) => {
                 let content_str = expr.content.to_string();
                 let normalized_str = content_str.replace(' ', "");
-                let has_raw = normalized_str.contains("Raw(")
-                    || normalized_str.contains("Raw::")
-                    || normalized_str.contains("r#Raw(")
-                    || normalized_str.contains("::Raw(");
-
-                if has_raw {
+                if contains_raw_reference(&normalized_str) {
                     errors.push(quote_spanned! { expr.span =>
                             compile_error!(
                                 "Azumi: Raw() is not allowed inside html!.\n\n\
@@ -62,11 +68,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                     match &attr.value {
                         crate::token_parser::AttributeValue::Dynamic(tokens) => {
                             let normalized = tokens.to_string().replace(' ', "");
-                            let has_raw = normalized.contains("Raw(")
-                                || normalized.contains("Raw::")
-                                || normalized.contains("r#Raw(")
-                                || normalized.contains("::Raw(");
-                            if has_raw {
+                            if contains_raw_reference(&normalized) {
                                 let attr_name = &attr.name;
                                 errors.push(quote! {
                                     compile_error!(concat!(
@@ -81,11 +83,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                         crate::token_parser::AttributeValue::StyleDsl(pairs) => {
                             for (_, value_tokens) in pairs {
                                 let normalized = value_tokens.to_string().replace(' ', "");
-                                let has_raw = normalized.contains("Raw(")
-                                    || normalized.contains("Raw::")
-                                    || normalized.contains("r#Raw(")
-                                    || normalized.contains("::Raw(");
-                                if has_raw {
+                                if contains_raw_reference(&normalized) {
                                     let attr_name = &attr.name;
                                     errors.push(quote! {
                                         compile_error!(concat!(

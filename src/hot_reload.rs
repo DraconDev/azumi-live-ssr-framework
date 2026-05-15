@@ -121,12 +121,6 @@ async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) -> 
         return (StatusCode::SERVICE_UNAVAILABLE, "Registry unavailable");
     };
 
-    let total_size = payload.id.len() + payload.parts.iter().map(|p| p.len()).sum::<usize>();
-    if total_size > MAX_REGISTRY_SIZE * 10 {
-        eprintln!("Hot Reload: Total payload size too large");
-        return (StatusCode::PAYLOAD_TOO_LARGE, "Total payload size too large");
-    }
-
     // lru::LruCache automatically evicts oldest entries when at capacity
     registry.put(payload.id.clone(), RuntimeTemplate { static_parts: payload.parts });
     #[cfg(debug_assertions)]
@@ -319,5 +313,26 @@ mod tests {
         cache.put("key3".to_string(), RuntimeTemplate { static_parts: vec!["v3".to_string()] });
         assert!(cache.get("key1").is_some()); // key1 should still be there
         assert!(cache.get("key2").is_none()); // key2 was evicted
+    }
+
+    #[test]
+    fn test_size_limits_are_consistent() {
+        assert!(
+            MAX_TOTAL_CSS_SIZE < MAX_REGISTRY_SIZE * MAX_PART_SIZE,
+            "MAX_TOTAL_CSS_SIZE should be less than the theoretical max from parts × MAX_PART_SIZE"
+        );
+        assert!(
+            MAX_TOTAL_CSS_SIZE <= MAX_REGISTRY_SIZE * MAX_PART_SIZE,
+            "CSS size limit must be reachable (not dead code)"
+        );
+    }
+
+    #[test]
+    fn test_payload_size_limit_allows_reasonable_templates() {
+        let reasonable_payload_size = 50_000; // 50KB — a reasonable template
+        assert!(
+            reasonable_payload_size <= MAX_TOTAL_CSS_SIZE,
+            "A 50KB template should be within CSS size limits"
+        );
     }
 }

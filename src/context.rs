@@ -85,12 +85,10 @@ impl Clone for PageMetaGuard {
 
 impl Drop for PageMetaGuard {
     fn drop(&mut self) {
-        if self._in_task_scope {
-            return;
-        }
-        if std::sync::Arc::strong_count(&self._refcount) == 2 {
+        let sc = std::sync::Arc::strong_count(&self._refcount);
+        eprintln!("[DIAG] PageMetaGuard::drop: strong_count={sc}, created_in_fallback_unknown");
+        if sc == 1 {
             PAGE_META_FALLBACK.with(|params| *params.borrow_mut() = PageMeta::default());
-            GUARD_ARC.with(|a| *a.borrow_mut() = None);
         }
     }
 }
@@ -118,6 +116,7 @@ pub fn set_page_meta(
             *guard = meta.clone();
             true
         } else {
+            eprintln!("Azumi: PAGE_META mutex poisoned, falling back to thread-local");
             false
         }
     })

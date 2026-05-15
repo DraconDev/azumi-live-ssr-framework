@@ -162,9 +162,8 @@ fn generate_body(
     let (global_css, scoped_css, has_dynamic_styles) = style_processing::collect_all_styles(nodes);
     let (valid_classes, valid_ids) = crate::css::extract_selectors(&scoped_css);
 
-    let has_scoped_css = !scoped_css.is_empty() || has_dynamic_styles;
     let style_validation_errors =
-        validators::validate_nodes(nodes, &valid_classes, &valid_ids, has_scoped_css, has_dynamic_styles);
+        validators::validate_nodes(nodes, &valid_classes, &valid_ids, has_dynamic_styles);
     all_errors.extend(style_validation_errors);
 
     // If any validator produced errors, return them all at once
