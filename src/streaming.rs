@@ -81,14 +81,12 @@ impl SseEvent {
     }
 
     /// Set the event ID for replay/resume support.
-    #[must_use]
     pub fn id(mut self, id: impl Into<String>) -> Self {
         self.id = Some(id.into());
         self
     }
 
     /// Set a custom event name.
-    #[must_use]
     pub fn name(mut self, name: impl Into<String>) -> Self {
         self.event = name.into();
         self

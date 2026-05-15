@@ -295,7 +295,6 @@ impl CspNonce {
     /// Use this in environments where the RNG may not be available (e.g.,
     /// embedded, early boot, or sandboxed contexts). On success, the nonce
     /// has the same properties as [`CspNonce::generate`].
-    #[must_use]
     pub fn try_generate() -> Result<Self, getrandom::Error> {
         use base64::engine::general_purpose::STANDARD;
         use base64::Engine;
