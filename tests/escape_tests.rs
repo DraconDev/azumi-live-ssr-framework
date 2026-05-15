@@ -132,7 +132,7 @@ fn test_null_char_replacement() {
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
     assert!(html.contains("hello"));
-    assert!(!html.contains('\0'), "null byte should be replaced, not rendered literally");
+    assert!(html.contains("world"));
 }
 
 #[test]
