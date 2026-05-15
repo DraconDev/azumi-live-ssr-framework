@@ -10,6 +10,7 @@ class Azumi {
     constructor() {
         this.scopes = new WeakMap(); // Element -> state cache
         this.debug = false; // Enable with window.azumi.debug = true
+        this.revealObserver = null; // IntersectionObserver for az-reveal
         this.delegate();
         this.connectHotReload();
         this.init();
@@ -45,18 +46,15 @@ class Azumi {
         }
 
         if ('IntersectionObserver' in window) {
-            const observer = new IntersectionObserver((entries) => {
+            this.revealObserver = new IntersectionObserver((entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.setAttribute('data-revealed', '');
-                        observer.unobserve(entry.target);
+                        this.revealObserver.unobserve(entry.target);
                     }
                 });
-                if (document.querySelectorAll('[az-reveal]:not([data-revealed])').length === 0) {
-                    observer.disconnect();
-                }
             }, { threshold: 0.1 });
-            document.querySelectorAll('[az-reveal]').forEach((el) => observer.observe(el));
+            this.observeRevealElements();
         } else {
             const revealAll = () => {
                 document.querySelectorAll('[az-reveal]:not([data-revealed])').forEach((el) => {
@@ -74,6 +72,14 @@ class Azumi {
             window.addEventListener('resize', revealAll, { passive: true });
             revealAll();
         }
+    }
+
+    // Observe all current az-reveal elements (call after DOM morphing to pick up new ones)
+    observeRevealElements() {
+        if (!this.revealObserver) return;
+        document.querySelectorAll('[az-reveal]:not([data-revealed])').forEach((el) => {
+            this.revealObserver.observe(el);
+        });
     }
 
     log(...args) {
@@ -1149,6 +1155,9 @@ class Azumi {
                 if (savedUiState) {
                     target.setAttribute("az-ui", savedUiState);
                 }
+
+                // Re-observe any new az-reveal elements added by morphing
+                this.observeRevealElements();
             } else if (target) {
                 this.warn("Idiomorph not loaded, falling back to outerHTML replacement");
                 target.outerHTML = html;

@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::future::Future;
+use std::marker::PhantomData;
 use std::sync::Mutex;
 
 tokio::task_local! {
@@ -72,6 +73,7 @@ pub async fn with_page_meta_scope<F: Future>(f: F) -> F::Output {
 pub struct PageMetaGuard {
     _refcount: std::sync::Arc<()>,
     _in_task_scope: bool,
+    _not_send: PhantomData<*const ()>,
 }
 
 impl Clone for PageMetaGuard {
@@ -79,16 +81,19 @@ impl Clone for PageMetaGuard {
         PageMetaGuard {
             _refcount: std::sync::Arc::clone(&self._refcount),
             _in_task_scope: self._in_task_scope,
+            _not_send: PhantomData,
         }
     }
 }
 
 impl Drop for PageMetaGuard {
     fn drop(&mut self) {
-        let sc = std::sync::Arc::strong_count(&self._refcount);
-        eprintln!("[DIAG] PageMetaGuard::drop: strong_count={sc}, created_in_fallback_unknown");
-        if sc == 1 {
+        if self._in_task_scope {
+            return;
+        }
+        if std::sync::Arc::strong_count(&self._refcount) == 2 {
             PAGE_META_FALLBACK.with(|params| *params.borrow_mut() = PageMeta::default());
+            GUARD_ARC.with(|a| *a.borrow_mut() = None);
         }
     }
 }
@@ -116,7 +121,6 @@ pub fn set_page_meta(
             *guard = meta.clone();
             true
         } else {
-            eprintln!("Azumi: PAGE_META mutex poisoned, falling back to thread-local");
             false
         }
     })
@@ -130,6 +134,7 @@ pub fn set_page_meta(
         PageMetaGuard {
             _refcount: std::sync::Arc::new(()),
             _in_task_scope: true,
+            _not_send: PhantomData,
         }
     } else {
         let arc = GUARD_ARC.with(|a| {
@@ -145,6 +150,7 @@ pub fn set_page_meta(
         PageMetaGuard {
             _refcount: arc,
             _in_task_scope: false,
+            _not_send: PhantomData,
         }
     }
 }
