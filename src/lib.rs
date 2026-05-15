@@ -5,7 +5,7 @@ pub mod prelude {
     pub use crate::{
         azumi_script, component, html, json_data, live,
         session_cleanup_script, AzumiScript, Component, escape_css_string, escape_html, escape_xml,
-        FnComponent, render_to_string, render_to_writer,
+        FnComponent, render_to_string, render_to_writer, render_page,
     };
     pub use crate::form::{FormValidator, ValidatedForm, ValidationErrors};
 }
@@ -397,6 +397,27 @@ pub fn render_to_string<C: Component + ?Sized>(component: &C) -> String {
         }
     }
     format!("{}", DisplayWrapper(component))
+}
+
+/// Render a component to a String with page metadata scope.
+///
+/// This is the async-safe version of `render_to_string`. It establishes a
+/// task-local `PAGE_META` scope so that `set_page_meta` / `get_page_meta`
+/// work correctly across `.await` points.
+///
+/// Use this in async handlers instead of `render_to_string` when your
+/// components call `set_page_meta` (e.g., via `#[azumi::page]`).
+///
+/// # Example
+///
+/// ```rust,ignore
+/// async fn handler() -> impl IntoResponse {
+///     let html = azumi::render_page(&my_page()).await;
+///     axum::response::Html(html)
+/// }
+/// ```
+pub async fn render_page<C: Component + ?Sized>(component: &C) -> String {
+    crate::context::with_page_meta_scope(async { render_to_string(component) }).await
 }
 
 /// Render a component directly to a `Write` implementation.
