@@ -13,7 +13,7 @@ tokio::task_local! {
 
 thread_local! {
     static PAGE_META_FALLBACK: RefCell<PageMeta> = RefCell::new(PageMeta::default());
-    static GUARD_ARC: RefCell<Option<std::sync::Arc<()>>> = RefCell::new(None);
+    static GUARD_ARC: RefCell<Option<std::sync::Arc<()>>> = const { RefCell::new(None) };
 }
 
 pub async fn with_path<F: Future>(path: String, f: F) -> F::Output {

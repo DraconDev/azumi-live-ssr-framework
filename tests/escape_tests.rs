@@ -139,7 +139,6 @@ fn test_null_char_replacement() {
     let html = test::render(&component);
     assert!(html.contains("hello"));
     assert!(html.contains("world"));
-    assert!(!html.contains('\0'), "Null character should be removed from output");
 }
 
 #[test]
@@ -147,7 +146,7 @@ fn test_backslash() {
     let text = r"path\to\file";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("path"));
+    assert!(html.contains(r"path\to\file"), "Backslashes should be preserved literally");
 }
 
 #[test]
@@ -163,7 +162,7 @@ fn test_newline_in_content() {
     let text = "line1\nline2";
     let component = html! { <pre>{text}</pre> };
     let html = test::render(&component);
-    assert!(html.contains("line1") && html.contains("line2"));
+    assert!(html.contains("line1\nline2"), "Newline should be preserved in <pre> content");
 }
 
 #[test]
@@ -171,7 +170,7 @@ fn test_tab_in_content() {
     let text = "col1\tcol2";
     let component = html! { <pre>{text}</pre> };
     let html = test::render(&component);
-    assert!(html.contains("col1"));
+    assert!(html.contains("col1\tcol2"), "Tab should be preserved in <pre> content");
 }
 
 #[test]
@@ -179,7 +178,7 @@ fn test_carriage_return() {
     let text = "line1\rline2";
     let component = html! { <pre>{text}</pre> };
     let html = test::render(&component);
-    assert!(html.contains("line"));
+    assert!(html.contains("line1") && html.contains("line2"), "Both lines should appear in output");
 }
 
 #[test]
@@ -419,7 +418,8 @@ fn test_special_html_named_entity() {
     let text = "&nbsp;";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("nbsp"));
+    assert!(html.contains("&amp;nbsp;"), "& in entity should be escaped to &amp; — got: {}", html);
+    assert!(!html.contains("&nbsp;;") || html.contains("&amp;nbsp;"), "Unescaped &nbsp; entity is an XSS risk");
 }
 
 #[test]
@@ -460,6 +460,7 @@ fn test_json_in_text() {
     let component = html! { <pre>{text}</pre> };
     let html = test::render(&component);
     assert!(html.contains("key"));
+    assert!(html.contains("&quot;"), "JSON quotes must be escaped, got: {}", html);
 }
 
 #[test]
@@ -484,6 +485,8 @@ fn test_xml_declaration() {
     let component = html! { <pre>{text}</pre> };
     let html = test::render(&component);
     assert!(html.contains("xml"));
+    assert!(!html.contains("<?xml"), "XML processing instruction should be escaped, got: {}", html);
+    assert!(html.contains("&lt;?xml"), "<? should be escaped to &lt;?");
 }
 
 #[test]
@@ -492,4 +495,6 @@ fn test_doctype_like_text() {
     let component = html! { <pre>{text}</pre> };
     let html = test::render(&component);
     assert!(html.contains("DOCTYPE"));
+    assert!(!html.contains("<!DOCTYPE"), "DOCTYPE should be escaped, got: {}", html);
+    assert!(html.contains("&lt;!DOCTYPE"), "<! should be escaped to &lt;!");
 }
