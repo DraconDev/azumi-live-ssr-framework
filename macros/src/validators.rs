@@ -566,3 +566,23 @@ fn looks_like_css(s: &str) -> bool {
         || lower.contains("flex")
         || lower.contains("grid")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_looks_like_css_positive() {
+        assert!(looks_like_css(".btn {{ color: red; }}"));
+        assert!(looks_like_css("background: blue"));
+        assert!(looks_like_css("display: FLEX"));
+        assert!(looks_like_css("margin: 10px"));
+    }
+
+    #[test]
+    fn test_looks_like_css_negative() {
+        assert!(!looks_like_css("Hello {{name}}"));
+        assert!(!looks_like_css("format!(\"result: {}\", val)"));
+        assert!(!looks_like_css("just some text"));
+    }
+}
