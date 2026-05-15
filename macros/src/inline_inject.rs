@@ -69,7 +69,7 @@ impl syn::parse::Parse for JsonDataInput {
 
         let valid = target_str.split('.').all(|seg| {
             !seg.is_empty()
-            && seg.chars().next().map_or(false, |c| c.is_ascii_alphabetic() || c == '_')
+            && seg.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
             && seg.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
         });
         if !valid {

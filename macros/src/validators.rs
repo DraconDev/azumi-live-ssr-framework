@@ -33,7 +33,7 @@ pub(crate) fn validate_nodes(
         nodes: &[token_parser::Node],
         valid_classes: &HashSet<String>,
         valid_ids: &HashSet<String>,
-        has_scoped_css: bool,
+        _has_scoped_css: bool,
         has_dynamic_styles: bool,
         errors: &mut Vec<proc_macro2::TokenStream>,
         is_inside_form: bool,
@@ -467,7 +467,8 @@ pub(crate) fn validate_format_in_expressions(
                         || content_str.contains("innerHTML")
                         || content_str.contains(".createElement")
                         || content_str.contains("document.write")
-                        || content_str.contains("document.cookie");
+                        || content_str.contains("document.cookie")
+                        || (content_str.contains("{{") && content_str.contains("}}") && looks_like_css(&content_str));
 
                     if has_web_content {
                         errors.push(quote_spanned! { expr.span =>
@@ -548,4 +549,20 @@ pub(crate) fn validate_format_in_expressions(
     }
 
     errors
+}
+
+fn looks_like_css(s: &str) -> bool {
+    let lower = s.to_lowercase();
+    lower.contains("color:")
+        || lower.contains("background:")
+        || lower.contains("margin:")
+        || lower.contains("padding:")
+        || lower.contains("display:")
+        || lower.contains("font-size:")
+        || lower.contains("border:")
+        || lower.contains("width:")
+        || lower.contains("height:")
+        || lower.contains("position:")
+        || lower.contains("flex")
+        || lower.contains("grid")
 }
