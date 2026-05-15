@@ -92,6 +92,7 @@ fn is_grouping_rule(s: &str) -> bool {
         || s.starts_with("@supports")
         || s.starts_with("@layer")
         || s.starts_with("@container")
+        || s.starts_with("@import")
 }
 
 fn is_keyframes(s: &str) -> bool {

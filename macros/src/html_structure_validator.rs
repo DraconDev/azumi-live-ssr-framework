@@ -629,7 +629,6 @@ pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<
             || name.starts_with("hx-")
             || name.starts_with("x-")
             || name.starts_with("az-")
-            || name.starts_with("data-")
             || name.starts_with("item")
             || name.starts_with("accept-")
             || name.starts_with("crossorigin")
