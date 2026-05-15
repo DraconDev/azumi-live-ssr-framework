@@ -105,9 +105,6 @@ pub fn sign_state_for_user(user_id: &str, state_json: &str) -> String {
 
 fn sign_state_internal(user_id: Option<&str>, state_json: &str) -> String {
     let secret = get_secret();
-    if secret.is_empty() {
-        panic!("AZUMI_SECRET must not be empty");
-    }
     let timestamp = get_current_timestamp();
 
     let payload = match user_id {
@@ -287,9 +284,6 @@ fn verify_state_internal_detailed(
     }
 
     let secret = get_secret();
-    if secret.is_empty() {
-        panic!("AZUMI_SECRET must not be empty");
-    }
     let mut mac =
         HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC can take any size key");
 
