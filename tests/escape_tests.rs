@@ -74,6 +74,8 @@ fn test_attribute_injection() {
     let component = html! { <div title={val}>"Content"</div> };
     let html = test::render(&component);
     assert!(html.contains("title="));
+    assert!(!html.contains("onclick="), "XSS: onclick attribute should not appear in output");
+    assert!(!html.contains("alert("), "XSS: script content should not appear unescaped in attribute");
 }
 
 #[test]
@@ -90,6 +92,8 @@ fn test_script_tag_in_content() {
     let component = html! { <p>{text}</p> };
     let html = test::render(&component);
     assert!(html.contains("<p>"));
+    assert!(!html.contains("<script>"), "XSS: unescaped <script> should not appear in text content");
+    assert!(html.contains("&lt;script&gt;"), "script tag should be HTML-escaped in text");
 }
 
 #[test]
@@ -98,6 +102,8 @@ fn test_style_tag_in_content() {
     let component = html! { <p>{text}</p> };
     let html = test::render(&component);
     assert!(html.contains("<p>"));
+    assert!(!html.contains("<style>"), "XSS: unescaped <style> should not appear in text content");
+    assert!(html.contains("&lt;style&gt;"), "style tag should be HTML-escaped in text");
 }
 
 #[test]
@@ -106,6 +112,8 @@ fn test_comment_syntax() {
     let component = html! { <div>{text}</div> };
     let html = test::render(&component);
     assert!(html.contains("comment"));
+    assert!(!html.contains("<!--"), "HTML comment injection: <!-- should be escaped");
+    assert!(html.contains("&lt;!--"), "comment start should be HTML-escaped");
 }
 
 #[test]
@@ -114,6 +122,8 @@ fn test_cdata_section() {
     let component = html! { <div>{text}</div> };
     let html = test::render(&component);
     assert!(html.contains("data"));
+    assert!(!html.contains("<![CDATA["), "CDATA injection: <![CDATA[ should be escaped");
+    assert!(html.contains("&lt;![CDATA["), "CDATA start should be HTML-escaped");
 }
 
 #[test]
@@ -122,6 +132,7 @@ fn test_null_char_replacement() {
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
     assert!(html.contains("hello"));
+    assert!(!html.contains('\0'), "null byte should be replaced, not rendered literally");
 }
 
 #[test]
