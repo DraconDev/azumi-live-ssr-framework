@@ -65,14 +65,24 @@ pub async fn with_page_meta_scope<F: Future>(f: F) -> F::Output {
 /// When the task-local scope is active, this guard is a no-op — the scope
 /// handles cleanup automatically. When using the thread-local fallback, the
 /// guard resets the metadata on drop to prevent leakage between requests.
-#[derive(Clone)]
+///
+/// Cloning is supported: the thread-local is only reset when the last guard
+/// (the one with `Arc` strong_count == 1) is dropped.
 pub struct PageMetaGuard {
-    _refcount: std::sync::Arc<std::sync::atomic::AtomicU32>,
+    _refcount: std::sync::Arc<()>,
+}
+
+impl Clone for PageMetaGuard {
+    fn clone(&self) -> Self {
+        PageMetaGuard {
+            _refcount: std::sync::Arc::clone(&self._refcount),
+        }
+    }
 }
 
 impl Drop for PageMetaGuard {
     fn drop(&mut self) {
-        if self._refcount.fetch_sub(1, std::sync::atomic::Ordering::Relaxed) == 1 {
+        if std::sync::Arc::strong_count(&self._refcount) == 1 {
             PAGE_META_FALLBACK.with(|params| *params.borrow_mut() = PageMeta::default());
         }
     }
@@ -111,7 +121,7 @@ pub fn set_page_meta(
     }
 
     PageMetaGuard {
-        _refcount: std::sync::Arc::new(std::sync::atomic::AtomicU32::new(1)),
+        _refcount: std::sync::Arc::new(()),
     }
 }
 
