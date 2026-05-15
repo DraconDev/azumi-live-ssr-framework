@@ -147,7 +147,7 @@ pub fn push_style_update(scope_id: &str, css: &str) {
     let _ = get_broadcast_channel().send(msg.to_string());
 }
 
-async fn check_dev_token(
+async fn is_dev_token_valid(
     req: axum::http::Request<axum::body::Body>,
     next: axum::middleware::Next,
 ) -> Result<axum::response::Response, StatusCode> {
@@ -229,34 +229,34 @@ mod tests {
     #[test]
     fn test_is_dev_token_valid_wrong_token() {
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
-        assert!(!check_dev_token(Some("wrongtoken")));
+        assert!(!is_dev_token_valid(Some("wrongtoken")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
     }
 
     #[test]
     fn test_is_dev_token_valid_partial_match_rejected() {
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
-        assert!(!check_dev_token(Some("secret")));
+        assert!(!is_dev_token_valid(Some("secret")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
     }
 
     #[test]
     fn test_is_dev_token_valid_empty_token() {
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
-        assert!(!check_dev_token(Some("")));
+        assert!(!is_dev_token_valid(Some("")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
     }
 
     #[test]
     fn test_is_dev_token_valid_no_env_var() {
         std::env::remove_var("AZUMI_DEV_TOKEN");
-        assert!(!check_dev_token(Some("secret123")));
+        assert!(!is_dev_token_valid(Some("secret123")));
     }
 
     #[test]
     fn test_is_dev_token_valid_none_token() {
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
-        assert!(!check_dev_token(None));
+        assert!(!is_dev_token_valid(None));
         std::env::remove_var("AZUMI_DEV_TOKEN");
     }
 
