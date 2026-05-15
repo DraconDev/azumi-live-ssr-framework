@@ -395,7 +395,7 @@ mod axum_middleware {
     ///     .layer(csp_nonce_layer());
     /// ```
     pub fn csp_nonce_layer() -> impl Clone + Fn(Request, Next) -> std::pin::Pin<Box<dyn std::future::Future<Output = Response> + Send>> {
-        csp_nonce_layer_with(|nonce| ContentSecurityPolicy::azumi_nonce_defaults(nonce))
+        csp_nonce_layer_with(ContentSecurityPolicy::azumi_nonce_defaults)
     }
 
     /// Axum middleware layer with a custom CSP policy builder.
