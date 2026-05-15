@@ -73,3 +73,30 @@ fn test_thread_local_fallback_when_no_scope() {
     let meta_after_drop = get_page_meta();
     assert!(meta_after_drop.title.is_none(), "Thread-local should be reset after guard drops");
 }
+
+#[test]
+fn test_cloned_page_meta_guard_preserves_state_until_all_dropped() {
+    use azumi::context::{set_page_meta, get_page_meta, has_page_meta_scope};
+
+    assert!(!has_page_meta_scope());
+
+    let guard1 = set_page_meta(Some("Cloned Guard Test".to_string()), None, None);
+    let meta = get_page_meta();
+    assert_eq!(meta.title.as_deref(), Some("Cloned Guard Test"));
+
+    let guard2 = guard1.clone();
+    drop(guard1);
+    let meta_after_first_drop = get_page_meta();
+    assert_eq!(
+        meta_after_first_drop.title.as_deref(),
+        Some("Cloned Guard Test"),
+        "State must persist after first guard drop when clone is still alive"
+    );
+
+    drop(guard2);
+    let meta_after_second_drop = get_page_meta();
+    assert!(
+        meta_after_second_drop.title.is_none(),
+        "State must reset only after ALL guards are dropped"
+    );
+}
