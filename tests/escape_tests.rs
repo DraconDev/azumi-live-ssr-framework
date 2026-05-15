@@ -180,7 +180,8 @@ fn test_form_feed() {
     let text = "page1\x0Cpage2";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    assert!(html.contains("page"));
+    assert!(html.contains("page1"));
+    assert!(html.contains("page2"));
 }
 
 // ════════════════════════════════════════════════════════════════════════════
