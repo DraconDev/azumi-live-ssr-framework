@@ -49,12 +49,15 @@ class Azumi {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.setAttribute('data-revealed', '');
+                        observer.unobserve(entry.target);
                     }
                 });
+                if (document.querySelectorAll('[az-reveal]:not([data-revealed])').length === 0) {
+                    observer.disconnect();
+                }
             }, { threshold: 0.1 });
             document.querySelectorAll('[az-reveal]').forEach((el) => observer.observe(el));
         } else {
-            // Fallback for older browsers
             const revealAll = () => {
                 document.querySelectorAll('[az-reveal]:not([data-revealed])').forEach((el) => {
                     const rect = el.getBoundingClientRect();
@@ -62,6 +65,10 @@ class Azumi {
                         el.setAttribute('data-revealed', '');
                     }
                 });
+                if (document.querySelectorAll('[az-reveal]:not([data-revealed])').length === 0) {
+                    window.removeEventListener('scroll', revealAll);
+                    window.removeEventListener('resize', revealAll);
+                }
             };
             window.addEventListener('scroll', revealAll, { passive: true });
             window.addEventListener('resize', revealAll, { passive: true });
