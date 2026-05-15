@@ -74,8 +74,8 @@ fn test_attribute_injection() {
     let component = html! { <div title={val}>"Content"</div> };
     let html = test::render(&component);
     assert!(html.contains("title="));
-    assert!(!html.contains("onclick="), "XSS: onclick attribute should not appear in output");
-    assert!(!html.contains("alert("), "XSS: script content should not appear unescaped in attribute");
+    assert!(html.contains("&quot;"), "Attribute value quotes must be escaped to prevent breakout");
+    assert!(!html.contains("onclick=\"alert"), "Attribute breakout: onclick should not start a new attribute");
 }
 
 #[test]
