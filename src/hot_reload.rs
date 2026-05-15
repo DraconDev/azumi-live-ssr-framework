@@ -121,12 +121,10 @@ async fn update_template_handler(Json(payload): Json<TemplateUpdatePayload>) -> 
         return (StatusCode::SERVICE_UNAVAILABLE, "Registry unavailable");
     };
 
-    {
-        let total_size = payload.id.len() + payload.parts.iter().map(|p| p.len()).sum::<usize>();
-        if total_size > MAX_REGISTRY_SIZE * 10 {
-            eprintln!("Hot Reload: Total payload size too large");
-            return (StatusCode::PAYLOAD_TOO_LARGE, "Total payload size too large");
-        }
+    let total_size = payload.id.len() + payload.parts.iter().map(|p| p.len()).sum::<usize>();
+    if total_size > MAX_REGISTRY_SIZE * 10 {
+        eprintln!("Hot Reload: Total payload size too large");
+        return (StatusCode::PAYLOAD_TOO_LARGE, "Total payload size too large");
     }
 
     // lru::LruCache automatically evicts oldest entries when at capacity
