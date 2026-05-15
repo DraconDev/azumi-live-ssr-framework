@@ -182,3 +182,25 @@ fn is_valid_rust_ident(name: &str) -> bool {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_rust_ident() {
+        assert!(is_valid_rust_ident("my_project"));
+        assert!(is_valid_rust_ident("hello"));
+        assert!(is_valid_rust_ident("_private"));
+    }
+
+    #[test]
+    fn test_invalid_rust_ident() {
+        assert!(!is_valid_rust_ident(""));
+        assert!(!is_valid_rust_ident("123start"));
+        assert!(!is_valid_rust_ident("my-project"));
+        assert!(!is_valid_rust_ident("has space"));
+        assert!(!is_valid_rust_ident("../../etc"));
+        assert!(!is_valid_rust_ident("foo\";bad=\"bar"));
+    }
+}
