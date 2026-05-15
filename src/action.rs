@@ -171,13 +171,15 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 /// Wraps content in a `<div class="error_message">` with optional retry button.
 /// If `form_id` is provided, includes a "Try Again" button that re-shows the form.
 ///
-/// # Example
+/// # Escaping Order
 ///
-/// ```rust,ignore
-/// async fn submit_form() -> impl axum::response::IntoResponse {
-///     azumi::action::error_fragment("Invalid email", None)
-/// }
-/// ```
+/// When `form_id` is provided, it is escaped in two steps:
+/// 1. `escape_js_string(id)` — escapes `\`, `/`, `*`, `"`, `'`, `;`, `<`, `>`, `` ` ``
+/// 2. `escape_html(&safe_id)` — escapes `&`, `<`, `>`, `"`, `'` for HTML context
+///
+/// This matters because `form_id` goes into an HTML attribute (`id="..."`) which is
+/// itself inside a JavaScript string literal inside an `onclick` attribute handler.
+/// The double-escape ensures the value is safe in both contexts.
 pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
     let msg = escape_html(&message.into());
     let retry = form_id.map(|id| {
