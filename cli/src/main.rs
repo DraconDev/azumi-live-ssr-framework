@@ -94,6 +94,17 @@ fn create_project(name: &str, dir: &PathBuf, template: &str) {
         std::process::exit(1);
     }
 
+    if !is_valid_rust_ident(name) {
+        eprintln!("Error: project name '{}' is not a valid Rust identifier.", name);
+        eprintln!("Use lowercase letters, digits, and underscores. Must start with a letter or underscore.");
+        std::process::exit(1);
+    }
+
+    if name.contains("{{") || name.contains("}}") {
+        eprintln!("Error: project name contains template syntax.");
+        std::process::exit(1);
+    }
+
     match template {
         "default" => create_default_project(name, dir),
         "components" => create_components_project(name, dir),
@@ -157,4 +168,17 @@ fn print_success(dir: &PathBuf) {
     println!("  └──────────────────────────────────────────────────┘");
     println!();
     println!("  📖 Learn more: https://github.com/DraconDev/azumi");
+}
+
+fn is_valid_rust_ident(name: &str) -> bool {
+    let mut chars = name.chars();
+    match chars.next() {
+        None => false,
+        Some(c) => {
+            if !c.is_ascii_alphabetic() && c != '_' {
+                return false;
+            }
+            chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+        }
+    }
 }

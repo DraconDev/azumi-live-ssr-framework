@@ -448,6 +448,14 @@ var Idiomorph = (function () {
             for (const newNode of nodesToAppend) {
                 log("adding: ", newNode);
                 let newElt = document.createRange().createContextualFragment(newNode.outerHTML).firstChild;
+                // Security: reject <script> elements from head morphing to prevent XSS
+                // Scripts in <head> updates should only come from trusted server responses,
+                // but createContextualFragment will execute them. Use DOMParser instead.
+                if (newElt && newElt.nodeName === 'SCRIPT') {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(newNode.outerHTML, 'text/html');
+                    newElt = doc.head.firstChild;
+                }
                 log(newElt);
                 if (ctx.callbacks.beforeNodeAdded(newElt) !== false) {
                     if (newElt.href || newElt.src) {

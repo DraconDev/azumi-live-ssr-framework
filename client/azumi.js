@@ -145,6 +145,14 @@ class Azumi {
 
     handleStyleUpdate(msg) {
         const { scopeId, css } = msg;
+        if (typeof css !== 'string' || typeof scopeId !== 'string') {
+            this.warn('Invalid style update message: missing css or scopeId');
+            return;
+        }
+        if (css.length > 100000) {
+            this.warn('Style update rejected: CSS too large');
+            return;
+        }
         const styleTag = document.querySelector(
             `style[data-azumi-scope="${scopeId}"]`
         );
