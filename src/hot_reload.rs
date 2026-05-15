@@ -219,34 +219,10 @@ where
 mod tests {
     use super::*;
 
-    // For tests, bypass the cache and read directly from env
-    fn check_dev_token(token: Option<&str>) -> bool {
-        let Some(t) = token else {
-            return false;
-        };
-        let Ok(expected) = std::env::var("AZUMI_DEV_TOKEN") else {
-            return false;
-        };
-        
-        let t_bytes = t.as_bytes();
-        let expected_bytes = expected.as_bytes();
-        
-        if t_bytes.len() != expected_bytes.len() {
-            return false;
-        }
-        
-        let mut result = 0u8;
-        for i in 0..t_bytes.len() {
-            result |= t_bytes[i] ^ expected_bytes[i];
-        }
-        
-        result == 0
-    }
-
     #[test]
     fn test_is_dev_token_valid_exact_match() {
         std::env::set_var("AZUMI_DEV_TOKEN", "secret123");
-        assert!(check_dev_token(Some("secret123")));
+        assert!(is_dev_token_valid(Some("secret123")));
         std::env::remove_var("AZUMI_DEV_TOKEN");
     }
 
