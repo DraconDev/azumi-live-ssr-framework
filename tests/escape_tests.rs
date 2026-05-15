@@ -46,7 +46,7 @@ fn test_escape_single_quote() {
     let text = "it's fine";
     let component = html! { <span>{text}</span> };
     let html = test::render(&component);
-    // Single quotes may be escaped as &#39;, &apos;, ', or left unescaped
+    assert!(html.contains("&#x27;") || html.contains("&apos;"), "Single quote must be escaped, got: {}", html);
     assert!(html.contains("fine"));
 }
 
