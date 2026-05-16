@@ -79,8 +79,7 @@ pub fn post_page_inner(slug: &str) -> impl Component {
     }
 }
 
-pub async fn post_page(slug: axum::extract::Path<String>) -> impl axum::response::IntoResponse {
-    let slug = slug.into_inner();
+pub async fn post_page(axum::extract::Path(slug): axum::extract::Path<String>) -> impl axum::response::IntoResponse {
     let content = post_page_inner(&slug);
     let html = azumi::render_to_string(&layout("Post — Azumi Blog", content));
     axum::response::Html(html)
