@@ -37,7 +37,7 @@ pub mod seo;
 pub mod form;
 pub mod streaming;
 pub mod csp;
-pub use script::{AzumiScript, escape_html, escape_script_content, escape_style_content, escape_tag_content, escape_xml, session_cleanup_script};
+pub use script::{AzumiScript, escape_html, escape_script_content, escape_style_content, escape_tag_content, escape_xml, SessionCleanupScript, session_cleanup_script};
 // Re-export CSS scoping for backward compatibility
 pub use css_scoping::{compute_scope_id, scope_css};
 
@@ -633,7 +633,7 @@ pub const AZUMI_JS: &str = include_str!("client.min.js");
 /// to render it directly without escaping.
 #[must_use]
 pub fn azumi_script() -> AzumiScript {
-    AzumiScript
+    AzumiScript::new()
 }
 
 pub struct HotReloadClosure<'a>(pub &'a dyn Fn(&mut std::fmt::Formatter<'_>) -> std::fmt::Result);

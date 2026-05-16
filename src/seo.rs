@@ -672,7 +672,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sitemap_builder_crate::escape_xmls_ampersand() {
+    fn test_sitemap_builder_xml_escapes_ampersand() {
         let sitemap = SitemapBuilder::new("https://example.com")
             .add_url("/page?q=test&v=1")
             .build();

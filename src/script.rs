@@ -224,6 +224,11 @@ pub fn azumi_script() -> AzumiScript {
     AzumiScript::new()
 }
 
+#[must_use]
+pub fn session_cleanup_script() -> SessionCleanupScript {
+    SessionCleanupScript
+}
+
 /// TrustedHtml — pre-sanitized HTML injection (use sparingly).
 ///
 /// Bypasses ALL of Azumi's safety guarantees (escaping, scoping, validation).
