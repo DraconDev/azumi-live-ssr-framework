@@ -298,7 +298,22 @@ fn render_twitter_card(
 }
 
 /// Public wrapper for SEO head content. Returned by `generate_head()`.
-pub struct HeadContent(pub String);
+///
+/// The inner string is private to prevent construction of unescaped head content
+/// from outside the module. Use `generate_head()` or `render_automatic_seo()`
+/// to create instances, and `as_str()` to read the rendered HTML.
+pub struct HeadContent(String);
+
+impl HeadContent {
+    /// Access the rendered HTML string.
+    ///
+    /// The string contains properly escaped HTML meta tags ready for
+    /// inclusion in a `<head>` element.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
 
 impl Component for HeadContent {
     fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -723,5 +738,19 @@ mod tests {
         let result = render_automatic_seo();
         let html = crate::render_to_string(&result);
         assert!(html.starts_with("<title>"));
+    }
+
+    #[test]
+    fn test_head_content_as_str_matches_render() {
+        let result = generate_head("Test", Some("Desc"), None, None, None);
+        assert_eq!(result.as_str(), crate::render_to_string(&result));
+    }
+
+    #[test]
+    fn test_head_content_as_str_returns_html() {
+        let result = generate_head("My Page", None, None, None, None);
+        let s = result.as_str();
+        assert!(s.contains("<title>"), "as_str() should return rendered HTML");
+        assert!(s.contains("My Page"));
     }
 }

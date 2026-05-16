@@ -309,7 +309,7 @@ fn test_noscript() {
 #[test]
 fn test_seo_xss_title_script_injection() {
     let html = azumi::seo::generate_head(r#""><script>alert(1)</script>"#, None, None, None, None);
-    let output = html.0;
+    let output = html.as_str();
     // Must not contain unescaped <script>
     assert!(
         !output.contains("<script>"),
@@ -329,7 +329,7 @@ fn test_seo_xss_title_script_injection() {
 fn test_seo_xss_description_onload() {
     let html =
         azumi::seo::generate_head("Safe Title", Some(r#"onload="alert(2)""#), None, None, None);
-    let output = html.0;
+    let output = html.as_str();
     // The quotes in the description must be escaped to prevent attribute breakout.
     // Output should be: content="onload=&quot;alert(2)&quot;"
     // NOT: content="onload="alert(2)"" (which would allow XSS)
@@ -345,7 +345,7 @@ fn test_seo_xss_description_onload() {
 #[test]
 fn test_seo_xss_angle_brackets_in_title() {
     let html = azumi::seo::generate_head("<script>alert('xss')</script>", None, None, None, None);
-    let output = html.0;
+    let output = html.as_str();
     assert!(!output.contains("<script>"), "Raw <script> in title");
     assert!(
         output.contains("&lt;script&gt;"),
@@ -362,7 +362,7 @@ fn test_seo_xss_ampersand_escaping() {
         None,
         None,
     );
-    let output = html.0;
+    let output = html.as_str();
     // Title (text context) should escape <, >, &
     assert!(
         output.contains("Tom &amp; Jerry"),
@@ -392,7 +392,7 @@ fn test_seo_safe_values_unchanged() {
         Some("https://example.com/page"),
         None,
     );
-    let output = html.0;
+    let output = html.as_str();
     assert!(
         output.contains("<title>Normal Title</title>") || output.contains("<title>Normal Title |"),
         "Title should be present. Got: {}",
@@ -409,7 +409,7 @@ fn test_seo_safe_values_unchanged() {
 #[test]
 fn test_generate_head_all_none() {
     let html = azumi::seo::generate_head("", None, None, None, None);
-    let output = html.0;
+    let output = html.as_str();
     assert!(
         output.contains("<title>"),
         "Should still produce <title> tag even with all None. Got: {}",
@@ -420,7 +420,7 @@ fn test_generate_head_all_none() {
 #[test]
 fn test_generate_head_empty_title_still_renders() {
     let html = azumi::seo::generate_head("", None, None, None, None);
-    let output = html.0;
+    let output = html.as_str();
     assert!(
         output.contains("<title></title>") || output.contains("<title>"),
         "Empty title should still produce title tag. Got: {}",
@@ -432,6 +432,26 @@ fn test_generate_head_empty_title_still_renders() {
 // SECTION: XSS escaping in image URL (generate_head)
 // ════════════════════════════════════════════════════════════════════════════
 
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: HeadContent API safety
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_head_content_as_str_returns_rendered_html() {
+    let html = azumi::seo::generate_head("Test Title", Some("Desc"), None, None, None);
+    let s = html.as_str();
+    assert!(s.contains("<title>"), "as_str() should return the rendered HTML");
+    assert!(s.contains("Test Title"), "as_str() should contain the title");
+}
+
+#[test]
+fn test_head_content_as_str_matches_render() {
+    let html = azumi::seo::generate_head("My Page", None, None, None, None);
+    let from_as_str = html.as_str();
+    let from_render = azumi::test::render(&html);
+    assert_eq!(from_as_str, from_render, "as_str() should match Component::render output");
+}
+
 #[test]
 fn test_seo_xss_image_url_with_angle_brackets() {
     let html = azumi::seo::generate_head(
@@ -441,7 +461,7 @@ fn test_seo_xss_image_url_with_angle_brackets() {
         None,
         None,
     );
-    let output = html.0;
+    let output = html.as_str();
     assert!(
         !output.contains("<script") && !output.contains("onerror"),
         "Image URL should escape angle brackets and event handlers. Got: {}",
