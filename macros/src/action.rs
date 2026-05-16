@@ -91,6 +91,7 @@ pub fn expand_action(item: TokenStream) -> TokenStream {
     let return_handling = if is_action_result(fn_output) {
         quote! {
             let result = #fn_name(#(#call_args),*).await;
+            use axum::response::IntoResponse;
             result.into_response()
         }
     } else if is_impl_component(fn_output) {
