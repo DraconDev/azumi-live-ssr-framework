@@ -8,6 +8,16 @@ use axum::{
 };
 use tower_http::services::ServeDir;
 
+// Blog example routes
+mod blog {
+    pub mod pages {
+        pub use crate::examples::blog::pages::{about_page, contact_page, post_list_page, post_page};
+    }
+    pub mod actions {
+        pub use crate::examples::blog::actions::{contact_action, like_post};
+    }
+}
+
 // Include the generated assets manifest
 pub mod assets {
     include!(concat!(env!("OUT_DIR"), "/assets_manifest.rs"));
@@ -38,6 +48,20 @@ async fn main() {
     let app = Router::new()
         // 🏠 Homepage - Learning Portal
         .route("/", get(examples::lessons::pages::homepage::homepage_handler))
+
+        // 📝 Blog Example Routes
+        .route("/blog", get(blog::pages::post_list_page))
+        .route("/blog/about", get(blog::pages::about_page))
+        .route("/blog/contact", get(blog::pages::contact_page))
+        .route("/blog/posts/{slug}", get(|slug: axum::extract::Path<String>| async move {
+            let slug = slug.into_inner();
+            axum::response::Html(azumi::render_to_string(&blog::pages::post_page(&slug)))
+        }))
+        .merge(azumi::action::register_actions(
+            axum::Router::new()
+                .route("/blog/contact", post(blog::actions::contact_action))
+                .route("/blog/like", post(blog::actions::like_post))
+        ))
 
 
         // 📚 Interactive Lessons (0-20)

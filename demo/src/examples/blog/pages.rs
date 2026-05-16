@@ -4,10 +4,11 @@ use azumi::prelude::*;
 
 // ─── Post List Page ──────────────────────────────────────────────────────────
 
-pub fn post_list_page() -> impl Component {
+#[azumi::component]
+pub fn post_list_page_inner() -> impl Component {
     let posts = get_posts();
 
-    layout("Blog — Azumi", html! {
+    html! {
         <section class="post-list">
             <h1 style="font-size: 2rem; margin-bottom: 2rem; color: #1a1a1a;">"Latest Posts"</h1>
             @for post in &posts {
@@ -31,7 +32,11 @@ pub fn post_list_page() -> impl Component {
                 </article>
             }
         </section>
-    })
+    }
+}
+
+pub async fn post_list_page() -> impl axum::response::IntoResponse {
+    axum::response::Html(azumi::render_to_string(&post_list_page_inner()))
 }
 
 // ─── Single Post Page ───────────────────────────────────────────────────────
