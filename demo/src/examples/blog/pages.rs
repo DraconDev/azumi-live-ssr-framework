@@ -36,12 +36,15 @@ pub fn post_list_page_inner() -> impl Component {
 }
 
 pub async fn post_list_page() -> impl axum::response::IntoResponse {
-    axum::response::Html(azumi::render_to_string(&post_list_page_inner()))
+    let content = post_list_page_inner();
+    let html = azumi::render_to_string(&layout("Blog — Azumi", content));
+    axum::response::Html(html)
 }
 
 // ─── Single Post Page ───────────────────────────────────────────────────────
 
-pub fn post_page(slug: &str) -> impl Component {
+#[azumi::component]
+pub fn post_page_inner(slug: &str) -> impl Component {
     let post = get_post_by_slug(slug);
 
     let not_found = html! {
@@ -52,11 +55,10 @@ pub fn post_page(slug: &str) -> impl Component {
         </div>
     };
 
-    let content = match post {
+    match post {
         Some(p) => html! {
             <>
                 <a class="back-link" href="/blog">"← Back to Blog"</a>
-
                 <article class="post-body">
                     <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{&p.title}</h1>
                     <div class="post-meta" style="margin-bottom: 1.5rem;">
@@ -74,9 +76,14 @@ pub fn post_page(slug: &str) -> impl Component {
             </>
         },
         None => not_found,
-    };
+    }
+}
 
-    layout("Post — Azumi Blog", content)
+pub async fn post_page(slug: axum::extract::Path<String>) -> impl axum::response::IntoResponse {
+    let slug = slug.into_inner();
+    let content = post_page_inner(&slug);
+    let html = azumi::render_to_string(&layout("Post — Azumi Blog", content));
+    axum::response::Html(html)
 }
 
 /// Renders post content — simple HTML passthrough for demo
@@ -84,7 +91,6 @@ struct PostContent(&'static str);
 
 impl std::fmt::Display for PostContent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Fallback: just render as escaped HTML content
         for line in self.0.lines() {
             if line.is_empty() {
                 writeln!(f, "<br>")?;
@@ -104,8 +110,9 @@ impl std::fmt::Display for PostContent {
 
 // ─── Contact Page ────────────────────────────────────────────────────────────
 
-pub fn contact_page() -> impl Component {
-    layout("Contact — Azumi Blog", html! {
+#[azumi::component]
+pub fn contact_page_inner() -> impl Component {
+    html! {
         <div class="contact-card">
             <h1 style="margin-bottom: 1.5rem; font-size: 1.75rem;">"Get in Touch"</h1>
             <p style="color: #555; margin-bottom: 1.5rem;">
@@ -137,24 +144,37 @@ pub fn contact_page() -> impl Component {
                 </button>
             </form>
         </div>
-    })
+    }
+}
+
+pub async fn contact_page() -> impl axum::response::IntoResponse {
+    let content = contact_page_inner();
+    let html = azumi::render_to_string(&layout("Contact — Azumi Blog", content));
+    axum::response::Html(html)
 }
 
 // ─── About Page ──────────────────────────────────────────────────────────────
 
-pub fn about_page() -> impl Component {
-    layout("About — Azumi Blog", html! {
+#[azumi::component]
+pub fn about_page_inner() -> impl Component {
+    html! {
         <div class="about-card">
             <h1 style="margin-bottom: 1rem;">"About This Blog"</h1>
             <p style="color: #555; margin-bottom: 1rem;">
                 "This blog is built with Azumi, a Rust web framework with compile-time HTML/CSS/JS validation."
             </p>
             <p style="color: #555; margin-bottom: 1rem;">
-                "Azumi catches XSS vectors, CSS typos, and invalid HTML patterns at compile time — before your code ever reaches production."
+                "Azumi catches XSS vectors, CSS typos, and invalid HTML patterns at compile time — before they reach production."
             </p>
             <p style="color: #555;">
                 "This demo shows: routing, component composition, forms with action handlers, SEO metadata, and CSS scoping — all in type-safe Rust."
             </p>
         </div>
-    })
+    }
+}
+
+pub async fn about_page() -> impl axum::response::IntoResponse {
+    let content = about_page_inner();
+    let html = azumi::render_to_string(&layout("About — Azumi Blog", content));
+    axum::response::Html(html)
 }

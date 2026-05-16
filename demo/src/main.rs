@@ -11,7 +11,9 @@ use tower_http::services::ServeDir;
 // Blog example routes
 mod blog {
     pub mod pages {
-        pub use crate::examples::blog::pages::{about_page, contact_page, post_list_page, post_page};
+        pub use crate::examples::blog::pages::{
+            about_page, contact_page, post_list_page, post_page,
+        };
     }
     pub mod actions {
         pub use crate::examples::blog::actions::{contact_action, like_post};
