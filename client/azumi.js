@@ -962,6 +962,8 @@ class Azumi {
     // Server action with optimistic prediction
     async callAction(action, element) {
         // Built-in: __azumi_retry (error_fragment "Try Again" button)
+        // Note: unhides form by clearing inline display:none only;
+        // forms hidden via CSS class will not be unhidden.
         if (action.actionName === "__azumi_retry") {
             const formId = element.getAttribute("data-retry-form");
             if (formId) {

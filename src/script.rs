@@ -207,15 +207,33 @@ impl Component for AzumiScript {
     }
 }
 
-pub struct SessionCleanupScript;
+pub struct SessionCleanupScript {
+    nonce: Option<String>,
+}
 
 impl SessionCleanupScript {
     pub const SCRIPT: &'static str = r#"(function(){var h=window.location.hash||'';var t='session_token=';var r='refresh_token=';var c='code=';if(h.indexOf(t)!==-1||h.indexOf(r)!==-1||h.indexOf(c)!==-1){history.replaceState(null,'',window.location.pathname+window.location.search);}})()"#;
+
+    #[must_use]
+    pub fn with_nonce(mut self, nonce: &str) -> Self {
+        self.nonce = Some(nonce.to_string());
+        self
+    }
+}
+
+impl Default for SessionCleanupScript {
+    fn default() -> Self {
+        SessionCleanupScript { nonce: None }
+    }
 }
 
 impl Component for SessionCleanupScript {
     fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<script>{}</script>", Self::SCRIPT)
+        let nonce_attr = match &self.nonce {
+            Some(n) => format!(r#" nonce="{}""#, crate::escape_html(n)),
+            None => String::new(),
+        };
+        write!(f, "<script{}>{}</script>", nonce_attr, Self::SCRIPT)
     }
 }
 
@@ -226,7 +244,7 @@ pub fn azumi_script() -> AzumiScript {
 
 #[must_use]
 pub fn session_cleanup_script() -> SessionCleanupScript {
-    SessionCleanupScript
+    SessionCleanupScript::default()
 }
 
 /// TrustedHtml — pre-sanitized HTML injection (use sparingly).
@@ -616,7 +634,7 @@ mod tests {
 
     #[test]
     fn test_session_cleanup_script_renders() {
-        let script = SessionCleanupScript;
+        let script = SessionCleanupScript::default();
         let output = test::render(&script);
         assert!(output.starts_with("<script>"), "Should start with <script>");
         assert!(output.ends_with("</script>"), "Should end with </script>");
@@ -627,6 +645,29 @@ mod tests {
     fn test_session_cleanup_script_constant() {
         assert!(!SessionCleanupScript::SCRIPT.is_empty(), "SCRIPT constant should not be empty");
         assert!(SessionCleanupScript::SCRIPT.contains("history.replaceState"), "Should contain history.replaceState");
+    }
+
+    #[test]
+    fn test_session_cleanup_script_with_nonce_renders_nonce() {
+        let script = SessionCleanupScript::default().with_nonce("abc123");
+        let output = test::render(&script);
+        assert!(output.contains(r#"nonce="abc123""#), "Should include nonce attribute: {}", output);
+        assert!(output.starts_with("<script nonce="), "Should start with <script nonce=");
+        assert!(output.contains("session"), "Should still contain session cleanup logic");
+    }
+
+    #[test]
+    fn test_session_cleanup_script_nonce_escapes_html() {
+        let script = SessionCleanupScript::default().with_nonce(r#"a"b<c"#);
+        let output = test::render(&script);
+        assert!(output.contains("nonce=\"a&quot;b&lt;c\""), "Should escape nonce value: {}", output);
+    }
+
+    #[test]
+    fn test_session_cleanup_script_without_nonce() {
+        let script = SessionCleanupScript::default();
+        let output = test::render(&script);
+        assert!(!output.contains("nonce="), "Should NOT have nonce when not set");
     }
 
     // =========================================================================
