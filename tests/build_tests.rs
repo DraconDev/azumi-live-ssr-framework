@@ -1,26 +1,31 @@
 use http_body_util::BodyExt;
 use azumi::action::error_fragment;
 
+const REGEX_PRECEDING_KEYWORDS: &[&str] = &[
+    "return", "typeof", "void", "delete", "throw", "new", "in", "case", "yield", "await",
+];
+
 fn minify_js(src: &str) -> String {
     let mut out = String::with_capacity(src.len());
+    let chars: Vec<char> = src.chars().collect();
+    let len = chars.len();
     let mut i = 0;
-    let bytes = src.as_bytes();
-    let len = bytes.len();
     let mut prev_was_regex_possible = true;
+    let mut ident_start = None;
 
     while i < len {
-        let ch = bytes[i] as char;
+        let ch = chars[i];
 
         if ch == '\'' || ch == '"' || ch == '`' {
             let quote = ch;
             out.push(ch);
             i += 1;
             while i < len {
-                let c = bytes[i] as char;
+                let c = chars[i];
                 out.push(c);
                 if c == '\\' && i + 1 < len {
                     i += 1;
-                    out.push(bytes[i] as char);
+                    out.push(chars[i]);
                 } else if c == quote {
                     break;
                 }
@@ -28,18 +33,19 @@ fn minify_js(src: &str) -> String {
             }
             i += 1;
             prev_was_regex_possible = false;
+            ident_start = None;
             continue;
         }
 
-        if ch == '/' && prev_was_regex_possible && i + 1 < len && bytes[i + 1] != b'/' && bytes[i + 1] != b'*' {
+        if ch == '/' && prev_was_regex_possible && i + 1 < len && chars[i + 1] != '/' && chars[i + 1] != '*' {
             out.push(ch);
             i += 1;
             while i < len {
-                let c = bytes[i] as char;
+                let c = chars[i];
                 out.push(c);
                 if c == '\\' && i + 1 < len {
                     i += 1;
-                    out.push(bytes[i] as char);
+                    out.push(chars[i]);
                 } else if c == '/' {
                     i += 1;
                     break;
@@ -47,11 +53,11 @@ fn minify_js(src: &str) -> String {
                     out.push(c);
                     i += 1;
                     while i < len {
-                        let cc = bytes[i] as char;
+                        let cc = chars[i];
                         out.push(cc);
                         if cc == '\\' && i + 1 < len {
                             i += 1;
-                            out.push(bytes[i] as char);
+                            out.push(chars[i]);
                         } else if cc == ']' {
                             break;
                         }
@@ -62,19 +68,20 @@ fn minify_js(src: &str) -> String {
                 i += 1;
             }
             prev_was_regex_possible = false;
+            ident_start = None;
             continue;
         }
 
-        if ch == '/' && i + 1 < len && bytes[i + 1] == b'/' {
-            while i < len && bytes[i] != b'\n' {
+        if ch == '/' && i + 1 < len && chars[i + 1] == '/' {
+            while i < len && chars[i] != '\n' {
                 i += 1;
             }
             continue;
         }
 
-        if ch == '/' && i + 1 < len && bytes[i + 1] == b'*' {
+        if ch == '/' && i + 1 < len && chars[i + 1] == '*' {
             i += 2;
-            while i + 1 < len && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+            while i + 1 < len && !(chars[i] == '*' && chars[i + 1] == '/') {
                 i += 1;
             }
             if i + 1 < len {
@@ -86,16 +93,50 @@ fn minify_js(src: &str) -> String {
         }
 
         if ch.is_whitespace() {
-            let has_newline = src[i..].chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
+            if let Some(start) = ident_start.take() {
+                let word = &out[start..];
+                if REGEX_PRECEDING_KEYWORDS.contains(&word) {
+                    prev_was_regex_possible = true;
+                } else {
+                    prev_was_regex_possible = false;
+                }
+            }
+            let remaining = &src[src.ceil_char_boundary(i)..];
+            let has_newline = remaining.chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
             out.push(if has_newline { '\n' } else { ' ' });
-            while i < len && (bytes[i] as char).is_whitespace() {
+            while i < len && chars[i].is_whitespace() {
                 i += 1;
             }
             continue;
         }
 
+        let is_ident_char = ch.is_ascii_alphanumeric() || ch == '_' || ch == '$';
+        if is_ident_char {
+            if ident_start.is_none() {
+                ident_start = Some(out.len());
+            }
+        } else {
+            if let Some(start) = ident_start.take() {
+                let word = &out[start..];
+                if REGEX_PRECEDING_KEYWORDS.contains(&word) {
+                    prev_was_regex_possible = true;
+                } else {
+                    prev_was_regex_possible = false;
+                }
+            }
+        }
+
         out.push(ch);
-        prev_was_regex_possible = matches!(ch, '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~' | '<' | '>' | '+' | '-' | '*' | '%' | '?' | ':' | '@');
+
+        if is_ident_char {
+            // Don't update prev_was_regex_possible mid-identifier
+        } else {
+            prev_was_regex_possible = matches!(ch,
+                '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~'
+                | '<' | '>' | '+' | '-' | '*' | '%' | '?' | ':' | '@'
+            );
+        }
+
         i += 1;
     }
 

@@ -14,20 +14,27 @@ fn fnv_hash(data: &str) -> u64 {
     hash
 }
 
+/// Keywords after which a `/` starts a regex (not division).
+const REGEX_PRECEDING_KEYWORDS: &[&str] = &[
+    "return", "typeof", "void", "delete", "throw", "new", "in", "case", "yield", "await",
+];
+
 /// Basic JS minification: strip comments and collapse whitespace.
 ///
 /// Uses a state-machine approach that respects string literals and regex
 /// literals, so it won't accidentally strip content inside quotes or regex.
+/// Correctly handles multi-byte UTF-8 and JS keywords that precede regex.
 /// Falls back to the original source if minification would produce empty output.
 fn minify_js(src: &str) -> String {
     let mut out = String::with_capacity(src.len());
+    let chars: Vec<char> = src.chars().collect();
+    let len = chars.len();
     let mut i = 0;
-    let bytes = src.as_bytes();
-    let len = bytes.len();
     let mut prev_was_regex_possible = true;
+    let mut ident_start = None;
 
     while i < len {
-        let ch = bytes[i] as char;
+        let ch = chars[i];
 
         // String literals — pass through verbatim
         if ch == '\'' || ch == '"' || ch == '`' {
@@ -35,11 +42,11 @@ fn minify_js(src: &str) -> String {
             out.push(ch);
             i += 1;
             while i < len {
-                let c = bytes[i] as char;
+                let c = chars[i];
                 out.push(c);
                 if c == '\\' && i + 1 < len {
                     i += 1;
-                    out.push(bytes[i] as char);
+                    out.push(chars[i]);
                 } else if c == quote {
                     break;
                 }
@@ -47,34 +54,34 @@ fn minify_js(src: &str) -> String {
             }
             i += 1;
             prev_was_regex_possible = false;
+            ident_start = None;
             continue;
         }
 
         // Regex literal: /pattern/flags
         // A '/' is a regex start when preceded by an operator, keyword, or
         // punctuation (not by an identifier, number, or closing bracket/paren).
-        if ch == '/' && prev_was_regex_possible && i + 1 < len && bytes[i + 1] != b'/' && bytes[i + 1] != b'*' {
+        if ch == '/' && prev_was_regex_possible && i + 1 < len && chars[i + 1] != '/' && chars[i + 1] != '*' {
             out.push(ch);
             i += 1;
             while i < len {
-                let c = bytes[i] as char;
+                let c = chars[i];
                 out.push(c);
                 if c == '\\' && i + 1 < len {
                     i += 1;
-                    out.push(bytes[i] as char);
+                    out.push(chars[i]);
                 } else if c == '/' {
                     i += 1;
                     break;
                 } else if c == '[' {
-                    // Inside character class, '/' is not a regex closer
                     out.push(c);
                     i += 1;
                     while i < len {
-                        let cc = bytes[i] as char;
+                        let cc = chars[i];
                         out.push(cc);
                         if cc == '\\' && i + 1 < len {
                             i += 1;
-                            out.push(bytes[i] as char);
+                            out.push(chars[i]);
                         } else if cc == ']' {
                             break;
                         }
@@ -85,21 +92,22 @@ fn minify_js(src: &str) -> String {
                 i += 1;
             }
             prev_was_regex_possible = false;
+            ident_start = None;
             continue;
         }
 
         // Line comment
-        if ch == '/' && i + 1 < len && bytes[i + 1] == b'/' {
-            while i < len && bytes[i] != b'\n' {
+        if ch == '/' && i + 1 < len && chars[i + 1] == '/' {
+            while i < len && chars[i] != '\n' {
                 i += 1;
             }
             continue;
         }
 
         // Block comment
-        if ch == '/' && i + 1 < len && bytes[i + 1] == b'*' {
+        if ch == '/' && i + 1 < len && chars[i + 1] == '*' {
             i += 2;
-            while i + 1 < len && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+            while i + 1 < len && !(chars[i] == '*' && chars[i + 1] == '/') {
                 i += 1;
             }
             if i + 1 < len {
@@ -111,21 +119,58 @@ fn minify_js(src: &str) -> String {
         }
 
         // Collapse runs of whitespace to a single space (or newline if original has one)
-        // NOTE: whitespace preserves prev_was_regex_possible (doesn't change it)
         if ch.is_whitespace() {
-            let has_newline = src[i..].chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
+            // Whitespace terminates any in-progress identifier
+            if let Some(start) = ident_start.take() {
+                let word = &out[start..];
+                if REGEX_PRECEDING_KEYWORDS.contains(&word) {
+                    prev_was_regex_possible = true;
+                } else {
+                    prev_was_regex_possible = false;
+                }
+            }
+            let remaining = &src[src.ceil_char_boundary(i)..];
+            let has_newline = remaining.chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
             out.push(if has_newline { '\n' } else { ' ' });
-            while i < len && (bytes[i] as char).is_whitespace() {
+            while i < len && chars[i].is_whitespace() {
                 i += 1;
             }
+            // whitespace preserves prev_was_regex_possible
             continue;
         }
 
+        // Check if we just finished an identifier — detect regex-preceding keywords
+        let is_ident_char = ch.is_ascii_alphanumeric() || ch == '_' || ch == '$';
+        if is_ident_char {
+            if ident_start.is_none() {
+                ident_start = Some(out.len());
+            }
+        } else {
+            if let Some(start) = ident_start.take() {
+                let word = &out[start..];
+                if REGEX_PRECEDING_KEYWORDS.contains(&word) {
+                    prev_was_regex_possible = true;
+                } else {
+                    prev_was_regex_possible = false;
+                }
+            }
+        }
+
         out.push(ch);
-        // After these tokens, a '/' could start a regex; after others, it can't
-        // Division '/' itself means the next '/' can't start a regex
-        // Identifiers, numbers, ), ], ++, -- also prevent regex
-        prev_was_regex_possible = matches!(ch, '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~' | '<' | '>' | '+' | '-' | '*' | '%' | '?' | ':' | '@');
+
+        if is_ident_char {
+            // Don't update prev_was_regex_possible mid-identifier;
+            // it's resolved above when the identifier ends.
+        } else {
+            // After these tokens, a '/' could start a regex; after others, it can't
+            // Division '/' itself means the next '/' can't start a regex
+            // Identifiers, numbers, ), ], ++, -- also prevent regex
+            prev_was_regex_possible = matches!(ch,
+                '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~'
+                | '<' | '>' | '+' | '-' | '*' | '%' | '?' | ':' | '@'
+            );
+        }
+
         i += 1;
     }
 
