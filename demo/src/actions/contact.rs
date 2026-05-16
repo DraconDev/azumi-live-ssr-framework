@@ -1,5 +1,4 @@
 use azumi::prelude::*;
-use azumi::prelude::*;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ContactForm {
