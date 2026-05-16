@@ -9,9 +9,10 @@ use crate::Component;
 ///
 /// This is a process-global singleton set once via `init_seo()`. It is NOT
 /// per-request — all requests share the same SEO config (title, base URL,
-/// OpenGraph defaults). For multi-tenant applications where different tenants
-/// need different SEO config, use `generate_head()` with explicit parameters
-/// instead of relying on the global config.
+/// OpenGraph defaults).
+///
+/// For per-request SEO or multi-tenant applications, use `generate_head_with()`
+/// which accepts an explicit `SeoConfig` parameter.
 static SITE_CONFIG: RwLock<Option<SeoConfig>> = RwLock::new(None);
 
 #[derive(Clone, Default, Debug)]
@@ -99,6 +100,43 @@ pub fn generate_head(
     type_: Option<&str>,
 ) -> HeadContent {
     let global = SITE_CONFIG.read().ok().and_then(|guard| guard.clone());
+    generate_head_with(title, description, image, url, type_, global.as_ref())
+}
+
+/// Generate SEO head content with explicit site configuration.
+///
+/// This is the primary API for per-request or multi-tenant SEO, where different
+/// pages or tenants need different site-wide settings (site name, base URL,
+/// OpenGraph defaults, Twitter card settings).
+///
+/// The `site_config` parameter provides site-wide defaults that supplement
+/// the per-page parameters. Pass `None` to use only the per-page values.
+///
+/// # Example
+///
+/// ```ignore
+/// let site = SeoConfig::new("My Site")
+///     .with_description("Default site description")
+///     .with_image("/default-og.png");
+///
+/// let head = generate_head_with(
+///     "Blog Post Title",
+///     Some("Post-specific description"),
+///     Some("/post-image.png"),
+///     None,
+///     Some("article"),
+///     Some(&site),
+/// );
+/// ```
+pub fn generate_head_with<'a>(
+    title: &str,
+    description: Option<&str>,
+    image: Option<&str>,
+    url: Option<&str>,
+    type_: Option<&str>,
+    site_config: Option<&'a SeoConfig>,
+) -> HeadContent {
+    let global = site_config.cloned();
     let context_meta = crate::context::get_page_meta();
     let current_path = crate::context::get_current_path();
 
@@ -752,5 +790,48 @@ mod tests {
         let s = result.as_str();
         assert!(s.contains("<title>"), "as_str() should return rendered HTML");
         assert!(s.contains("My Page"));
+    }
+
+    #[test]
+    fn test_generate_head_with_explicit_config() {
+        // Test generate_head_with with explicit SeoConfig (no global needed)
+        reset_seo(); // Clear global config
+        let site = SeoConfig::new("Explicit Site")
+            .with_image("https://example.com/default.png");
+
+        let result = generate_head_with(
+            "Page Title",
+            Some("Page-specific description"),
+            None,
+            None,
+            Some("article"),
+            Some(&site),
+        );
+        let html = crate::render_to_string(&result);
+
+        // Title should use the page title with site name appended
+        assert!(html.contains("Page Title | Explicit Site"));
+        // Description should use page-specific
+        assert!(html.contains("Page-specific description"));
+        // Image should use site default when not specified
+        assert!(html.contains("default.png"));
+    }
+
+    #[test]
+    fn test_generate_head_with_no_config() {
+        // Test generate_head_with with None config (works without any global)
+        reset_seo();
+        let result = generate_head_with(
+            "Standalone Title",
+            Some("Standalone description"),
+            None,
+            None,
+            None,
+            None,
+        );
+        let html = crate::render_to_string(&result);
+
+        assert!(html.contains("<title>Standalone Title</title>"));
+        assert!(html.contains("Standalone description"));
     }
 }
