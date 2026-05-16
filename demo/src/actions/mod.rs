@@ -3,4 +3,5 @@ pub mod contact;
 
 // Re-export main components and types
 pub use like::{like_button, LikeState};
-pub use contact::contact_submit;
+// Blog contact form action (defined in examples/blog/actions.rs)
+pub use crate::examples::blog::actions::contact_action;

@@ -8,39 +8,49 @@ pub async fn contact_action(
     email: String,
     message: String,
 ) -> ActionResult {
-    let mut errors = FormValidator::new();
+    let mut errors = Vec::<(&str, &str)>::new();
 
     if name.trim().is_empty() {
-        errors.field("name", "Name is required");
+        errors.push(("name", "Name is required"));
     }
     if email.trim().is_empty() {
-        errors.field("email", "Email is required");
+        errors.push(("email", "Email is required"));
     } else if !email.contains('@') {
-        errors.field("email", "Please enter a valid email address");
+        errors.push(("email", "Please enter a valid email address"));
     }
     if message.trim().is_empty() {
-        errors.field("message", "Message is required");
+        errors.push(("message", "Message is required"));
     } else if message.trim().len() < 10 {
-        errors.field("message", "Message must be at least 10 characters");
+        errors.push(("message", "Message must be at least 10 characters"));
     }
 
-    if errors.has_errors() {
-        return error_fragment(errors.html());
+    if !errors.is_empty() {
+        let error_html = errors.iter().map(|(field, msg)| {
+            format!(r#"<p data-error="{}" style="color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem;">{}</p>"#, field, msg)
+        }).collect::<Vec<_>>().join("");
+        return ActionResult::err(error_html);
     }
 
     // In production: send email, save to DB, etc.
-    tracing::info!(
+    eprintln!(
         "Contact form: {} <{}> said: {}",
         name,
         email,
         message
     );
 
-    success_fragment(html! {
+    let success_html = format!(
+        r#"<div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;"><strong>Thanks, {}!</strong> Your message has been sent.</div>"#,
+        name
+    );
+
+    let component = html! {
         <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-            <strong>"Thanks, {name}!"</strong>" Your message has been sent. We'll get back to you at "{&email}
+            <strong>{format!("Thanks, {}!", name)}</strong>" Your message has been sent."
         </div>
-    })
+    };
+
+    ActionResult::ok(&component)
 }
 
 /// Handles blog/post like increments
