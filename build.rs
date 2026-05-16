@@ -135,16 +135,6 @@ fn minify_js(src: &str) -> String {
             }
             continue;
         }
-            }
-            let remaining = &src[src.ceil_char_boundary(i)..];
-            let has_newline = remaining.chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
-            out.push(if has_newline { '\n' } else { ' ' });
-            while i < len && chars[i].is_whitespace() {
-                i += 1;
-            }
-            // whitespace preserves prev_was_regex_possible
-            continue;
-        }
 
         // Check if we just finished an identifier — detect regex-preceding keywords
         let is_ident_char = ch.is_ascii_alphanumeric() || ch == '_' || ch == '$';

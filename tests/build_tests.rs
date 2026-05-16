@@ -101,8 +101,7 @@ fn minify_js(src: &str) -> String {
                     prev_was_regex_possible = false;
                 }
             }
-            let remaining = &src[src.ceil_char_boundary(i)..];
-            let has_newline = remaining.chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
+            let has_newline = chars[i..].iter().take_while(|c| c.is_whitespace()).any(|c| **c == '\n');
             out.push(if has_newline { '\n' } else { ' ' });
             while i < len && chars[i].is_whitespace() {
                 i += 1;
