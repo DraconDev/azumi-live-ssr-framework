@@ -3,12 +3,18 @@ use std::path::Path;
 
 // minify_js is defined via include — single source of truth in build_support/minify_js.rs
 include!("build_support/minify_js.rs");
-    hash
-}
 
-fn minify_js(src: &str) -> String {
-    include!("build_support/minify_js.rs");
-    minify_js_inner(src)
+/// Compute a stable hash using FNV-1a algorithm.
+/// Unlike DefaultHasher (SipHash), this is deterministic across Rust versions.
+fn fnv_hash(data: &str) -> u64 {
+    const INITIAL: u64 = 0xcbf29ce484222325;
+    const PRIME: u64 = 0x100000001b3;
+    let mut hash = INITIAL;
+    for byte in data.bytes() {
+        hash ^= byte as u64;
+        hash = hash.wrapping_mul(PRIME);
+    }
+    hash
 }
 
 fn main() {

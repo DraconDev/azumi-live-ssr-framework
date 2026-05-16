@@ -1,10 +1,8 @@
 use http_body_util::BodyExt;
 use azumi::action::error_fragment;
 
-mod minify_js_mod {
-    include!("../build_support/minify_js.rs");
-}
-use minify_js_mod::minify_js;
+// Single source of truth — same minify_js as build.rs
+include!("../build_support/minify_js.rs");
 
 async fn response_to_string(response: axum::response::Response) -> String {
     let body = response.into_body();
