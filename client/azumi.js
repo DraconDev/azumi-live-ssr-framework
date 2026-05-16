@@ -1119,6 +1119,7 @@ class Azumi {
 
             // FIXED: Default target to scopeElement (component root), then element
             let target = scopeElement || element;
+            const targetIsScope = target === scopeElement;
             if (action.target) {
                 target = document.querySelector(action.target);
             }
@@ -1138,8 +1139,8 @@ class Azumi {
                 // Update target to the morphed element (original may have been replaced)
                 if (morphed && morphed.length > 0) {
                     target = morphed[0];
-                    // Also update scopeElement if it was the same as target
-                    if (scopeElement === (scopeElement || element)) {
+                    // Also update scopeElement if it was the morphed target
+                    if (targetIsScope) {
                         scopeElement = target;
                     }
                 }
