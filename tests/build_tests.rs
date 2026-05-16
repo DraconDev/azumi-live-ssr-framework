@@ -1,4 +1,3 @@
-use axum::body::Body;
 use http_body_util::BodyExt;
 use azumi::action::error_fragment;
 
