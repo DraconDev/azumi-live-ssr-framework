@@ -18,14 +18,14 @@ fn test_minimal_head() {
         description: "Just a title and description"
     };
 
-    assert!(meta.0.contains("<title>Minimal Page</title>"));
+    assert!(meta.as_str().contains("<title>Minimal Page</title>"));
     assert!(meta
-        .0
+        .as_str()
         .contains("<meta name=\"description\" content=\"Just a title and description\">"));
     assert!(meta
-        .0
+        .as_str()
         .contains("<meta property=\"og:title\" content=\"Minimal Page\">"));
-    // assert!(meta.0.contains("<meta name=\"twitter:card\" content=\"summary\">")); // Twitter card default might confirm this
+    // assert!(meta.as_str().contains("<meta name=\"twitter:card\" content=\"summary\">")); // Twitter card default might confirm this
 }
 
 #[test]
@@ -40,12 +40,12 @@ fn test_full_head() {
     };
 
     assert!(meta
-        .0
+        .as_str()
         .contains("<meta property=\"og:image\" content=\"/static/preview.jpg\">"));
     assert!(meta
-        .0
+        .as_str()
         .contains("<meta name=\"twitter:image\" content=\"/static/preview.jpg\">"));
-    // assert!(meta.0.contains("<meta name=\"twitter:card\" content=\"summary_large_image\">"));
+    // assert!(meta.as_str().contains("<meta name=\"twitter:card\" content=\"summary_large_image\">"));
 }
 
 #[test]
@@ -58,6 +58,6 @@ fn test_dynamic_values() {
         description: page_desc.as_str()
     };
 
-    assert!(meta.0.contains("<title>Dynamic Title</title>"));
-    assert!(meta.0.contains("Description for Dynamic Title"));
+    assert!(meta.as_str().contains("<title>Dynamic Title</title>"));
+    assert!(meta.as_str().contains("Description for Dynamic Title"));
 }
