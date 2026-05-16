@@ -155,6 +155,16 @@ impl<'a> FieldValidator<'a> {
 ///
 /// Chain `.field()` calls to validate each field, then call `.validate()`
 /// to get errors (or `None` if all valid).
+///
+/// # Client-Side Validation
+///
+/// For client-side validation (runs in browser before form submission),
+/// call `.data_validate()` to generate a `data-validate` attribute value
+/// that Azumi's client runtime reads. Add this attribute to your input:
+/// `<input data-validate={validator.data_validate("email", true, Some(8))} />`
+///
+/// The client runtime checks these rules before form submission and shows
+/// errors inline without a server round-trip.
 #[derive(Default)]
 pub struct FormValidator {
     errors: ValidationErrors,
@@ -193,6 +203,90 @@ impl FormValidator {
 
 fn html_escape(s: &str) -> String {
     crate::escape_html(s)
+}
+
+// ============================================================================
+// Client-Side Validation Rules
+// ============================================================================
+
+/// Validation rules that can be used for client-side form validation.
+///
+/// These rules generate a `data-validate` attribute that Azumi's client
+/// runtime reads to validate forms before submission (no server round-trip).
+///
+/// # Example
+///
+/// ```ignore
+/// use azumi::form::{FormValidator, ValidationRule};
+///
+/// let rules = [
+///     ValidationRule::Required,
+///     ValidationRule::Email,
+///     ValidationRule::MinLength(8),
+/// ];
+/// let data_attr = FormValidator::data_validate("email", &rules);
+/// // data_attr = "required,email,min-length:8"
+/// ```
+#[derive(Clone, Debug, PartialEq)]
+pub enum ValidationRule {
+    /// Field must not be empty
+    Required,
+    /// Field must be a valid email address
+    Email,
+    /// Field must be at least N characters
+    MinLength(usize),
+    /// Field must be at most N characters
+    MaxLength(usize),
+    /// Field must be a valid URL
+    Url,
+}
+
+impl std::fmt::Display for ValidationRule {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ValidationRule::Required => write!(f, "required"),
+            ValidationRule::Email => write!(f, "email"),
+            ValidationRule::MinLength(n) => write!(f, "min-length:{}", n),
+            ValidationRule::MaxLength(n) => write!(f, "max-length:{}", n),
+            ValidationRule::Url => write!(f, "url"),
+        }
+    }
+}
+
+impl FormValidator {
+    /// Generate a `data-validate` attribute value for client-side form validation.
+    ///
+    /// Use this in your html! macro to add validation attributes to inputs:
+    ///
+    /// ```ignore
+    /// use azumi::form::{FormValidator, ValidationRule};
+    ///
+    /// let rules = [ValidationRule::Required, ValidationRule::Email];
+    /// html! {
+    ///     <input
+    ///         name="email"
+    ///         type="email"
+    ///         data-validate={FormValidator::data_validate("email", &rules)}
+    ///     />
+    /// }
+    /// ```
+    ///
+    /// The client-side JavaScript reads `data-validate` and `data-field`
+    /// attributes and shows inline errors before form submission.
+    ///
+    /// For a form, also add `data-form-validate` to the `<form>` element:
+    /// `<form data-form-validate="true">`
+    ///
+    /// Returns a string like `"required,email,min-length:8"`.
+    pub fn data_validate(field: &str, rules: &[ValidationRule]) -> String {
+        let rules_str: Vec<String> = rules.iter().map(|r| r.to_string()).collect();
+        let rules_csv = rules_str.join(",");
+        if rules_csv.is_empty() {
+            String::new()
+        } else {
+            format!("{}:{}", field, rules_csv)
+        }
+    }
 }
 
 /// Pre-built form components with validation integration.

@@ -338,6 +338,111 @@ class Azumi {
         return null;
     }
 
+    // Client-side form validation (runs before form submission)
+    // Reads data-validate attribute: "field:required,email,min-length:8"
+    validateFormField(input) {
+        const validateAttr = input.getAttribute("data-validate");
+        if (!validateAttr) return true; // No validation rules
+
+        const parts = validateAttr.split(":");
+        const fieldName = parts[0];
+        const rules = parts[1] ? parts[1].split(",") : [];
+        const value = input.value;
+        const errors = [];
+
+        for (const rule of rules) {
+            if (rule === "required") {
+                if (!value.trim()) {
+                    errors.push("This field is required");
+                }
+            } else if (rule === "email") {
+                if (value && !this.isValidEmail(value)) {
+                    errors.push("Please enter a valid email address");
+                }
+            } else if (rule.startsWith("min-length:")) {
+                const min = parseInt(rule.split(":")[1], 10);
+                if (value && value.length < min) {
+                    errors.push(`Must be at least ${min} characters`);
+                }
+            } else if (rule.startsWith("max-length:")) {
+                const max = parseInt(rule.split(":")[1], 10);
+                if (value && value.length > max) {
+                    errors.push(`Must be at most ${max} characters`);
+                }
+            } else if (rule === "url") {
+                if (value && !this.isValidUrl(value)) {
+                    errors.push("Please enter a valid URL");
+                }
+            }
+        }
+
+        // Show/hide error message
+        const errorId = `${fieldName}_error`;
+        let errorDiv = input.form ? input.form.querySelector(`#${errorId}`) : null;
+        if (!errorDiv) {
+            errorDiv = document.getElementById(errorId);
+        }
+
+        if (errors.length > 0) {
+            input.setAttribute("aria-invalid", "true");
+            input.setAttribute("aria-describedby", errorId);
+            if (errorDiv) {
+                errorDiv.textContent = errors[0];
+                errorDiv.style.display = "";
+            }
+            return false;
+        } else {
+            input.removeAttribute("aria-invalid");
+            input.removeAttribute("aria-describedby");
+            if (errorDiv) {
+                errorDiv.textContent = "";
+                errorDiv.style.display = "none";
+            }
+            return true;
+        }
+    }
+
+    isValidEmail(value) {
+        return value.includes("@") &&
+               !value.startsWith("@") &&
+               value.split("@")[1] &&
+               value.split("@")[1].includes(".");
+    }
+
+    isValidUrl(value) {
+        try {
+            const afterScheme = value.replace(/^https?:\/\//, "");
+            return afterScheme.length > 0 && !afterScheme.startsWith("@");
+        } catch {
+            return false;
+        }
+    }
+
+    // Override handleFormSubmit to include client-side validation
+    handleFormSubmit(e) {
+        const form = e.target.closest('form[az-action], form[data-form-validate]');
+        if (!form) return;
+
+        // Client-side validation: check all fields with data-validate
+        const inputsWithValidation = form.querySelectorAll("[data-validate]");
+        let allValid = true;
+        for (const input of inputsWithValidation) {
+            if (!this.validateFormField(input)) {
+                allValid = false;
+            }
+        }
+
+        if (!allValid) {
+            e.preventDefault();
+            // Focus first invalid input
+            const firstInvalid = form.querySelector("[aria-invalid='true']");
+            if (firstInvalid) firstInvalid.focus();
+            return;
+        }
+
+        // Proceed with normal form submission
+        e.preventDefault();
+
     // Execute: "call toggle_like -> #box" or "set active_tab = 'rust'" or "scroll-top"
     async execute(action, element) {
         if (action.type === "call") {
