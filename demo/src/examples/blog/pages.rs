@@ -39,28 +39,42 @@ pub fn post_list_page() -> impl Component {
 pub fn post_page(slug: &str) -> impl Component {
     let post = get_post_by_slug(slug);
 
-    layout(&format!("{} — Azumi Blog", post.title), html! {
-        <a class="back-link" href="/blog">"← Back to Blog"</a>
+    let not_found = html! {
+        <div style="text-align: center; padding: 4rem;">
+            <h1 style="font-size: 3rem; margin-bottom: 1rem;">"404"</h1>
+            <p style="color: #888; margin-bottom: 1.5rem;">"This post doesn't exist yet."</p>
+            <a href="/blog" style="color: #0070f3; font-size: 0.875rem; font-weight: 500;">"Browse all posts"</a>
+        </div>
+    };
 
-        <article class="post-body">
-            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{&post.title}</h1>
-            <div class="post-meta" style="margin-bottom: 1.5rem;">
-                {&post.author} " · " {&post.date} " · " {post.likes} " likes"
-            </div>
-            <div class="tag-row" style="margin-bottom: 1.5rem;">
-                @for tag in &post.tags {
-                    <span class="tag">{tag}</span>
-                }
-            </div>
+    let content = match post {
+        Some(p) => html! {
+            <>
+                <a class="back-link" href="/blog">"← Back to Blog"</a>
 
-            <div class="post-content">
-                {PostContent(&post.content)}
-            </div>
-        </article>
-    })
+                <article class="post-body">
+                    <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{&p.title}</h1>
+                    <div class="post-meta" style="margin-bottom: 1.5rem;">
+                        {&p.author} " · " {&p.date} " · " {p.likes} " likes"
+                    </div>
+                    <div class="tag-row" style="margin-bottom: 1.5rem;">
+                        @for tag in &p.tags {
+                            <span class="tag">{tag}</span>
+                        }
+                    </div>
+                    <div class="post-content">
+                        {PostContent(&p.content)}
+                    </div>
+                </article>
+            </>
+        },
+        None => not_found,
+    };
+
+    layout("Post — Azumi Blog", content)
 }
 
-/// Renders post content — supports basic markdown-ish HTML
+/// Renders post content — simple HTML passthrough for demo
 struct PostContent(&'static str);
 
 impl std::fmt::Display for PostContent {
