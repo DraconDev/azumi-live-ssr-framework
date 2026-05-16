@@ -1,16 +1,14 @@
 use crate::examples::blog::layout::layout;
 use crate::examples::blog::data::get_posts;
-use crate::examples::blog::PostLikes;
-use crate::actions::contact_submit;
 use azumi::prelude::*;
 
-pub fn post_list(state: &PostLikes) -> impl Component {
+pub fn post_list() -> impl Component {
     let posts = get_posts();
 
     layout("Azumi Blog", html! {
         <h1 style="margin-bottom: 1.5rem; font-size: 2rem; color: #1a1a1a;">"Latest Posts"</h1>
 
-        @for (i, post) in posts.iter().enumerate() {
+        @for post in &posts {
             <article class={post_card}>
                 <h2 class={post_title}>
                     <a href={format!("/blog/{}", post.slug)}>{&post.title}</a>
@@ -24,23 +22,12 @@ pub fn post_list(state: &PostLikes) -> impl Component {
                         <span class={tag}>{tag}</span>
                     }
                 </div>
-                <div class={like_row}>
-                    <button
-                        class:external={format!("btn {} {}", btn, like_btn)}
-                        class:lacked={state.counts[i] > post.likes}
-                        az-on="click action /blog/like?post={}"
-                        data-post={post.id}
-                    >
-                        {if state.counts[i] > post.likes { "♥" } else { "♡" }}
-                    </button>
-                    <span class={like_count}>{state.counts[i]}" likes"</span>
-                </div>
             </article>
         }
     })
 }
 
-pub fn post_detail(state: &PostLikes, slug: &str) -> impl Component {
+pub fn post_detail(slug: &str) -> impl Component {
     let posts = get_posts();
     let post = posts.iter().find(|p| p.slug == slug);
 
@@ -60,16 +47,6 @@ pub fn post_detail(state: &PostLikes, slug: &str) -> impl Component {
                         </div>
                         <div style="margin-top: 1.5rem; line-height: 1.8;">
                             {raw_html(&post.content)}
-                        </div>
-                        <div class={like_row}>
-                            <button
-                                class:external={format!("btn {} {}", btn, like_btn)}
-                                az-on="click action /blog/like?post={}"
-                                data-post={post.id}
-                            >
-                                "♥"
-                            </button>
-                            <span class={like_count}>{post.likes}" likes"</span>
                         </div>
                     </article>
                 },
@@ -99,24 +76,24 @@ pub fn contact_page() -> impl Component {
     layout("Contact — Azumi Blog", html! {
         <div class={contact_card}>
             <h1 style="margin-bottom: 1.5rem; text-align: center;">"Get in Touch"</h1>
-            {contact_submit(contact_submit::Props::builder().build().unwrap())}
+            <p style="color: #888; text-align: center; margin-bottom: 1.5rem;">"Contact form coming soon."</p>
+            <p style="text-align: center; color: #555;">
+                "Email us at "<a href="mailto:hello@azumi.dev">"hello@azumi.dev"</a>
+            </p>
         </div>
     })
 }
 
 // Axum handlers
 
-pub async fn blog_handler(state: axum::extract::State<azumi::live::LiveState>) -> axum::response::Html<String> {
-    let state = state.get::<PostLikes>();
-    axum::response::Html(azumi::render_to_string(&post_list(state)))
+pub async fn blog_handler() -> axum::response::Html<String> {
+    axum::response::Html(azumi::render_to_string(&post_list()))
 }
 
 pub async fn post_handler(
-    state: axum::extract::State<azumi::live::LiveState>,
     axum::extract::Path(slug): axum::extract::Path<String>,
 ) -> axum::response::Html<String> {
-    let state = state.get::<PostLikes>();
-    axum::response::Html(azumi::render_to_string(&post_detail(state, &slug)))
+    axum::response::Html(azumi::render_to_string(&post_detail(&slug)))
 }
 
 pub async fn about_handler() -> axum::response::Html<String> {

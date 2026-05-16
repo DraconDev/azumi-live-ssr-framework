@@ -10,7 +10,7 @@ pub struct Post {
     pub author: String,
     pub date: String,
     pub likes: u32,
-    pub tags: Vec<&'static str>,
+    pub tags: Vec<String>,
 }
 
 /// In-memory blog posts (simulating a database)
@@ -34,7 +34,7 @@ pub fn get_posts() -> Vec<Post> {
             author: "Azumi Team".to_string(),
             date: "2026-05-10".to_string(),
             likes: 42,
-            tags: vec!["rust", "web", "framework"],
+            tags: vec!["rust".to_string(), "web".to_string(), "framework".to_string()],
         },
         Post {
             id: 2,
@@ -52,7 +52,7 @@ pub fn get_posts() -> Vec<Post> {
             author: "Dr. Anna Kim".to_string(),
             date: "2026-05-12".to_string(),
             likes: 28,
-            tags: vec!["rust", "philosophy"],
+            tags: vec!["rust".to_string(), "philosophy".to_string()],
         },
         Post {
             id: 3,
@@ -72,7 +72,7 @@ struct Counter { count: i32 }</code></pre>
             author: "Marcus Chen".to_string(),
             date: "2026-05-14".to_string(),
             likes: 35,
-            tags: vec!["rust", "reactive", "azumi"],
+            tags: vec!["rust".to_string(), "reactive".to_string(), "azumi".to_string()],
         },
     ]
 }
