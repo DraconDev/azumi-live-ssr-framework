@@ -223,46 +223,7 @@ class Azumi {
         this.execute(action, target);
     }
 
-    // Handle form submissions with az-action attribute (simpler than az-on)
-    handleFormSubmit(e) {
-        const form = e.target.closest('form[az-action]');
-        if (!form) return;
-
-        e.preventDefault();
-
-        // Check for confirmation dialog
-        const confirmMsg = form.getAttribute("az-confirm");
-        if (confirmMsg && !window.confirm(confirmMsg)) {
-            return; // User cancelled
-        }
-
-        const actionName = form.getAttribute('az-action');
-        const targetSelector = form.getAttribute('az-target');
-        const swap = form.getAttribute('az-swap') || 'morph';
-
-        if (!actionName) return;
-
-        // NAMESPACING: Find parent scope to get struct name
-        let namespace = "";
-        const scopeEl = form.closest("[az-scope]");
-        if (scopeEl) {
-            const structName = scopeEl.getAttribute("az-struct");
-            if (structName) {
-                namespace = `/${structName}`;
-            }
-        }
-
-        const action = {
-            type: "call",
-            actionName,
-            url: `/_azumi/action${namespace}/${actionName}`,
-            target: targetSelector,
-            swap,
-        };
-
-        this.execute(action, form);
-    }
-
+    // Parse az-on attribute
     parseAction(cmd, element) {
         // Format: "{event} call {action} -> {target} {swap}"
         // or "{event} set {key} = {value}"
@@ -442,6 +403,33 @@ class Azumi {
 
         // Proceed with normal form submission
         e.preventDefault();
+
+        const actionName = form.getAttribute('az-action');
+        const targetSelector = form.getAttribute('az-target');
+        const swap = form.getAttribute('az-swap') || 'morph';
+
+        if (!actionName) return;
+
+        // NAMESPACING: Find parent scope to get struct name
+        let namespace = "";
+        const scopeEl = form.closest("[az-scope]");
+        if (scopeEl) {
+            const structName = scopeEl.getAttribute("az-struct");
+            if (structName) {
+                namespace = `/${structName}`;
+            }
+        }
+
+        const action = {
+            type: "call",
+            actionName,
+            url: `/_azumi/action${namespace}/${actionName}`,
+            target: targetSelector,
+            swap,
+        };
+
+        this.execute(action, form);
+    }
 
     // Execute: "call toggle_like -> #box" or "set active_tab = 'rust'" or "scroll-top"
     async execute(action, element) {
@@ -1286,3 +1274,4 @@ class Azumi {
 // Initialize
 window.azumi = new Azumi();
 window.azumi.log("Azumi Live Client Initialized 🚀");
+}
