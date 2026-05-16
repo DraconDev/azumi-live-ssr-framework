@@ -10,7 +10,7 @@ pub fn post_list_page_inner() -> impl Component {
 
     html! {
         <section class="post-list">
-            <h1 style="font-size: 2rem; margin-bottom: 2rem; color: #1a1a1a;">"Latest Posts"</h1>
+            <h1>"Latest Posts"</h1>
             @for post in &posts {
                 <article class="post-card">
                     <h2 class="post-title">
@@ -25,13 +25,25 @@ pub fn post_list_page_inner() -> impl Component {
                         }
                     </div>
                     <p class="post-excerpt">{&post.excerpt}</p>
-                    <a href={format!("/blog/posts/{}", post.slug)}
-                       style="color: #0070f3; font-size: 0.875rem; font-weight: 500;">
+                    <a href={format!("/blog/posts/{}", post.slug)} class="read-more">
                         "Read more →"
                     </a>
                 </article>
             }
         </section>
+
+        <style>
+            .post-list h1 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+                color: #1a1a1a;
+            }
+            .read-more {
+                color: #0070f3;
+                font-size: 0.875rem;
+                font-weight: 500;
+            }
+        </style>
     }
 }
 
@@ -41,18 +53,33 @@ pub async fn post_list_page() -> impl axum::response::IntoResponse {
     axum::response::Html(html)
 }
 
-// ─── Single Post Page ───────────────────────────────────────────────────────
+// ─── Single Post Page ────────────────────────────────────────────────────────
 
 #[azumi::component]
-pub fn post_page_inner(slug: &str) -> impl Component {
-    let post = get_post_by_slug(slug);
+pub fn post_page_inner(slug: String) -> impl Component {
+    let post = get_post_by_slug(&slug);
 
     let not_found = html! {
-        <div style="text-align: center; padding: 4rem;">
-            <h1 style="font-size: 3rem; margin-bottom: 1rem;">"404"</h1>
-            <p style="color: #888; margin-bottom: 1.5rem;">"This post doesn't exist yet."</p>
-            <a href="/blog" style="color: #0070f3; font-size: 0.875rem; font-weight: 500;">"Browse all posts"</a>
+        <div class="not-found">
+            <h1>"404"</h1>
+            <p>"This post doesn't exist yet."</p>
+            <a href="/blog">"Browse all posts"</a>
         </div>
+
+        <style>
+            .not-found {
+                text-align: center;
+                padding: 4rem;
+            }
+            .not-found h1 {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+            }
+            .not-found p {
+                color: #888;
+                margin-bottom: 1.5rem;
+            }
+        </style>
     };
 
     match post {
@@ -60,11 +87,11 @@ pub fn post_page_inner(slug: &str) -> impl Component {
             <>
                 <a class="back-link" href="/blog">"← Back to Blog"</a>
                 <article class="post-body">
-                    <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{&p.title}</h1>
-                    <div class="post-meta" style="margin-bottom: 1.5rem;">
+                    <h1>{&p.title}</h1>
+                    <div class="post-meta">
                         {&p.author} " · " {&p.date} " · " {p.likes} " likes"
                     </div>
-                    <div class="tag-row" style="margin-bottom: 1.5rem;">
+                    <div class="tag-row">
                         @for tag in &p.tags {
                             <span class="tag">{tag}</span>
                         }
@@ -80,7 +107,7 @@ pub fn post_page_inner(slug: &str) -> impl Component {
 }
 
 pub async fn post_page(axum::extract::Path(slug): axum::extract::Path<String>) -> impl axum::response::IntoResponse {
-    let content = post_page_inner(&slug);
+    let content = post_page_inner(slug);
     let html = azumi::render_to_string(&layout("Post — Azumi Blog", content));
     axum::response::Html(html)
 }
@@ -113,36 +140,63 @@ impl std::fmt::Display for PostContent {
 pub fn contact_page_inner() -> impl Component {
     html! {
         <div class="contact-card">
-            <h1 style="margin-bottom: 1.5rem; font-size: 1.75rem;">"Get in Touch"</h1>
-            <p style="color: #555; margin-bottom: 1.5rem;">
-                "Have a question or want to contribute? We'd love to hear from you."
-            </p>
+            <h1>"Get in Touch"</h1>
+            <p>"Have a question or want to contribute? We'd love to hear from you."</p>
 
             <form action="/blog/contact" method="POST" az-on:submit="submit">
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.375rem; font-weight: 500; font-size: 0.875rem;" for="name">"Your Name"</label>
-                    <input type="text" name="name" id="name"
-                           style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit;" />
+                <div class="form-group">
+                    <label for="name">"Your Name"</label>
+                    <input type="text" name="name" id="name" class="form-input" />
                 </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.375rem; font-weight: 500; font-size: 0.875rem;" for="email">"Email Address"</label>
-                    <input type="email" name="email" id="email"
-                           style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit;" />
+                <div class="form-group">
+                    <label for="email">"Email Address"</label>
+                    <input type="email" name="email" id="email" class="form-input" />
                 </div>
 
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.375rem; font-weight: 500; font-size: 0.875rem;" for="message">"Message"</label>
-                    <textarea name="message" id="message" rows="5"
-                              style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                <div class="form-group">
+                    <label for="message">"Message"</label>
+                    <textarea name="message" id="message" rows="5" class="form-textarea"></textarea>
                 </div>
 
-                <button type="submit"
-                        style="display: inline-block; padding: 0.5rem 1rem; background: #0070f3; color: #fff; border: none; border-radius: 4px; font-size: 0.875rem; cursor: pointer;">
+                <button type="submit" class="submit-btn">
                     "Send Message"
                 </button>
             </form>
         </div>
+
+        <style>
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 0.375rem;
+                font-weight: 500;
+                font-size: 0.875rem;
+            }
+            .form-input, .form-textarea {
+                width: 100%;
+                padding: 0.5rem 0.75rem;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 1rem;
+                font-family: inherit;
+            }
+            .form-textarea {
+                resize: vertical;
+            }
+            .submit-btn {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                background: #0070f3;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                font-size: 0.875rem;
+                cursor: pointer;
+            }
+        </style>
     }
 }
 
@@ -158,16 +212,10 @@ pub async fn contact_page() -> impl axum::response::IntoResponse {
 pub fn about_page_inner() -> impl Component {
     html! {
         <div class="about-card">
-            <h1 style="margin-bottom: 1rem;">"About This Blog"</h1>
-            <p style="color: #555; margin-bottom: 1rem;">
-                "This blog is built with Azumi, a Rust web framework with compile-time HTML/CSS/JS validation."
-            </p>
-            <p style="color: #555; margin-bottom: 1rem;">
-                "Azumi catches XSS vectors, CSS typos, and invalid HTML patterns at compile time — before they reach production."
-            </p>
-            <p style="color: #555;">
-                "This demo shows: routing, component composition, forms with action handlers, SEO metadata, and CSS scoping — all in type-safe Rust."
-            </p>
+            <h1>"About This Blog"</h1>
+            <p>"This blog is built with Azumi, a Rust web framework with compile-time HTML/CSS/JS validation."</p>
+            <p>"Azumi catches XSS vectors, CSS typos, and invalid HTML patterns at compile time — before they reach production."</p>
+            <p>"This demo shows: routing, component composition, forms with action handlers, SEO metadata, and CSS scoping — all in type-safe Rust."</p>
         </div>
     }
 }
