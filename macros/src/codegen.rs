@@ -402,11 +402,7 @@ pub(crate) fn generate_body_with_context(
                 instructions
                     .push(generate_body_with_context(&elem.children, &child_ctx, f_ident));
 
-                let void_elements = [
-                    "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
-                    "meta", "param", "source", "track", "wbr",
-                ];
-                if !void_elements.contains(&name.as_str()) {
+                if !token_parser::VOID_ELEMENTS.contains(&name.as_str()) {
                     instructions.push(quote! {
                         write!(#f_ident, "</{}>", #name)?;
                     });

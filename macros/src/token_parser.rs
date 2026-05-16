@@ -877,24 +877,13 @@ fn parse_html_name(input: ParseStream, allow_double_dash: bool) -> Result<(Strin
     Ok((name, full_span))
 }
 
+pub(crate) const VOID_ELEMENTS: &[&str] = &[
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link",
+    "meta", "param", "source", "track", "wbr",
+];
+
 fn is_void_element(name: &str) -> bool {
-    matches!(
-        name,
-        "area"
-            | "base"
-            | "br"
-            | "col"
-            | "embed"
-            | "hr"
-            | "img"
-            | "input"
-            | "link"
-            | "meta"
-            | "param"
-            | "source"
-            | "track"
-            | "wbr"
-    )
+    VOID_ELEMENTS.contains(&name)
 }
 
 fn is_css_at_rule(input: ParseStream) -> bool {
