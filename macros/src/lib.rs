@@ -82,12 +82,13 @@ pub fn html(input: TokenStream) -> TokenStream {
     // Auto-scope Asset Paths (Rewrites /img/logo.png -> /assets/logo.a8b9.png)
     asset_rewriter::rewrite_nodes(&mut nodes);
 
-    // 1. Process styles (hoist <style> tags)
-    let (style_bindings, _scoped_css, _global_css) = style_processing::process_styles(&nodes);
+    // 1. Process styles (single pass: bindings + CSS extraction + dynamic detection)
+    let style_extraction = style_processing::process_all_styles(&nodes);
+    let style_bindings = style_extraction.bindings;
 
     // 2. Generate HTML string construction code
     let f_ident = proc_macro2::Ident::new("f", proc_macro2::Span::call_site());
-    let html_construction = generate_nodes(&nodes, &f_ident);
+    let html_construction = generate_nodes(&nodes, &f_ident, &style_extraction);
 
     // 3. Generate bind validation checks
     let mut validation_checks = Vec::new();
@@ -124,8 +125,12 @@ pub fn html(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
-fn generate_nodes(nodes: &[token_parser::Node], f_ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
-    let body = generate_body(nodes, codegen::first_node_span(nodes), f_ident);
+fn generate_nodes(
+    nodes: &[token_parser::Node],
+    f_ident: &proc_macro2::Ident,
+    extraction: &style_processing::StyleExtraction,
+) -> proc_macro2::TokenStream {
+    let body = generate_body(nodes, codegen::first_node_span(nodes), f_ident, extraction);
     quote! {
         #body
         Ok(())
@@ -137,6 +142,7 @@ fn generate_body(
     nodes: &[token_parser::Node],
     span: Option<(usize, usize)>,
     f_ident: &proc_macro2::Ident,
+    extraction: &style_processing::StyleExtraction,
 ) -> proc_macro2::TokenStream {
     // Collect ALL validation errors from all validators instead of short-circuiting
     let mut all_errors = proc_macro2::TokenStream::new();
@@ -159,8 +165,10 @@ fn generate_body(
         all_errors.extend(warn);
     }
 
-    let (global_css, scoped_css, has_dynamic_styles) = style_processing::collect_all_styles(nodes);
-    let (valid_classes, valid_ids) = crate::css::extract_selectors(&scoped_css);
+    let global_css = &extraction.global_css;
+    let scoped_css = &extraction.scoped_css;
+    let has_dynamic_styles = extraction.has_dynamic_styles;
+    let (valid_classes, valid_ids) = crate::css::extract_selectors(scoped_css);
 
     let style_validation_errors =
         validators::validate_nodes(nodes, &valid_classes, &valid_ids, has_dynamic_styles);

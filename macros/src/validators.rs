@@ -448,24 +448,7 @@ pub(crate) fn validate_format_in_expressions(
 
                 // Check for format! usage that's building HTML-like strings
                 if normalized.contains("format!") {
-                    let has_web_content = content_str.contains('<')
-                        || content_str.contains('>')
-                        || content_str.contains("</")
-                        || content_str.contains("href=")
-                        || content_str.contains("class=")
-                        || content_str.contains("style=")
-                        || content_str.contains("window.")
-                        || content_str.contains("document.")
-                        || content_str.contains("addEventListener")
-                        || content_str.contains("serde_json::to_string")
-                        || content_str.contains("JSON.parse")
-                        || content_str.contains("innerHTML")
-                        || content_str.contains(".createElement")
-                        || content_str.contains("document.write")
-                        || content_str.contains("document.cookie")
-                        || (content_str.contains("{{") && content_str.contains("}}") && looks_like_css(&content_str));
-
-                    if has_web_content {
+                    if has_web_content_pattern(&content_str) {
                         errors.push(quote_spanned! { expr.span =>
                             compile_error!(
                                 "Azumi: format!() detected building HTML/CSS/JS strings.\n\n\
@@ -501,6 +484,51 @@ pub(crate) fn validate_format_in_expressions(
                 }
             }
             token_parser::Node::Element(elem) => {
+                for attr in &elem.attrs {
+                    match &attr.value {
+                        token_parser::AttributeValue::Dynamic(tokens) => {
+                            let content_str = tokens.to_string();
+                            let normalized = content_str.replace(' ', "");
+                            if normalized.contains("format!") && has_web_content_pattern(&content_str) {
+                                let span = attr.value_span.unwrap_or(attr.span);
+                                errors.push(quote_spanned! { span =>
+                                    compile_error!(
+                                        "Azumi: format!() detected building HTML/CSS/JS strings in attribute.\n\n\
+                                        Using format!() to build web content defeats Azumi's compile-time safety.\n\
+                                        Build the string outside html! and pass it as a variable.\n\
+                                        \n\
+                                        ✅ Correct patterns:\n\
+                                        \n\
+                                        // Format outside html!, inject safely:\n\
+                                        let url = format!(\"/api/{}\", id);\n\
+                                        html! { <a href={url}>\"Link\"</a> }\n\
+                                        \n\
+                                        ❌ Wrong:\n\
+                                        html! { <a href={format!(\"/api/{}\", id)}>\"Link\"</a> }\n\
+                                        \n\
+                                        See: docs/guide.md"
+                                    );
+                                });
+                            }
+                        }
+                        token_parser::AttributeValue::StyleDsl(pairs) => {
+                            for (_, value_tokens) in pairs {
+                                let content_str = value_tokens.to_string();
+                                let normalized = content_str.replace(' ', "");
+                                if normalized.contains("format!") && has_web_content_pattern(&content_str) {
+                                    let span = attr.span;
+                                    errors.push(quote_spanned! { span =>
+                                        compile_error!(
+                                            "Azumi: format!() detected in style DSL value.\n\
+                                            Build CSS strings outside html! and use <style>{variable}</style> instead."
+                                        );
+                                    });
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
                 for child in &elem.children {
                     check_node(child, errors);
                 }
@@ -544,6 +572,25 @@ pub(crate) fn validate_format_in_expressions(
     }
 
     errors
+}
+
+fn has_web_content_pattern(content_str: &str) -> bool {
+    content_str.contains('<')
+        || content_str.contains('>')
+        || content_str.contains("</")
+        || content_str.contains("href=")
+        || content_str.contains("class=")
+        || content_str.contains("style=")
+        || content_str.contains("window.")
+        || content_str.contains("document.")
+        || content_str.contains("addEventListener")
+        || content_str.contains("serde_json::to_string")
+        || content_str.contains("JSON.parse")
+        || content_str.contains("innerHTML")
+        || content_str.contains(".createElement")
+        || content_str.contains("document.write")
+        || content_str.contains("document.cookie")
+        || (content_str.contains("{{") && content_str.contains("}}") && looks_like_css(content_str))
 }
 
 fn looks_like_css(s: &str) -> bool {

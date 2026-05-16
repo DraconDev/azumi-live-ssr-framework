@@ -1,168 +1,97 @@
 //! Style extraction and hoisting for the `html!` macro.
 //!
-//! This module handles two distinct but related operations:
+//! This module handles style processing in a single unified pass:
 //!
-//! 1. **`process_styles`** — Processes `style!` macro blocks within `html!`,
-//!    generating hoisted CSS bindings.
-//! 2. **`collect_all_styles`** — Extracts inline `<style>` tag content and
-//!    `style!` block content for CSS scoping and injection.
+//! **`process_all_styles`** — Single-pass extraction that returns:
+//! - Hoisted CSS bindings (TokenStream for `style!` macro blocks)
+//! - Global CSS content (for `<style>` global and `style!` global blocks)
+//! - Scoped CSS content (for `<style>` tags and `style!` scoped blocks)
+//! - Whether dynamic styles exist (`<style>{variable}</style>`)
 
 use crate::token_parser;
 
-/// Process `style!` macro blocks and generate hoisted CSS bindings.
-///
-/// Returns `(bindings, scoped_css, global_css)` where:
-/// - `bindings` are TokenStream variable assignments for the hoisted styles
-/// - `scoped_css` is CSS that should be scoped to this component
-/// - `global_css` is CSS that should be injected globally
-pub(crate) fn process_styles(
-    nodes: &[token_parser::Node],
-) -> (proc_macro2::TokenStream, String, String) {
-    let mut bindings = proc_macro2::TokenStream::new();
-    let mut scoped_css = String::new();
-    let mut global_css = String::new();
-
-    for node in nodes {
-        match node {
-            token_parser::Node::Block(token_parser::Block::Style(style_block)) => {
-                if style_block.is_global {
-                    let output = crate::style::process_global_style_macro(style_block.content.clone());
-                    bindings.extend(output.bindings);
-                    global_css.push_str(&output.css);
-                } else {
-                    let output = crate::style::process_style_macro(style_block.content.clone());
-                    bindings.extend(output.bindings);
-                    scoped_css.push_str(&output.css);
-                }
-            }
-            token_parser::Node::Element(elem) => {
-                let (child_bindings, child_scoped, child_global) = process_styles(&elem.children);
-                bindings.extend(child_bindings);
-                scoped_css.push_str(&child_scoped);
-                global_css.push_str(&child_global);
-            }
-            token_parser::Node::Fragment(frag) => {
-                let (child_bindings, child_scoped, child_global) = process_styles(&frag.children);
-                bindings.extend(child_bindings);
-                scoped_css.push_str(&child_scoped);
-                global_css.push_str(&child_global);
-            }
-            token_parser::Node::Block(block) => match block {
-                token_parser::Block::If(if_block) => {
-                    let (b, s, g) = process_styles(&if_block.then_branch);
-                    bindings.extend(b);
-                    scoped_css.push_str(&s);
-                    global_css.push_str(&g);
-                    if let Some(else_branch) = &if_block.else_branch {
-                        let (b, s, g) = process_styles(else_branch);
-                        bindings.extend(b);
-                        scoped_css.push_str(&s);
-                        global_css.push_str(&g);
-                    }
-                }
-                token_parser::Block::For(for_block) => {
-                    let (b, s, g) = process_styles(&for_block.body);
-                    bindings.extend(b);
-                    scoped_css.push_str(&s);
-                    global_css.push_str(&g);
-                }
-                token_parser::Block::Match(match_block) => {
-                    for arm in &match_block.arms {
-                        let (b, s, g) = process_styles(&arm.body);
-                        bindings.extend(b);
-                        scoped_css.push_str(&s);
-                        global_css.push_str(&g);
-                    }
-                }
-                token_parser::Block::Call(call_block) => {
-                    let (b, s, g) = process_styles(&call_block.children);
-                    bindings.extend(b);
-                    scoped_css.push_str(&s);
-                    global_css.push_str(&g);
-                }
-                _ => {}
-            },
-            _ => {}
-        }
-    }
-
-    (bindings, scoped_css, global_css)
+/// Result of processing all styles in a single pass.
+pub(crate) struct StyleExtraction {
+    pub bindings: proc_macro2::TokenStream,
+    pub global_css: String,
+    pub scoped_css: String,
+    pub has_dynamic_styles: bool,
 }
 
-/// Collect all CSS from inline `<style>` tags and `style!` blocks.
+/// Single-pass extraction of all style information from the node tree.
 ///
-/// Returns `(global_css, scoped_css, has_dynamic_styles)` for injection into the HTML head.
-/// `has_dynamic_styles` is true when a `<style>{variable}</style>` tag is found —
-/// these contain runtime CSS that cannot be analyzed at compile time, so class/ID
-/// validation should be skipped for that component.
-pub(crate) fn collect_all_styles(nodes: &[token_parser::Node]) -> (String, String, bool) {
-    let mut global_css = String::new();
-    let mut scoped_css = String::new();
-    let mut has_dynamic_styles = false;
-    collect_styles_recursive(nodes, &mut global_css, &mut scoped_css, &mut has_dynamic_styles);
-    (global_css, scoped_css, has_dynamic_styles)
+/// This replaces the previous two-pass approach (separate `process_styles` +
+/// `collect_all_styles`) with one traversal that captures everything.
+pub(crate) fn process_all_styles(nodes: &[token_parser::Node]) -> StyleExtraction {
+    let mut result = StyleExtraction {
+        bindings: proc_macro2::TokenStream::new(),
+        global_css: String::new(),
+        scoped_css: String::new(),
+        has_dynamic_styles: false,
+    };
+    process_styles_recursive(nodes, &mut result);
+    result
 }
 
-fn collect_styles_recursive(
-    nodes: &[token_parser::Node],
-    global_css: &mut String,
-    scoped_css: &mut String,
-    has_dynamic_styles: &mut bool,
-) {
+fn process_styles_recursive(nodes: &[token_parser::Node], result: &mut StyleExtraction) {
     for node in nodes {
         match node {
+            // Handle <style> elements
             token_parser::Node::Element(elem) => {
                 if elem.name == "style" {
                     if let Some(_src_attr) = elem.attrs.iter().find(|a| a.name == "src") {
+                        // External style reference — no content to collect
                     } else {
                         for child in &elem.children {
                             match child {
                                 token_parser::Node::Text(text) => {
-                                    scoped_css.push_str(&text.content);
-                                    scoped_css.push('\n');
+                                    result.scoped_css.push_str(&text.content);
+                                    result.scoped_css.push('\n');
                                 }
                                 token_parser::Node::Expression(_) => {
-                                    *has_dynamic_styles = true;
+                                    result.has_dynamic_styles = true;
                                 }
                                 _ => {}
                             }
                         }
                     }
                 } else {
-                    collect_styles_recursive(&elem.children, global_css, scoped_css, has_dynamic_styles);
+                    process_styles_recursive(&elem.children, result);
                 }
             }
             token_parser::Node::Fragment(frag) => {
-                collect_styles_recursive(&frag.children, global_css, scoped_css, has_dynamic_styles);
+                process_styles_recursive(&frag.children, result);
             }
-            token_parser::Node::Block(block) => match block {
-                token_parser::Block::Style(style_block) => {
-                    let css_content =
-                        crate::style::reconstruct_css_from_tokens(style_block.content.clone());
-                    if style_block.is_global {
-                        global_css.push_str(&css_content);
-                        global_css.push('\n');
-                    } else {
-                        scoped_css.push_str(&css_content);
-                        scoped_css.push('\n');
-                    }
+            // Handle style! macro blocks
+            token_parser::Node::Block(token_parser::Block::Style(style_block)) => {
+                if style_block.is_global {
+                    let output = crate::style::process_global_style_macro(style_block.content.clone());
+                    result.bindings.extend(output.bindings);
+                    result.global_css.push_str(&output.css);
+                } else {
+                    let output = crate::style::process_style_macro(style_block.content.clone());
+                    result.bindings.extend(output.bindings);
+                    result.scoped_css.push_str(&output.css);
                 }
+            }
+            // Handle control flow blocks
+            token_parser::Node::Block(block) => match block {
                 token_parser::Block::If(if_block) => {
-                    collect_styles_recursive(&if_block.then_branch, global_css, scoped_css, has_dynamic_styles);
+                    process_styles_recursive(&if_block.then_branch, result);
                     if let Some(else_branch) = &if_block.else_branch {
-                        collect_styles_recursive(else_branch, global_css, scoped_css, has_dynamic_styles);
+                        process_styles_recursive(else_branch, result);
                     }
                 }
                 token_parser::Block::For(for_block) => {
-                    collect_styles_recursive(&for_block.body, global_css, scoped_css, has_dynamic_styles);
+                    process_styles_recursive(&for_block.body, result);
                 }
                 token_parser::Block::Match(match_block) => {
                     for arm in &match_block.arms {
-                        collect_styles_recursive(&arm.body, global_css, scoped_css, has_dynamic_styles);
+                        process_styles_recursive(&arm.body, result);
                     }
                 }
                 token_parser::Block::Call(call_block) => {
-                    collect_styles_recursive(&call_block.children, global_css, scoped_css, has_dynamic_styles);
+                    process_styles_recursive(&call_block.children, result);
                 }
                 _ => {}
             },
