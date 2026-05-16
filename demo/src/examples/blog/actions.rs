@@ -1,4 +1,4 @@
-use crate::examples::blog::data::{get_posts, increment_likes, BlogPost};
+use crate::examples::blog::data::{get_posts, increment_likes, Post};
 use azumi::prelude::*;
 
 /// Handles blog/contact form submissions
