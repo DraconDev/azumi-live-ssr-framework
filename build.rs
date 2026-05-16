@@ -179,3 +179,70 @@ fn compute_ai_hash() -> String {
     }
     format!("{:x}", fnv_hash(&combined))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_minify_js_strips_line_comments() {
+        let src = "let x = 1; // this is a comment\nlet y = 2;";
+        let result = minify_js(src);
+        assert!(!result.contains("comment"), "line comment should be stripped");
+        assert!(result.contains("let x = 1;"), "code should remain");
+        assert!(result.contains("let y = 2;"), "code should remain");
+    }
+
+    #[test]
+    fn test_minify_js_strips_block_comments() {
+        let src = "let x = 1; /* block comment */ let y = 2;";
+        let result = minify_js(src);
+        assert!(!result.contains("block comment"), "block comment should be stripped");
+        assert!(result.contains("let x = 1;"), "code should remain");
+        assert!(result.contains("let y = 2;"), "code should remain");
+    }
+
+    #[test]
+    fn test_minify_js_preserves_string_literals() {
+        let src = r#"let s = "// not a comment"; let t = '/* not block */';"#;
+        let result = minify_js(src);
+        assert!(result.contains("// not a comment"), "string content should be preserved");
+        assert!(result.contains("/* not block */"), "string content should be preserved");
+    }
+
+    #[test]
+    fn test_minify_js_preserves_template_literals() {
+        let src = "let s = `hello ${world}`;";
+        let result = minify_js(src);
+        assert!(result.contains("hello ${world}"), "template literal should be preserved");
+    }
+
+    #[test]
+    fn test_minify_js_collapses_whitespace() {
+        let src = "let   x   =   1;\n\n\nlet   y   =   2;";
+        let result = minify_js(src);
+        assert!(!result.contains("   "), "multiple spaces should collapse");
+        assert!(!result.contains("\n\n"), "multiple blank lines should collapse");
+    }
+
+    #[test]
+    fn test_minify_js_empty_input_falls_back() {
+        let src = "   \n   \n   ";
+        let result = minify_js(src);
+        assert_eq!(result, src, "whitespace-only input should fall back to original");
+    }
+
+    #[test]
+    fn test_minify_js_preserves_regex_slash() {
+        let src = r#"let re = /foo/;"#;
+        let result = minify_js(src);
+        assert!(result.contains("/foo/"), "regex literal should be preserved");
+    }
+
+    #[test]
+    fn test_minify_js_handles_escaped_quotes_in_strings() {
+        let src = r#"let s = "he said \"hello\"";"#;
+        let result = minify_js(src);
+        assert!(result.contains(r#"he said \"hello\""#), "escaped quotes should be preserved");
+    }
+}
