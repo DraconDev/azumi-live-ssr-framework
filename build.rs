@@ -330,4 +330,83 @@ mod tests {
         assert!(result.contains("let x = 1;"), "code before unclosed comment should survive");
         assert!(!result.contains("unclosed"), "unclosed comment content should be stripped");
     }
+
+    #[test]
+    fn test_minify_js_preserves_multibyte_utf8_in_strings() {
+        let src = r#"let s = "café";"#;
+        let result = minify_js(src);
+        assert!(result.contains("café"), "multi-byte UTF-8 in strings should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_preserves_cjk_in_code() {
+        let src = r#"let 名前 = "日本語"; // comment"#;
+        let result = minify_js(src);
+        assert!(result.contains("名前"), "CJK identifier should be preserved: {}", result);
+        assert!(result.contains("日本語"), "CJK string should be preserved: {}", result);
+        assert!(!result.contains("comment"), "comment should be stripped");
+    }
+
+    #[test]
+    fn test_minify_js_preserves_emoji_in_strings() {
+        let src = r#"let s = "hello 🌍";"#;
+        let result = minify_js(src);
+        assert!(result.contains("🌍"), "emoji in string should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_regex_after_return_keyword() {
+        let src = "return /pattern/;";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after return keyword should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_regex_after_typeof_keyword() {
+        let src = "typeof /pattern/";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after typeof keyword should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_regex_after_new_keyword() {
+        let src = "new /pattern/";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after new keyword should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_regex_after_throw_keyword() {
+        let src = "throw /pattern/";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after throw keyword should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_regex_after_delete_keyword() {
+        let src = "delete /pattern/";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after delete keyword should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_regex_after_void_keyword() {
+        let src = "void /pattern/";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after void keyword should be preserved: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_identifier_prevents_regex() {
+        let src = "foo / bar;";
+        let result = minify_js(src);
+        assert!(result.contains("foo / bar"), "identifier before / should be division, not regex: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_closing_paren_prevents_regex() {
+        let src = "foo() / 2;";
+        let result = minify_js(src);
+        assert!(result.contains("() / 2"), ") before / should be division: {}", result);
+    }
 }
