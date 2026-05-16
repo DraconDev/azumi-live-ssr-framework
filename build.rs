@@ -16,14 +16,15 @@ fn fnv_hash(data: &str) -> u64 {
 
 /// Basic JS minification: strip comments and collapse whitespace.
 ///
-/// Uses a state-machine approach that respects string literals and regex,
-/// so it won't accidentally strip content inside quotes. Falls back to the
-/// original source if minification would produce empty output.
+/// Uses a state-machine approach that respects string literals and regex
+/// literals, so it won't accidentally strip content inside quotes or regex.
+/// Falls back to the original source if minification would produce empty output.
 fn minify_js(src: &str) -> String {
     let mut out = String::with_capacity(src.len());
     let mut i = 0;
     let bytes = src.as_bytes();
     let len = bytes.len();
+    let mut prev_was_regex_possible = true;
 
     while i < len {
         let ch = bytes[i] as char;
@@ -45,6 +46,45 @@ fn minify_js(src: &str) -> String {
                 i += 1;
             }
             i += 1;
+            prev_was_regex_possible = false;
+            continue;
+        }
+
+        // Regex literal: /pattern/flags
+        // A '/' is a regex start when preceded by an operator, keyword, or
+        // punctuation (not by an identifier, number, or closing bracket/paren).
+        if ch == '/' && prev_was_regex_possible && i + 1 < len && bytes[i + 1] != b'/' && bytes[i + 1] != b'*' {
+            out.push(ch);
+            i += 1;
+            while i < len {
+                let c = bytes[i] as char;
+                out.push(c);
+                if c == '\\' && i + 1 < len {
+                    i += 1;
+                    out.push(bytes[i] as char);
+                } else if c == '/' {
+                    i += 1;
+                    break;
+                } else if c == '[' {
+                    // Inside character class, '/' is not a regex closer
+                    out.push(c);
+                    i += 1;
+                    while i < len {
+                        let cc = bytes[i] as char;
+                        out.push(cc);
+                        if cc == '\\' && i + 1 < len {
+                            i += 1;
+                            out.push(bytes[i] as char);
+                        } else if cc == ']' {
+                            break;
+                        }
+                        i += 1;
+                    }
+                    continue;
+                }
+                i += 1;
+            }
+            prev_was_regex_possible = false;
             continue;
         }
 
@@ -62,7 +102,11 @@ fn minify_js(src: &str) -> String {
             while i + 1 < len && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
                 i += 1;
             }
-            i += 2;
+            if i + 1 < len {
+                i += 2;
+            } else {
+                i = len;
+            }
             continue;
         }
 
@@ -73,10 +117,13 @@ fn minify_js(src: &str) -> String {
             while i < len && (bytes[i] as char).is_whitespace() {
                 i += 1;
             }
+            prev_was_regex_possible = true;
             continue;
         }
 
         out.push(ch);
+        // After these tokens, a '/' could start a regex; after others, it can't
+        prev_was_regex_possible = matches!(ch, '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~' | '<' | '>' | '+' | '-' | '*' | '/' | '%' | '?' | ':' | '@');
         i += 1;
     }
 
