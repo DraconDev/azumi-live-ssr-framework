@@ -121,12 +121,7 @@ fn minify_js(src: &str) -> String {
         // Collapse runs of whitespace to a single space (or newline if original has one)
         if ch.is_whitespace() {
             if let Some(start) = ident_start.take() {
-                let word = &out[start..];
-                if REGEX_PRECEDING_KEYWORDS.contains(&word) {
-                    prev_was_regex_possible = true;
-                } else {
-                    prev_was_regex_possible = false;
-                }
+                prev_was_regex_possible = REGEX_PRECEDING_KEYWORDS.contains(&out[start..]);
             }
             let has_newline = chars[i..].iter().take_while(|c| c.is_whitespace()).any(|c| *c == '\n');
             out.push(if has_newline { '\n' } else { ' ' });
@@ -144,12 +139,7 @@ fn minify_js(src: &str) -> String {
             }
         } else {
             if let Some(start) = ident_start.take() {
-                let word = &out[start..];
-                if REGEX_PRECEDING_KEYWORDS.contains(&word) {
-                    prev_was_regex_possible = true;
-                } else {
-                    prev_was_regex_possible = false;
-                }
+                prev_was_regex_possible = REGEX_PRECEDING_KEYWORDS.contains(&out[start..]);
             }
         }
 
