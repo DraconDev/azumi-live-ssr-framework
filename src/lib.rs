@@ -359,13 +359,13 @@ where
     F: FnOnce(&mut std::fmt::Formatter<'_>) -> std::fmt::Result,
 {
     fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Take ownership of the closure (first call) or return warning (subsequent calls).
-        // RefCell tracks borrow state at runtime, eliminating the need for UnsafeCell.
-        // Mark as consumed before calling (in case of panic, we don't want to retry).
         if let Some(c) = self.closure.borrow_mut().take() {
             c(f)
         } else {
-            f.write_str("<!-- Azumi Warning: FnOnceComponent rendered more than once -->")
+            // In debug mode, emit a visible warning. In release, silently return Ok.
+            #[cfg(debug_assertions)]
+            f.write_str("<!-- Azumi Warning: FnOnceComponent rendered more than once -->")?;
+            Ok(())
         }
     }
 }

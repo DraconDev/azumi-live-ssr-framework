@@ -689,17 +689,17 @@ mod tests {
     }
 
     #[test]
-    fn test_crate::escape_html_double_quote() {
+    fn test_escape_html_double_quote() {
         assert_eq!(crate::escape_html("say \"hello\""), "say &quot;hello&quot;");
     }
 
     #[test]
-    fn test_crate::escape_html_single_quote() {
+    fn test_escape_html_single_quote() {
         assert_eq!(crate::escape_html("it's"), "it&#x27;s");
     }
 
     #[test]
-    fn test_crate::escape_html_xss_payload() {
+    fn test_escape_html_xss_payload() {
         let input = "<img src=x onerror=alert(1)>";
         let escaped = crate::escape_html(input);
         assert!(!escaped.contains("<script>"));
@@ -709,12 +709,12 @@ mod tests {
     }
 
     #[test]
-    fn test_crate::escape_xml_escapes_ampersand() {
+    fn test_escape_xml_escapes_ampersand() {
         assert_eq!(crate::escape_xml("a & b"), "a &amp; b");
     }
 
     #[test]
-    fn test_crate::escape_xml_all_special_chars() {
+    fn test_escape_xml_all_special_chars() {
         assert_eq!(crate::escape_xml("&<>\"'"), "&amp;&lt;&gt;&quot;&apos;");
     }
 

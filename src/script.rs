@@ -151,13 +151,57 @@ pub fn escape_style_content(css: &str) -> String {
     escape_tag_content(css, "style")
 }
 
-pub struct AzumiScript;
+pub struct AzumiScript {
+    nonce: Option<String>,
+}
+
+impl AzumiScript {
+    /// Create an AzumiScript component without a CSP nonce.
+    #[must_use]
+    pub fn new() -> Self {
+        AzumiScript { nonce: None }
+    }
+
+    /// Create an AzumiScript component with a CSP nonce for nonce-based CSP.
+    ///
+    /// When using `ContentSecurityPolicy::azumi_nonce_defaults()`, the browser
+    /// will only execute `<script nonce="...">` tags whose nonce matches the
+    /// CSP header. Use this to include the nonce on the Azumi runtime script.
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// use azumi::csp::CspNonce;
+    ///
+    /// async fn handler(nonce: CspNonce) -> impl IntoResponse {
+    ///     let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
+    ///     let script = azumi::azumi_script().with_nonce(nonce.as_str());
+    ///     // Use {script} in your html! template
+    /// }
+    /// ```
+    #[must_use]
+    pub fn with_nonce(mut self, nonce: &str) -> Self {
+        self.nonce = Some(nonce.to_string());
+        self
+    }
+}
+
+impl Default for AzumiScript {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Component for AzumiScript {
     fn render(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nonce_attr = match &self.nonce {
+            Some(n) => format!(r#" nonce="{}""#, crate::escape_html(n)),
+            None => String::new(),
+        };
         write!(
             f,
-            "<script>{}</script>",
+            "<script{}>{}</script>",
+            nonce_attr,
             escape_script_content(crate::AZUMI_JS)
         )
     }
@@ -176,8 +220,8 @@ impl Component for SessionCleanupScript {
 }
 
 #[must_use]
-pub fn session_cleanup_script() -> SessionCleanupScript {
-    SessionCleanupScript
+pub fn azumi_script() -> AzumiScript {
+    AzumiScript::new()
 }
 
 /// TrustedHtml — pre-sanitized HTML injection (use sparingly).

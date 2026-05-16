@@ -966,7 +966,7 @@ class Azumi {
             const formId = element.getAttribute("data-retry-form");
             if (formId) {
                 const form = document.getElementById(formId);
-                if (form) form.style.display = "flex";
+                if (form) form.style.display = "";
             }
             const errorDiv = element.closest(".error_message");
             if (errorDiv) errorDiv.remove();
