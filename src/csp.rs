@@ -628,4 +628,32 @@ mod tests {
             .script_src("'self'; style-src 'unsafe-inline'")
             .build();
     }
+
+    #[cfg(feature = "axum")]
+    #[tokio::test]
+    async fn test_csp_nonce_layer_adds_header() {
+        use axum::{body::Body, http::Request, Router, routing::get};
+        use http_body_util::BodyExt;
+        use tower::ServiceExt;
+
+        async fn handler(nonce: CspNonce) -> impl axum::response::IntoResponse {
+            ([("x-nonce", nonce.as_str().to_string())], "ok")
+        }
+
+        let app = Router::new()
+            .route("/", get(handler))
+            .layer(csp_nonce_layer());
+
+        let req = Request::builder()
+            .uri("/")
+            .body(Body::empty())
+            .unwrap();
+
+        let resp = app.oneshot(req).await.unwrap();
+        let csp_header = resp.headers().get("content-security-policy");
+        assert!(csp_header.is_some(), "CSP header should be present");
+        let csp_value = csp_header.unwrap().to_str().unwrap();
+        assert!(csp_value.contains("default-src 'self'"), "Should contain default-src");
+        assert!(csp_value.contains("nonce-"), "Should contain nonce");
+    }
 }

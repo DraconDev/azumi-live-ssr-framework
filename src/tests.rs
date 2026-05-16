@@ -319,4 +319,40 @@ mod tests {
             assert_eq!(scoped, "   \n\t  ");
         }
     }
+
+    #[test]
+    fn test_fn_once_component_double_render() {
+        use crate::FnOnceComponent;
+        use std::cell::Cell;
+        use std::rc::Rc;
+        let call_count = Rc::new(Cell::new(0u32));
+        let count_ref = call_count.clone();
+        let comp = FnOnceComponent::from_fn_once(move |f| {
+            count_ref.set(count_ref.get() + 1);
+            write!(f, "<span>{}</span>", count_ref.get())?;
+            Ok(())
+        });
+
+        let first = crate::render_to_string(&comp);
+        assert_eq!(call_count.get(), 1, "First render should call closure once");
+        assert!(first.contains("<span>1</span>"), "First render should produce content");
+
+        let second = crate::render_to_string(&comp);
+        assert_eq!(call_count.get(), 1, "Second render should NOT call closure again");
+        #[cfg(debug_assertions)]
+        assert!(second.contains("Azumi Warning"), "Second render in debug should contain warning. Got: {}", second);
+        #[cfg(not(debug_assertions))]
+        assert!(!second.contains("<span>"), "Second render in release should be empty. Got: {}", second);
+    }
+
+    #[cfg(feature = "axum")]
+    #[test]
+    fn test_routes_macro_expands_to_router() {
+        async fn home() -> impl axum::response::IntoResponse {
+            axum::response::Html("<h1>Home</h1>")
+        }
+        let _router: axum::Router = crate::routes! {
+            "/" => home,
+        };
+    }
 }
