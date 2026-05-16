@@ -454,4 +454,19 @@ mod tests {
         let result = minify_js(src);
         assert!(result.contains("() / 2"), ") before / should be division: {}", result);
     }
+
+    #[test]
+    fn test_minify_js_return_regex_with_double_slash() {
+        let src = "return /https://example/;";
+        let result = minify_js(src);
+        assert!(result.contains("/https://example/"), "regex with :// after return should not be mangled as comment: {}", result);
+    }
+
+    #[test]
+    fn test_minify_js_number_then_division() {
+        let src = "let x = 10 / 2; // real comment";
+        let result = minify_js(src);
+        assert!(result.contains("10 / 2"), "number / number should be division: {}", result);
+        assert!(!result.contains("real comment"), "actual comment should be stripped");
+    }
 }
