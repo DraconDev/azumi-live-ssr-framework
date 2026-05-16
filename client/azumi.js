@@ -916,19 +916,10 @@ class Azumi {
         });
 
         // 3. az-bind:class:* support (colon syntax, e.g. az-bind:class:active="expr")
-        const classColonBindings = scopeElement.querySelectorAll("[az-bind\\:class\\:active]");
-        classColonBindings.forEach((el) => {
-            const expr = el.getAttribute("az-bind:class:active");
-            const shouldAdd = this.evaluatePredicate(expr, state);
-            el.classList.toggle("active", shouldAdd);
-        });
-
         // Generic: handle all az-bind:class:* attributes dynamically
         if (!scopeElement.getAttributeNames) return;
 
-        // Query all elements with az-bind:class:* pattern
-        const allClassBindings = scopeElement.querySelectorAll("[az-bind\\:class]");
-        allClassBindings.forEach((el) => {
+        scopeElement.querySelectorAll("[az-bind\\:class]").forEach((el) => {
             el.getAttributeNames().forEach((attrName) => {
                 if (attrName.startsWith("az-bind:class:")) {
                     const className = attrName.slice("az-bind:class:".length);
@@ -940,16 +931,7 @@ class Azumi {
         });
 
         // 4. az-bind:class.* support (dot syntax, e.g. az-bind:class.liked="liked")
-        const dotClassBindings = scopeElement.querySelectorAll("[az-bind\\.class\\.liked]");
-        dotClassBindings.forEach((el) => {
-            const expr = el.getAttribute("az-bind.class.liked");
-            const shouldAdd = this.evaluatePredicate(expr, state);
-            el.classList.toggle("liked", shouldAdd);
-        });
-
-        // Generic: handle all az-bind:class.* attributes dynamically
-        const allDotBindings = scopeElement.querySelectorAll("[az-bind\\.class]");
-        allDotBindings.forEach((el) => {
+        scopeElement.querySelectorAll("[az-bind\\.class]").forEach((el) => {
             el.getAttributeNames().forEach((attrName) => {
                 if (attrName.startsWith("az-bind.class.")) {
                     const className = attrName.slice("az-bind.class.".length);

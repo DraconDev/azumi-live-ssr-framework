@@ -187,11 +187,10 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
     let msg = escape_html(&message.into());
     let retry = form_id.map(|id| {
-        let safe_id = escape_js_string(id);
-        let safe_id_html = escape_html(&safe_id);
+        let safe_id = escape_html(id);
         format!(
-            r#"<button type="button" onclick="document.getElementById('{}').style.display='flex';this.parentElement.remove()" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
-            safe_id_html
+            r#"<button type="button" az-on="click call __azumi_retry -> .error_message" data-retry-form="{}" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
+            safe_id
         )
     });
 

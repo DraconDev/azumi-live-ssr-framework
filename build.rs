@@ -14,6 +14,83 @@ fn fnv_hash(data: &str) -> u64 {
     hash
 }
 
+/// Basic JS minification: strip comments and collapse whitespace.
+///
+/// Uses a state-machine approach that respects string literals and regex,
+/// so it won't accidentally strip content inside quotes. Falls back to the
+/// original source if minification would produce empty output.
+fn minify_js(src: &str) -> String {
+    let mut out = String::with_capacity(src.len());
+    let mut i = 0;
+    let bytes = src.as_bytes();
+    let len = bytes.len();
+
+    while i < len {
+        let ch = bytes[i] as char;
+
+        // String literals — pass through verbatim
+        if ch == '\'' || ch == '"' || ch == '`' {
+            let quote = ch;
+            out.push(ch);
+            i += 1;
+            while i < len {
+                let c = bytes[i] as char;
+                out.push(c);
+                if c == '\\' && i + 1 < len {
+                    i += 1;
+                    out.push(bytes[i] as char);
+                } else if c == quote {
+                    break;
+                }
+                i += 1;
+            }
+            i += 1;
+            continue;
+        }
+
+        // Line comment
+        if ch == '/' && i + 1 < len && bytes[i + 1] == b'/' {
+            while i < len && bytes[i] != b'\n' {
+                i += 1;
+            }
+            continue;
+        }
+
+        // Block comment
+        if ch == '/' && i + 1 < len && bytes[i + 1] == b'*' {
+            i += 2;
+            while i + 1 < len && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+                i += 1;
+            }
+            i += 2;
+            continue;
+        }
+
+        // Collapse runs of whitespace to a single space (or newline if original has one)
+        if ch.is_whitespace() {
+            let has_newline = src[i..].chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
+            out.push(if has_newline { '\n' } else { ' ' });
+            while i < len && (bytes[i] as char).is_whitespace() {
+                i += 1;
+            }
+            continue;
+        }
+
+        out.push(ch);
+        i += 1;
+    }
+
+    // Trim leading/trailing whitespace per line, then remove blank lines
+    let result: String = out
+        .lines()
+        .map(|l| l.trim())
+        .filter(|l| !l.is_empty())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    if result.is_empty() { src.to_string() } else { result }
+}
+
 fn main() {
     // Only run if client files change
     println!("cargo:rerun-if-changed=client/idiomorph.js");
@@ -45,12 +122,12 @@ fn main() {
         }
     };
 
-    // Concatenate
-    // In a real scenario, we might want to minify here
+    // Concatenate and minify
     let combined = format!("{}\n\n{}", idiomorph, azumi);
+    let minified = minify_js(&combined);
 
     // Write to src/client.min.js so it can be included with include_str!
-    if let Err(e) = fs::write(src_dir.join("client.min.js"), combined) {
+    if let Err(e) = fs::write(src_dir.join("client.min.js"), minified) {
         eprintln!("warning: Failed to write src/client.min.js: {}", e);
     }
 
