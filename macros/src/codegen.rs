@@ -310,6 +310,11 @@ pub(crate) fn generate_body_with_context(
                                     write!(#f_ident, " class=\"{}\"", azumi::escape_html(#val))?;
                                 });
                             }
+                            token_parser::AttributeValue::Dynamic(tokens) => {
+                                instructions.push(quote! {
+                                    write!(#f_ident, " class=\"{}\"", azumi::escape_html(&#tokens))?;
+                                });
+                            }
                             _ => {}
                         }
                         continue;

@@ -59,3 +59,56 @@ fn test_aria_attributes() {
     assert!(rendered.contains(r#"aria-label="Close dialog""#));
     assert!(rendered.contains(r#"aria-pressed="false""#));
 }
+
+#[test]
+fn test_class_external() {
+    // class:external allows third-party CSS class names without validation
+    let output = html! {
+        <div class:external="bg-blue-500 px-4 py-2">"Button"</div>
+    };
+
+    let rendered = render_to_string(&output);
+    // Renders as class="..." not class:external="..."
+    assert!(rendered.contains(r#"class="bg-blue-500 px-4 py-2""#));
+    assert!(!rendered.contains("class:external"));
+}
+
+#[test]
+fn test_id_external() {
+    // id:external allows third-party IDs without validation
+    let output = html! {
+        <div id:external="my-element">"Content"</div>
+    };
+
+    let rendered = render_to_string(&output);
+    // Renders as id="..." not id:external="..."
+    assert!(rendered.contains(r#"id="my-element""#));
+    assert!(!rendered.contains("id:external"));
+}
+
+#[test]
+fn test_class_external_with_azumi_class() {
+    // Can combine class:external (third-party) with class={} (Azumi-managed)
+    // Note: Both render as class="..." in output, so they're merged
+    let extra = "flex";
+    let output = html! {
+        <div class:external="bg-blue-500" class={extra}>"Mixed"</div>
+    };
+
+    let rendered = render_to_string(&output);
+    assert!(rendered.contains("bg-blue-500"));
+    assert!(rendered.contains("flex"));
+}
+
+#[test]
+fn test_class_external_xss_escaped() {
+    // class:external values are HTML-escaped
+    // Use string literal with malicious content
+    let output = html! {
+        <div class:external="bg-red&quot; onclick=&quot;alert(1)">"Test"</div>
+    };
+
+    let rendered = render_to_string(&output);
+    // HTML entities in literal should be double-escaped
+    assert!(rendered.contains("&amp;quot;"));
+}

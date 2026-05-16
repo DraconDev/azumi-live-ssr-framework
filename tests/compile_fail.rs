@@ -22,4 +22,5 @@ fn ui_tests() {
     // Positive test: safe macros should compile
     t.pass("tests/ui/06-macros-work.rs");
     t.pass("tests/ui/08-safe-format.rs");
+    t.pass("tests/ui/15-class-external-works.rs");
 }
