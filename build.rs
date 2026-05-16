@@ -120,7 +120,6 @@ fn minify_js(src: &str) -> String {
 
         // Collapse runs of whitespace to a single space (or newline if original has one)
         if ch.is_whitespace() {
-            // Whitespace terminates any in-progress identifier
             if let Some(start) = ident_start.take() {
                 let word = &out[start..];
                 if REGEX_PRECEDING_KEYWORDS.contains(&word) {
@@ -128,6 +127,14 @@ fn minify_js(src: &str) -> String {
                 } else {
                     prev_was_regex_possible = false;
                 }
+            }
+            let has_newline = chars[i..].iter().take_while(|c| c.is_whitespace()).any(|c| **c == '\n');
+            out.push(if has_newline { '\n' } else { ' ' });
+            while i < len && chars[i].is_whitespace() {
+                i += 1;
+            }
+            continue;
+        }
             }
             let remaining = &src[src.ceil_char_boundary(i)..];
             let has_newline = remaining.chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
