@@ -961,6 +961,18 @@ class Azumi {
 
     // Server action with optimistic prediction
     async callAction(action, element) {
+        // Built-in: __azumi_retry (error_fragment "Try Again" button)
+        if (action.actionName === "__azumi_retry") {
+            const formId = element.getAttribute("data-retry-form");
+            if (formId) {
+                const form = document.getElementById(formId);
+                if (form) form.style.display = "flex";
+            }
+            const errorDiv = element.closest(".error_message");
+            if (errorDiv) errorDiv.remove();
+            return;
+        }
+
         // Find scope element
         const scopeElement = element.closest("[az-scope]");
 

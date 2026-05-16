@@ -175,15 +175,9 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 /// Wraps content in a `<div class="error_message">` with optional retry button.
 /// If `form_id` is provided, includes a "Try Again" button that re-shows the form.
 ///
-/// # Escaping Order
-///
-/// When `form_id` is provided, it is escaped in two steps:
-/// 1. `escape_js_string(id)` — escapes `\`, `` ` ``, `"`, `'`, `\n`, `\r`, `<`, `>`, `/`, `;`
-/// 2. `escape_html(&safe_id)` — escapes `&`, `<`, `>`, `"`, `'` for HTML context
-///
-/// This matters because `form_id` goes into an HTML attribute (`id="..."`) which is
-/// itself inside a JavaScript string literal inside an `onclick` attribute handler.
-/// The double-escape ensures the value is safe in both contexts.
+/// The `form_id` is HTML-escaped and placed in a `data-retry-form` attribute.
+/// The button uses `az-on="click call __azumi_retry"` for framework-consistent
+/// event delegation, which the Azumi client runtime handles as a built-in action.
 pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
     let msg = escape_html(&message.into());
     let retry = form_id.map(|id| {
