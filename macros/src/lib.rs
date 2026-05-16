@@ -84,13 +84,15 @@ pub fn html(input: TokenStream) -> TokenStream {
 
     // 1. Process styles (single pass: bindings + CSS extraction + dynamic detection)
     let style_extraction = style_processing::process_all_styles(&nodes);
-    let style_bindings = style_extraction.bindings;
 
     // 2. Generate HTML string construction code
     let f_ident = proc_macro2::Ident::new("f", proc_macro2::Span::call_site());
     let html_construction = generate_nodes(&nodes, &f_ident, &style_extraction);
 
-    // 3. Generate bind validation checks
+    // 3. Extract bindings after generate_nodes (which only borrows global_css/scoped_css/has_dynamic_styles)
+    let style_bindings = style_extraction.bindings;
+
+    // 4. Generate bind validation checks
     let mut validation_checks = Vec::new();
     validators::collect_bind_checks(&nodes, &mut validation_checks);
 
