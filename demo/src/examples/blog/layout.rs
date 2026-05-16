@@ -11,19 +11,19 @@ pub fn layout(title: &str, children: impl Component) -> impl Component {
             {azumi_script()}
         </head>
         <body>
-            <header class={header}>
-                <nav class={nav}>
-                    <a class={nav_link} href="/blog">"Blog"</a>
-                    <a class={nav_link} href="/blog/about">"About"</a>
-                    <a class={nav_link} href="/blog/contact">"Contact"</a>
+            <header class="header">
+                <nav class="nav">
+                    <a class="nav_link" href="/blog">"Blog"</a>
+                    <a class="nav_link" href="/blog/about">"About"</a>
+                    <a class="nav_link" href="/blog/contact">"Contact"</a>
                 </nav>
             </header>
 
-            <main class={main}>
+            <main class="main">
                 {children}
             </main>
 
-            <footer class={footer}>
+            <footer class="footer">
                 <p>"Built with Azumi — compile-time safe web development"</p>
             </footer>
 
@@ -32,21 +32,6 @@ pub fn layout(title: &str, children: impl Component) -> impl Component {
             </style>
         </body>
         </html>
-    }
-}
-
-// In-memory post state for the like counter
-#[azumi::live]
-pub struct PostLikes {
-    counts: Vec<u32>,
-}
-
-impl Default for PostLikes {
-    fn default() -> Self {
-        let posts = super::data::get_posts();
-        Self {
-            counts: posts.iter().map(|p| p.likes).collect(),
-        }
     }
 }
 
@@ -69,9 +54,6 @@ a:hover { text-decoration: underline; }
 .post-title a:hover { color: #0070f3; }
 .post-meta { color: #888; font-size: 0.875rem; margin-bottom: 0.75rem; }
 .post-excerpt { color: #555; margin-bottom: 1rem; }
-.btn { display: inline-block; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.875rem; cursor: pointer; border: none; transition: background 0.2s; }
-.btn-primary { background: #0070f3; color: #fff; }
-.btn-primary:hover { background: #0051a8; }
 .tag { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.75rem; background: #e8f0fe; color: #1a73e8; margin-right: 0.25rem; }
 .tag-row { margin-bottom: 1rem; }
 .post-body { background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 2rem; }
@@ -84,20 +66,8 @@ a:hover { text-decoration: underline; }
 .post-body pre code { background: none; padding: 0; color: inherit; }
 .post-body em { font-style: italic; }
 .post-body strong { font-weight: 600; }
-.like-btn { background: #fafafa; border: 1px solid #eaeaea; color: #555; }
-.like-btn:hover { background: #fff0f0; border-color: #ff4081; color: #ff4081; }
-.like-btn.liked { background: #ff4081; border-color: #ff4081; color: #fff; }
-.like-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #eaeaea; }
-.like-count { color: #888; font-size: 0.875rem; }
 .back-link { display: inline-block; margin-bottom: 1.5rem; color: #555; font-size: 0.875rem; }
 .back-link:hover { color: #0070f3; }
-.form-group { margin-bottom: 1rem; }
-.form-label { display: block; margin-bottom: 0.375rem; font-weight: 500; font-size: 0.875rem; color: #333; }
-.form-input, .form-textarea { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit; }
-.form-input:focus, .form-textarea:focus { outline: none; border-color: #0070f3; box-shadow: 0 0 0 3px rgba(0,112,243,0.1); }
-.form-textarea { min-height: 120px; resize: vertical; }
-.form-error { color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem; }
-.form-success { background: #e8f5e9; color: #2e7d32; padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.875rem; }
 .contact-card { background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 2rem; max-width: 500px; margin: 0 auto; }
 .about-card { background: #fff; border: 1px solid #eaeaea; border-radius: 8px; padding: 2rem; max-width: 600px; margin: 0 auto; text-align: center; }
 .about-card h1 { margin-bottom: 1rem; }
