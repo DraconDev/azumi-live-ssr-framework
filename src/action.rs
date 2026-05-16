@@ -151,6 +151,18 @@ pub fn escape_js_string(s: &str) -> String {
 /// Content is rendered as-is (not double-escaped) since Components already handle
 /// their own escaping via `html!` interpolation.
 ///
+/// # Migration from pre-v47
+///
+/// The signature changed from `impl Into<String>` to `&impl Component`.
+/// **Old code that passed a raw string will need a small adjustment:**
+///
+/// ```rust,ignore
+/// // Before (v46): success_fragment("<p>Saved!</p>".to_string())
+/// // After  (v47): success_fragment(&html! { <p>"Saved!"</p> })
+/// ```
+///
+/// For simple text, `&str` implements `Component` so `success_fragment("ok")` still works.
+///
 /// # Example
 ///
 /// ```rust,ignore
