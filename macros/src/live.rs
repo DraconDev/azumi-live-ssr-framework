@@ -187,57 +187,6 @@ pub fn analyze_method(method: &ImplItemFn) -> MethodAnalysis {
     }
 }
 
-/// Check if an expression likely has side effects (async, await, method calls, etc.)
-fn is_side_effect(expr: &Expr) -> bool {
-    match expr {
-        Expr::Await(_) => true,
-        Expr::Call(_) => true, // Function calls might have side effects
-        Expr::MethodCall(mc) => {
-            // self.field mutations are handled separately
-            // External method calls are side effects
-            !is_self_field_mutation(mc)
-        }
-        Expr::Assign(_) => false, // Assignments to self are fine
-        Expr::Macro(_) => true,   // Macros are unpredictable
-        _ => false,
-    }
-}
-
-fn is_self_field_mutation(mc: &ExprMethodCall) -> bool {
-    use syn::ExprField;
-    if let Expr::Field(ExprField { base, .. }) = &*mc.receiver {
-        if let Expr::Path(ExprPath { path, .. }) = &**base {
-            if path.is_ident("self") {
-                let method_name = mc.method.to_string();
-                matches!(
-                    method_name.as_str(),
-                    "push"
-                        | "pop"
-                        | "shift"
-                        | "unshift"
-                        | "insert"
-                        | "remove"
-                        | "clear"
-                        | "reverse"
-                        | "sort"
-                        | "splice"
-                        | "swap"
-                        | "lock"
-                        | "put"
-                        | "get_mut"
-                        | "write"
-                )
-            } else {
-                false
-            }
-        } else {
-            false
-        }
-    } else {
-        false
-    }
-}
-
 /// Main macro expansion for #[azumi::live]
 /// Handles both struct definitions and impl blocks.
 /// - On structs: generates to_scope(), to_local_scope(), field constants, derives Serialize/Deserialize
