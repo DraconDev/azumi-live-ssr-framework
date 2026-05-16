@@ -1,26 +1,30 @@
-use crate::examples::blog::data::{get_posts, increment_likes, Post};
+use crate::examples::blog::data::{get_posts, increment_likes};
 use azumi::prelude::*;
 
-/// Handles blog/contact form submissions
-#[azumi::action]
-pub async fn contact_action(
+/// Contact form data
+#[derive(serde::Deserialize)]
+pub struct ContactForm {
     name: String,
     email: String,
     message: String,
-) -> ActionResult {
+}
+
+/// Handles blog/contact form submissions
+#[azumi::action]
+pub async fn contact_action(Form(form): Form<ContactForm>) -> ActionResult {
     let mut errors = Vec::<(&str, &str)>::new();
 
-    if name.trim().is_empty() {
+    if form.name.trim().is_empty() {
         errors.push(("name", "Name is required"));
     }
-    if email.trim().is_empty() {
+    if form.email.trim().is_empty() {
         errors.push(("email", "Email is required"));
-    } else if !email.contains('@') {
+    } else if !form.email.contains('@') {
         errors.push(("email", "Please enter a valid email address"));
     }
-    if message.trim().is_empty() {
+    if form.message.trim().is_empty() {
         errors.push(("message", "Message is required"));
-    } else if message.trim().len() < 10 {
+    } else if form.message.trim().len() < 10 {
         errors.push(("message", "Message must be at least 10 characters"));
     }
 
@@ -34,19 +38,14 @@ pub async fn contact_action(
     // In production: send email, save to DB, etc.
     eprintln!(
         "Contact form: {} <{}> said: {}",
-        name,
-        email,
-        message
-    );
-
-    let success_html = format!(
-        r#"<div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;"><strong>Thanks, {}!</strong> Your message has been sent.</div>"#,
-        name
+        form.name,
+        form.email,
+        form.message
     );
 
     let component = html! {
         <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-            <strong>{format!("Thanks, {}!", name)}</strong>" Your message has been sent."
+            <strong>{format!("Thanks, {}!", form.name)}</strong>" Your message has been sent."
         </div>
     };
 
