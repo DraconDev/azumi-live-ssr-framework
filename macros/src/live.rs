@@ -10,7 +10,7 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
     parse_macro_input, punctuated::Punctuated, BinOp, Expr, ExprAssign, ExprBinary, ExprField,
-    ExprMethodCall, ExprPath, ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl,
+    ExprPath, ExprUnary, Fields, ImplItem, ImplItemFn, ItemImpl,
     Member, Stmt, Token, UnOp,
 };
 
