@@ -322,25 +322,25 @@ fn test_default_secret_is_obviously_dev() {
 #[test]
 fn test_seo_title_only() {
     let html = azumi::seo::generate_head("Page Title", None, None, None, None);
-    assert!(html.0.contains("Page Title"));
+    assert!(html.as_str().contains("Page Title"));
 }
 
 #[test]
 fn test_seo_description_only() {
     let html = azumi::seo::generate_head("", Some("Page description"), None, None, None);
-    assert!(html.0.contains("Page description"));
-    assert!(html.0.contains(r#"name="description""#));
+    assert!(html.as_str().contains("Page description"));
+    assert!(html.as_str().contains(r#"name="description""#));
 }
 
 #[test]
 fn test_seo_title_no_raw_script_tags() {
     let html = azumi::seo::generate_head("<script>alert('xss')</script>", None, None, None, None);
     assert!(
-        !html.0.contains("<script>"),
+        !html.as_str().contains("<script>"),
         "Title must escape <script> tags"
     );
     assert!(
-        html.0.contains("&lt;script&gt;"),
+        html.as_str().contains("&lt;script&gt;"),
         "Title must contain escaped script"
     );
 }
@@ -355,14 +355,14 @@ fn test_seo_description_quotes_escaped() {
         None,
     );
     assert!(
-        html.0.contains("&quot;"),
+        html.as_str().contains("&quot;"),
         "Description quotes must be escaped. Got: {}",
-        html.0
+        html.as_str()
     );
     assert!(
-        !html.0.contains("<script>"),
+        !html.as_str().contains("<script>"),
         "Description must not contain raw script. Got: {}",
-        html.0
+        html.as_str()
     );
 }
 
@@ -376,9 +376,9 @@ fn test_seo_url_special_chars() {
         None,
     );
     assert!(
-        html.0.contains(r#"href="https://example.com/page?a=1&amp;b=2""#),
+        html.as_str().contains(r#"href="https://example.com/page?a=1&amp;b=2""#),
         "URL ampersands must be escaped. Got: {}",
-        html.0
+        html.as_str()
     );
 }
 
@@ -443,7 +443,7 @@ fn test_escaped_wrapper_angle_brackets() {
 #[test]
 fn test_render_automatic_seo_empty_context() {
     let html = azumi::seo::generate_head("", None, None, None, None);
-    assert!(html.0.contains("<title>"));
+    assert!(html.as_str().contains("<title>"));
 }
 
 #[test]

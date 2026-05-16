@@ -584,3 +584,133 @@ fn test_survey_form() {
     let html = test::render(&component);
     assert!(html.contains("How did you hear") && html.contains("recommend"));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION 5: ValidatedForm Render Output Tests
+// ════════════════════════════════════════════════════════════════════════════
+
+use azumi::form::{FormValidator, ValidatedForm, ValidationErrors};
+
+#[test]
+fn test_validated_input_renders_text_input() {
+    let component = ValidatedForm::input("username", "alice", None);
+    let html = test::render(&component);
+    assert!(html.contains(r#"type="text""#), "Should render text input type");
+    assert!(html.contains(r#"name="username""#), "Should render name attribute");
+    assert!(html.contains(r#"value="alice""#), "Should render value attribute");
+    assert!(html.contains("<div>"), "Should wrap in div");
+    assert!(html.contains("</div>"), "Should close div");
+}
+
+#[test]
+fn test_validated_input_renders_no_error_when_none() {
+    let component = ValidatedForm::input("email", "test@test.com", None);
+    let html = test::render(&component);
+    assert!(!html.contains("aria-invalid"), "Should not have aria-invalid when no error");
+    assert!(!html.contains("field_error"), "Should not have error div when no error");
+}
+
+#[test]
+fn test_validated_input_renders_error_with_aria() {
+    let component = ValidatedForm::input("email", "bad", Some("Invalid email"));
+    let html = test::render(&component);
+    assert!(html.contains(r#"aria-invalid="true""#), "Should set aria-invalid on error");
+    assert!(html.contains(r#"aria-describedby="email_error""#), "Should set aria-describedby");
+    assert!(html.contains(r#"id="email_error""#), "Should render error div with id");
+    assert!(html.contains("Invalid email"), "Should render error message");
+    assert!(html.contains(r#"role="alert""#), "Error should have role=alert");
+}
+
+#[test]
+fn test_validated_email_renders_email_type() {
+    let component = ValidatedForm::email("email", "user@test.com", None);
+    let html = test::render(&component);
+    assert!(html.contains(r#"type="email""#), "Should render email input type");
+    assert!(html.contains(r#"name="email""#), "Should render name");
+}
+
+#[test]
+fn test_validated_password_renders_password_type() {
+    let component = ValidatedForm::password("pass", "secret", None);
+    let html = test::render(&component);
+    assert!(html.contains(r#"type="password""#), "Should render password input type");
+    assert!(html.contains(r#"value="secret""#), "Should render value");
+}
+
+#[test]
+fn test_validated_textarea_renders_correctly() {
+    let component = ValidatedForm::textarea("bio", "Hello world", None);
+    let html = test::render(&component);
+    assert!(html.contains("<textarea"), "Should render textarea element");
+    assert!(html.contains(r#"name="bio""#), "Should render name attribute");
+    assert!(html.contains("Hello world"), "Should render content");
+    assert!(html.contains("</textarea>"), "Should close textarea");
+}
+
+#[test]
+fn test_validated_textarea_error_with_aria() {
+    let component = ValidatedForm::textarea("bio", "", Some("Bio is required"));
+    let html = test::render(&component);
+    assert!(html.contains(r#"aria-invalid="true""#), "Should set aria-invalid on error");
+    assert!(html.contains(r#"aria-describedby="bio_error""#), "Should set aria-describedby");
+    assert!(html.contains("Bio is required"), "Should render error message");
+}
+
+#[test]
+fn test_validated_select_renders_options() {
+    let options = [("us", "USA"), ("uk", "UK")];
+    let component = ValidatedForm::select("country", "uk", &options, None);
+    let html = test::render(&component);
+    assert!(html.contains("<select"), "Should render select element");
+    assert!(html.contains(r#"name="country""#), "Should render name");
+    assert!(html.contains(r#"value="us""#), "Should render option value");
+    assert!(html.contains("USA"), "Should render option label");
+    assert!(html.contains(" selected"), "Should mark uk as selected");
+}
+
+#[test]
+fn test_validated_select_error_with_aria() {
+    let options = [("a", "A")];
+    let component = ValidatedForm::select("choice", "a", &options, Some("Required"));
+    let html = test::render(&component);
+    assert!(html.contains(r#"aria-invalid="true""#), "Should set aria-invalid on error");
+    assert!(html.contains("Required"), "Should render error message");
+}
+
+#[test]
+fn test_validated_error_summary_renders() {
+    let mut errors = ValidationErrors::new();
+    errors.add("email", "Invalid email");
+    errors.add("name", "Name required");
+    let component = ValidatedForm::error_summary(&errors);
+    let html = test::render(&component);
+    assert!(html.contains("form_errors"), "Should have form_errors class");
+    assert!(html.contains(r#"role="alert""#), "Should have role=alert");
+    assert!(html.contains("email_error"), "Should link to email error");
+    assert!(html.contains("name_error"), "Should link to name error");
+    assert!(html.contains("Invalid email"), "Should show error message");
+}
+
+#[test]
+fn test_validated_error_summary_empty_renders_nothing() {
+    let errors = ValidationErrors::new();
+    let component = ValidatedForm::error_summary(&errors);
+    let html = test::render(&component);
+    assert!(html.is_empty(), "Empty error summary should render nothing");
+}
+
+#[test]
+fn test_validated_input_xss_escaping() {
+    let component = ValidatedForm::input("field", "<script>alert(1)</script>", Some("<img onerror=alert(1)>"));
+    let html = test::render(&component);
+    assert!(!html.contains("<script>"), "Should escape script tag in value");
+    assert!(!html.contains("<img"), "Should escape img tag in error message");
+    assert!(html.contains("&lt;script&gt;"), "Should have escaped script in value");
+}
+
+#[test]
+fn test_validated_input_self_closing() {
+    let component = ValidatedForm::input("name", "val", None);
+    let html = test::render(&component);
+    assert!(html.contains("/>"), "Input should be self-closing");
+}

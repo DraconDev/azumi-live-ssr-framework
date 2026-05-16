@@ -64,11 +64,7 @@ impl Prediction {
 /// Metadata about an analyzed method
 #[derive(Debug)]
 pub struct MethodAnalysis {
-    #[allow(dead_code)]
-    pub name: String,
     pub predictions: Vec<Prediction>,
-    #[allow(dead_code)]
-    pub has_unpredictable: bool,
 }
 
 /// Extract field name from `self.field` expression
@@ -165,9 +161,7 @@ fn analyze_expr(expr: &Expr) -> Option<Prediction> {
 
 /// Analyze a method body for all predictable mutations
 pub fn analyze_method(method: &ImplItemFn) -> MethodAnalysis {
-    let name = method.sig.ident.to_string();
     let mut predictions = Vec::new();
-    let mut has_unpredictable = false;
 
     // Check for #[azumi::predict("...")] attribute
     for attr in &method.attrs {
@@ -185,28 +179,11 @@ pub fn analyze_method(method: &ImplItemFn) -> MethodAnalysis {
     for stmt in &method.block.stmts {
         if let Some(prediction) = analyze_statement(stmt) {
             predictions.push(prediction);
-        } else {
-            // Check if this is a statement that could have side effects
-            match stmt {
-                Stmt::Expr(expr, _semicolon) => {
-                    if is_side_effect(expr) {
-                        has_unpredictable = true;
-                    }
-                }
-                Stmt::Local(_) => {
-                    // Local variable bindings are fine
-                }
-                _ => {
-                    has_unpredictable = true;
-                }
-            }
         }
     }
 
     MethodAnalysis {
-        name,
         predictions,
-        has_unpredictable,
     }
 }
 
