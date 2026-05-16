@@ -1,3 +1,4 @@
+pub mod blog;
 pub mod css_variables;
 pub mod lessons;
 pub mod live_demo;

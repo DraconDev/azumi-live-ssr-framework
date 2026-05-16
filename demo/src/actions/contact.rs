@@ -1,4 +1,5 @@
 use azumi::prelude::*;
+use azumi::prelude::*;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ContactForm {
@@ -21,7 +22,7 @@ pub fn contact_submit(state: &mut Option<azumi::form::FormValidator<ContactForm>
     html! {
         @if success {
             <div class={form_success}>
-                "Thanks for reaching out! We'll get back to you soon."
+                {"Thanks for reaching out! We will get back to you soon."}
             </div>
         }
 
@@ -36,8 +37,6 @@ pub fn contact_submit(state: &mut Option<azumi::form::FormValidator<ContactForm>
                     type="text"
                     id="name"
                     name="name"
-                    class:external={format!("form-input {}", if state.as_ref().and_then(|s| s.field_error("name")).is_some() { "error" } else { "" })}
-                    value={state.as_ref().and_then(|s| s.value().name.as_ref()).cloned().unwrap_or_default()}
                     placeholder="Your name"
                 />
                 @if let Some(err) = state.as_ref().and_then(|s| s.field_error("name")) {
@@ -51,8 +50,6 @@ pub fn contact_submit(state: &mut Option<azumi::form::FormValidator<ContactForm>
                     type="email"
                     id="email"
                     name="email"
-                    class:external={format!("form-input {}", if state.as_ref().and_then(|s| s.field_error("email")).is_some() { "error" } else { "" })}
-                    value={state.as_ref().and_then(|s| s.value().email.as_ref()).cloned().unwrap_or_default()}
                     placeholder="your@email.com"
                 />
                 @if let Some(err) = state.as_ref().and_then(|s| s.field_error("email")) {
@@ -65,17 +62,14 @@ pub fn contact_submit(state: &mut Option<azumi::form::FormValidator<ContactForm>
                 <textarea
                     id="message"
                     name="message"
-                    class:external={format!("form-textarea {}", if state.as_ref().and_then(|s| s.field_error("message")).is_some() { "error" } else { "" })}
                     placeholder="Your message..."
-                >{state.as_ref().and_then(|s| s.value().message.as_ref()).cloned().unwrap_or_default()}</textarea>
+                ></textarea>
                 @if let Some(err) = state.as_ref().and_then(|s| s.field_error("message")) {
                     <p class={form_error}>{err}</p>
                 }
             </div>
 
-            <button type="submit" class:external={format!("btn {}", btn_primary})>
-                "Send Message"
-            </button>
+            <button type="submit">"Send Message"</button>
         </form>
     }
 }
