@@ -13,7 +13,12 @@ class Azumi {
         this.revealObserver = null; // IntersectionObserver for az-reveal
         this.delegate();
         this.connectHotReload();
-        this.init();
+        // Set window.azumi early so it exists for any async setup
+        window.azumi = this;
+        // Only run DOM-dependent init if document exists
+        if (typeof document !== 'undefined') {
+            this.init();
+        }
     }
 
     // Auto-init: execute az-init attributes on DOMContentLoaded
@@ -1273,8 +1278,4 @@ class Azumi {
         }
     }
 
-    init() {
-        window.azumi = this;
-        this.log("Azumi Live Client Initialized 🚀");
     }
-}
