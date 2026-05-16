@@ -603,6 +603,8 @@ pub fn reconstruct_css_from_parsed(style_input: &StyleInput) -> String {
 }
 
 /// Reconstruct CSS string from TokenStream (parsing and formatting)
+#[doc(hidden)]
+#[allow(dead_code)]
 pub fn reconstruct_css_from_tokens(input: TokenStream) -> String {
     // Parse then delegate to the shared reconstruction function
     let style_input: StyleInput = match parse2(input) {

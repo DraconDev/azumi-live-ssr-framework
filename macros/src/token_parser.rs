@@ -528,25 +528,33 @@ impl Parse for Attribute {
 
         // Check if this is a boolean attribute (no value required)
         const BOOLEAN_ATTRS: &[&str] = &[
-            "disabled",
-            "checked",
-            "selected",
-            "readonly",
-            "required",
+            "allow",
+            "async",
             "autofocus",
             "autoplay",
+            "checked",
             "controls",
-            "loop",
-            "muted",
             "default",
+            "defer",
+            "disabled",
+            "download",
             "formnovalidate",
+            "global",
+            "hidden",
+            "inert",
             "ismap",
+            "itemscope",
+            "loop",
             "multiple",
+            "muted",
             "nomodule",
             "novalidate",
             "open",
+            "readonly",
+            "required",
             "reversed",
-            "global", // Azumi: global style tag attribute
+            "selected",
+            "truespeed",
         ];
 
         // Check for class:external (external CSS class names, bypass validation but still escaped)
@@ -1069,7 +1077,6 @@ fn should_add_space(curr: &TokenTree, next: &TokenTree) -> bool {
     }
 }
 
-// Implementations for If, For, Match... (omitted for brevity, need to fill in)
 impl Parse for IfBlock {
     fn parse(input: ParseStream) -> Result<Self> {
         let span = input.span();

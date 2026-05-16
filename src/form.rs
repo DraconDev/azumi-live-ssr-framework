@@ -201,13 +201,7 @@ impl FormValidator {
     }
 }
 
-fn html_escape(s: &str) -> String {
-    crate::escape_html(s)
-}
-
-// ============================================================================
-// Client-Side Validation Rules
-// ============================================================================
+// HTML escaping for form rendering
 
 /// Validation rules that can be used for client-side form validation.
 ///
@@ -312,15 +306,15 @@ impl ValidatedForm {
             write!(
                 w,
                 "<input type=\"{}\" name=\"{}\" value=\"{}\"",
-                html_escape(&input_type),
-                html_escape(&name),
-                html_escape(&value)
+                crate::escape_html(&input_type),
+                crate::escape_html(&name),
+                crate::escape_html(&value)
             )?;
             if has_error {
                 write!(
                     w,
                     " aria-invalid=\"true\" aria-describedby=\"{}_error\"",
-                    html_escape(&name)
+                    crate::escape_html(&name)
                 )?;
             }
             write!(w, "/>")?;
@@ -328,8 +322,8 @@ impl ValidatedForm {
                 write!(
                     w,
                     "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>",
-                    html_escape(&name),
-                    html_escape(msg)
+                    crate::escape_html(&name),
+                    crate::escape_html(msg)
                 )?;
             }
             write!(w, "</div>")?;
@@ -360,13 +354,13 @@ impl ValidatedForm {
         let error = error.map(|s| s.to_string());
         from_fn(move |w| {
             write!(w, "<div>")?;
-            write!(w, "<textarea name=\"{}\"", html_escape(&name))?;
+            write!(w, "<textarea name=\"{}\"", crate::escape_html(&name))?;
             if has_error {
-                write!(w, " aria-invalid=\"true\" aria-describedby=\"{}_error\"", html_escape(&name))?;
+                write!(w, " aria-invalid=\"true\" aria-describedby=\"{}_error\"", crate::escape_html(&name))?;
             }
-            write!(w, ">{}</textarea>", html_escape(&value))?;
+            write!(w, ">{}</textarea>", crate::escape_html(&value))?;
             if let Some(ref msg) = error {
-                write!(w, "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>", html_escape(&name), html_escape(msg))?;
+                write!(w, "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>", crate::escape_html(&name), crate::escape_html(msg))?;
             }
             write!(w, "</div>")?;
             Ok(())
@@ -390,18 +384,18 @@ impl ValidatedForm {
         let error = error.map(|s| s.to_string());
         from_fn(move |w| {
             write!(w, "<div>")?;
-            write!(w, "<select name=\"{}\"", html_escape(&name))?;
+            write!(w, "<select name=\"{}\"", crate::escape_html(&name))?;
             if has_error {
-                write!(w, " aria-invalid=\"true\" aria-describedby=\"{}_error\"", html_escape(&name))?;
+                write!(w, " aria-invalid=\"true\" aria-describedby=\"{}_error\"", crate::escape_html(&name))?;
             }
             write!(w, ">")?;
             for (opt_value, opt_label) in &options {
                 let selected = if *opt_value == value { " selected" } else { "" };
-                write!(w, "<option value=\"{}\"{}>{}</option>", html_escape(opt_value), selected, html_escape(opt_label))?;
+                write!(w, "<option value=\"{}\"{}>{}</option>", crate::escape_html(opt_value), selected, crate::escape_html(opt_label))?;
             }
             write!(w, "</select>")?;
             if let Some(ref msg) = error {
-                write!(w, "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>", html_escape(&name), html_escape(msg))?;
+                write!(w, "<div id=\"{}_error\" class=\"field_error\" role=\"alert\">{}</div>", crate::escape_html(&name), crate::escape_html(msg))?;
             }
             write!(w, "</div>")?;
             Ok(())
@@ -426,7 +420,7 @@ impl ValidatedForm {
             write!(w, "<p>Please fix the following errors:</p>")?;
             write!(w, "<ul>")?;
             for (field, message) in &items {
-                write!(w, "<li><a href=\"#{}_error\">{}: {}</a></li>", html_escape(field), html_escape(field), html_escape(message))?;
+                write!(w, "<li><a href=\"#{}_error\">{}: {}</a></li>", crate::escape_html(field), crate::escape_html(field), crate::escape_html(message))?;
             }
             write!(w, "</ul></div>")?;
             Ok(())

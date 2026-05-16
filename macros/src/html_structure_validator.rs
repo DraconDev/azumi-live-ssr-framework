@@ -175,7 +175,11 @@ pub fn validate_node_order(nodes: &[Node]) -> Vec<TokenStream> {
             // Script Handling
             Node::Element(elem) if elem.name == "script" => {
                 if phase > Phase::Script {
-                    let msg = "Order Error: <script> tags must be placed at the top of the component, before any HTML content.";
+                    let msg = if phase == Phase::Style {
+                        "Order Error: <script> tags must be placed before <style> blocks and HTML content. Move this <script> above the <style> block."
+                    } else {
+                        "Order Error: <script> tags must be placed at the top of the component, before any HTML content."
+                    };
                     errors.push(quote_spanned! { elem.full_span =>
                         compile_error!(#msg);
                     });
@@ -637,7 +641,11 @@ pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<
             || name.starts_with("hx-")
             || name.starts_with("x-")
             || name.starts_with("az-")
-            || name.starts_with("item")
+            || name.starts_with("itemid")
+            || name.starts_with("itemprop")
+            || name.starts_with("itemref")
+            || name.starts_with("itemscope")
+            || name.starts_with("itemtype")
             || name.starts_with("accept-")
             || name.starts_with("crossorigin")
             || name.starts_with("http-equiv")
@@ -670,7 +678,7 @@ pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<
              Note: In Azumi, 'on:click' means 'call handle_click when clicked'.",
             name, suggestion
         );
-        return Some(quote! {
+        return Some(quote_spanned! { attr.span =>
             compile_error!(#msg);
         });
     }
@@ -719,7 +727,7 @@ pub fn validate_attribute_name(attr: &crate::token_parser::Attribute) -> Option<
         return None;
     }
 
-    // 9. Specific Element Attributes (Common ones)
+    // 5. Specific Element Attributes (Common ones)
     // This is a large list, but essential for strictness.
     // We'll include common attributes for all standard tags.
     let common_attributes = [
