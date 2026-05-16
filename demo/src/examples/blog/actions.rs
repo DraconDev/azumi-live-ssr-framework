@@ -62,14 +62,13 @@ pub async fn like_post(slug: String) -> ActionResult {
     match post {
         Some(p) => {
             let new_count = increment_likes(&p.slug);
-            success_fragment(html! {
+            let component = html! {
                 <span style="color: #888; font-size: 0.875rem;">{new_count} " likes"</span>
-            })
+            };
+            ActionResult::ok(&component)
         }
         None => {
-            error_fragment(html! {
-                <span style="color: #d32f2f; font-size: 0.875rem;">"Post not found"</span>
-            })
+            ActionResult::err("Post not found".to_string())
         }
     }
 }

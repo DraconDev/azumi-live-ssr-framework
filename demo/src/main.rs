@@ -11,12 +11,10 @@ use tower_http::services::ServeDir;
 // Blog example routes
 mod blog {
     pub mod pages {
-        pub use crate::examples::blog::pages::{
-            about_page, contact_page, post_list_page, post_page,
-        };
+        pub use crate::examples::blog::pages::{about_page, contact_page, post_list_page};
     }
     pub mod actions {
-        pub use crate::examples::blog::actions::{contact_action, like_post};
+        pub use crate::examples::blog::actions::like_post;
     }
 }
 
@@ -55,13 +53,9 @@ async fn main() {
         .route("/blog", get(blog::pages::post_list_page))
         .route("/blog/about", get(blog::pages::about_page))
         .route("/blog/contact", get(blog::pages::contact_page))
-        .route("/blog/posts/{slug}", get(|slug: axum::extract::Path<String>| async move {
-            let slug = slug.into_inner();
-            axum::response::Html(azumi::render_to_string(&blog::pages::post_page(&slug)))
-        }))
+        .route("/blog/posts/{slug}", get(examples::blog::pages::post_page))
         .merge(azumi::action::register_actions(
             axum::Router::new()
-                .route("/blog/contact", post(blog::actions::contact_action))
                 .route("/blog/like", post(blog::actions::like_post))
         ))
 
