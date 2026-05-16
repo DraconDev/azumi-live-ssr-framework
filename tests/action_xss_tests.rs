@@ -77,18 +77,23 @@ fn test_error_fragment_escapes_single_quotes() {
 }
 
 #[test]
-fn test_error_fragment_escapes_form_id_in_onclick() {
+fn test_error_fragment_escapes_form_id_in_data_attribute() {
     let form_id = "x');alert(1);//";
     let response = error_fragment("Error message", Some(form_id));
     let body = response_to_string(response);
     assert!(
         !body.contains("x');alert(1);//"),
-        "form_id should be JS-escaped in onclick: {}",
+        "form_id should be escaped in data-retry-form: {}",
         body
     );
     assert!(
-        body.contains("\\'") || body.contains("\\x27"),
-        "form_id single quotes should be JS-escaped in onclick handler: {}",
+        body.contains("data-retry-form="),
+        "should use data-retry-form attribute: {}",
+        body
+    );
+    assert!(
+        !body.contains("onclick="),
+        "should NOT use onclick: {}",
         body
     );
 }
@@ -118,7 +123,7 @@ fn test_error_fragment_with_both_xss_message_and_form_id() {
     );
     assert!(
         !body.contains("alert('xss')"),
-        "form_id JS should be escaped: {}",
+        "form_id should be escaped in data attribute: {}",
         body
     );
 }

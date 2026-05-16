@@ -129,6 +129,7 @@ fn escape_html(s: &str) -> String {
 /// Backticks prevent template literal injection. Angle brackets and forward slash
 /// prevent HTML breakout when the JS string will be embedded in an HTML attribute.
 /// Semicolons prevent early statement termination in JS contexts.
+#[allow(dead_code)]
 fn escape_js_string(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
