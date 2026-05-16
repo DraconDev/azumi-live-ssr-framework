@@ -292,4 +292,40 @@ mod tests {
         let result = minify_js(src);
         assert!(result.contains(r#"he said \"hello\""#), "escaped quotes should be preserved");
     }
+
+    #[test]
+    fn test_minify_js_regex_with_escaped_slash() {
+        let src = r#"let re = /https?:\/\//;"#;
+        let result = minify_js(src);
+        assert!(result.contains("/https?"), "regex with escaped slash should be preserved");
+    }
+
+    #[test]
+    fn test_minify_js_regex_after_semicolon() {
+        let src = "return /pattern/;";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after return should be preserved");
+    }
+
+    #[test]
+    fn test_minify_js_division_not_regex() {
+        let src = "let x = a / b;";
+        let result = minify_js(src);
+        assert!(result.contains("a / b"), "division should not be treated as regex");
+    }
+
+    #[test]
+    fn test_minify_js_regex_char_class_with_slash() {
+        let src = "let re = /[/]/;";
+        let result = minify_js(src);
+        assert!(result.contains("[/"), "regex char class with slash should be preserved");
+    }
+
+    #[test]
+    fn test_minify_js_block_comment_at_eof() {
+        let src = "let x = 1; /* unclosed";
+        let result = minify_js(src);
+        assert!(result.contains("let x = 1;"), "code before unclosed comment should survive");
+        assert!(!result.contains("unclosed"), "unclosed comment content should be stripped");
+    }
 }

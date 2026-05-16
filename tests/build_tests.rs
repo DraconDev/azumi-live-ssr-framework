@@ -110,7 +110,7 @@ fn minify_js(src: &str) -> String {
     if result.is_empty() { src.to_string() } else { result }
 }
 
-async fn response_to_string(response: axumi::response::Response) -> String {
+async fn response_to_string(response: axum::response::Response) -> String {
     let body = response.into_body();
     let bytes = body.collect().await.unwrap().to_bytes();
     String::from_utf8(bytes.to_vec()).unwrap()
