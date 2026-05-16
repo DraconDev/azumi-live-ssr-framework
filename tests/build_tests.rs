@@ -298,3 +298,22 @@ mod error_fragment_tests {
         );
     }
 }
+
+mod js_client_tests {
+    #[test]
+    fn js_retry_tests_pass() {
+        let output = std::process::Command::new("node")
+            .arg("client/tests/retry.test.js")
+            .current_dir(env!("CARGO_MANIFEST_DIR"))
+            .output()
+            .expect("failed to run node; is Node.js installed?");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            output.status.success(),
+            "JS retry tests failed:\n{}\n{}",
+            stdout,
+            stderr
+        );
+    }
+}

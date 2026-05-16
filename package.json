@@ -1,0 +1,11 @@
+{
+  "name": "azumi-client-tests",
+  "private": true,
+  "description": "Browser-side JS unit tests for Azumi client runtime",
+  "scripts": {
+    "test": "node client/tests/retry.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0"
+  }
+}

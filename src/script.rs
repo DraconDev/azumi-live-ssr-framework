@@ -207,6 +207,7 @@ impl Component for AzumiScript {
     }
 }
 
+#[derive(Default)]
 pub struct SessionCleanupScript {
     nonce: Option<String>,
 }
@@ -218,12 +219,6 @@ impl SessionCleanupScript {
     pub fn with_nonce(mut self, nonce: &str) -> Self {
         self.nonce = Some(nonce.to_string());
         self
-    }
-}
-
-impl Default for SessionCleanupScript {
-    fn default() -> Self {
-        SessionCleanupScript { nonce: None }
     }
 }
 
