@@ -61,6 +61,9 @@ pub enum AttributeValue {
     Dynamic(TokenStream),
     StyleDsl(Vec<(String, TokenStream)>), // List of (property, value_expr)
     None,
+    /// External CSS class names that bypass validation but are still HTML-escaped.
+    /// Used for `class:external="bg-blue-500 px-4"` to allow third-party CSS.
+    External(String),
 }
 
 #[derive(Debug, Clone)]
@@ -545,6 +548,33 @@ impl Parse for Attribute {
             "reversed",
             "global", // Azumi: global style tag attribute
         ];
+
+        // Check for class:external (external CSS class names, bypass validation but still escaped)
+        if name == "class:external" {
+            if !input.peek(Token![=]) {
+                return Err(Error::new(
+                    name_span,
+                    "class:external requires a value. Example: class:external=\"bg-blue-500 px-4\"",
+                ));
+            }
+            input.parse::<Token![=]>()?;
+            let tt: proc_macro2::TokenTree = input.parse()?;
+            if let proc_macro2::TokenTree::Literal(lit) = &tt {
+                if let Ok(syn::Lit::Str(s)) = syn::parse_str(&lit.to_string()) {
+                    return Ok(Attribute {
+                        name,
+                        name_span,
+                        value: AttributeValue::External(s.value()),
+                        span: name_span,
+                        value_span: Some(lit.span()),
+                    });
+                }
+            }
+            return Err(Error::new(
+                name_span,
+                "class:external requires a double-quoted string literal. Example: class:external=\"bg-blue-500\"",
+            ));
+        }
 
         let (value, value_span) = if input.peek(Token![=]) {
             input.parse::<Token![=]>()?;

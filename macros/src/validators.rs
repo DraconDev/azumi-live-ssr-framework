@@ -52,12 +52,15 @@ pub(crate) fn validate_nodes(
                             }
                         }
 
-                        if name == "class" {
+                        if name == "class:external" {
+                            // class:external bypasses validation — external CSS class names
+                            // are still HTML-escaped but not validated against <style> blocks.
+                        } else if name == "class" {
                             match &attr.value {
                                 token_parser::AttributeValue::Static(_) => {
                                     let error_span = attr.value_span.unwrap_or(attr.span);
                                     errors.push(quote_spanned! { error_span =>
-                                        compile_error!("Static class attributes are banned (e.g. class=\"...\"). Use class={variable_name} instead.");
+                                        compile_error!("Static class attributes are banned (e.g. class=\"...\"). Use class:external=\"...\" for third-party CSS or class={variable_name} for Azumi-managed classes.");
                                     });
                                 }
                                 token_parser::AttributeValue::Dynamic(tokens) => {
@@ -99,12 +102,14 @@ pub(crate) fn validate_nodes(
                             }
                         }
 
-                        if name == "id" {
+                        if name == "id:external" {
+                            // id:external bypasses validation — external IDs
+                        } else if name == "id" {
                             match &attr.value {
                                 token_parser::AttributeValue::Static(_) => {
                                     let error_span = attr.value_span.unwrap_or(attr.span);
                                     errors.push(quote_spanned! { error_span =>
-                                        compile_error!("Static id attributes are banned (e.g. id=\"...\"). Use id={variable_name} instead.");
+                                        compile_error!("Static id attributes are banned (e.g. id=\"...\"). Use id:external=\"...\" for third-party IDs or id={variable_name} for Azumi-managed IDs.");
                                     });
                                 }
                                 token_parser::AttributeValue::Dynamic(tokens) => {

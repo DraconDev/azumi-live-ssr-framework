@@ -297,6 +297,24 @@ pub(crate) fn generate_body_with_context(
                         continue;
                     }
 
+                    if attr_name == "class:external" {
+                        // Render as class="..." in output HTML (not class:external="...")
+                        match &attr.value {
+                            token_parser::AttributeValue::External(val) => {
+                                instructions.push(quote! {
+                                    write!(#f_ident, " class=\"{}\"", azumi::escape_html(#val))?;
+                                });
+                            }
+                            token_parser::AttributeValue::Static(val) => {
+                                instructions.push(quote! {
+                                    write!(#f_ident, " class=\"{}\"", azumi::escape_html(#val))?;
+                                });
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
                     if attr_name == "class" {
                         match &attr.value {
                             token_parser::AttributeValue::Static(val) => {
@@ -324,6 +342,24 @@ pub(crate) fn generate_body_with_context(
                                         });
                                     }
                                 }
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
+                    if attr_name == "id:external" {
+                        // Render as id="..." in output HTML (not id:external="...")
+                        match &attr.value {
+                            token_parser::AttributeValue::External(val) => {
+                                instructions.push(quote! {
+                                    write!(#f_ident, " id=\"{}\"", azumi::escape_html(#val))?;
+                                });
+                            }
+                            token_parser::AttributeValue::Static(val) => {
+                                instructions.push(quote! {
+                                    write!(#f_ident, " id=\"{}\"", azumi::escape_html(#val))?;
+                                });
                             }
                             _ => {}
                         }
