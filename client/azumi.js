@@ -1277,5 +1277,5 @@ class Azumi {
             }
         }
     }
-
-    }
+}
+new Azumi();
