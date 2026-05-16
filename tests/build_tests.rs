@@ -91,12 +91,11 @@ fn minify_js(src: &str) -> String {
             while i < len && (bytes[i] as char).is_whitespace() {
                 i += 1;
             }
-            prev_was_regex_possible = true;
             continue;
         }
 
         out.push(ch);
-        prev_was_regex_possible = matches!(ch, '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~' | '<' | '>' | '+' | '-' | '*' | '/' | '%' | '?' | ':' | '@');
+        prev_was_regex_possible = matches!(ch, '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~' | '<' | '>' | '+' | '-' | '*' | '%' | '?' | ':' | '@');
         i += 1;
     }
 

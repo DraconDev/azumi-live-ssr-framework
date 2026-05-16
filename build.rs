@@ -111,19 +111,21 @@ fn minify_js(src: &str) -> String {
         }
 
         // Collapse runs of whitespace to a single space (or newline if original has one)
+        // NOTE: whitespace preserves prev_was_regex_possible (doesn't change it)
         if ch.is_whitespace() {
             let has_newline = src[i..].chars().take_while(|c| c.is_whitespace()).any(|c| c == '\n');
             out.push(if has_newline { '\n' } else { ' ' });
             while i < len && (bytes[i] as char).is_whitespace() {
                 i += 1;
             }
-            prev_was_regex_possible = true;
             continue;
         }
 
         out.push(ch);
         // After these tokens, a '/' could start a regex; after others, it can't
-        prev_was_regex_possible = matches!(ch, '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~' | '<' | '>' | '+' | '-' | '*' | '/' | '%' | '?' | ':' | '@');
+        // Division '/' itself means the next '/' can't start a regex
+        // Identifiers, numbers, ), ], ++, -- also prevent regex
+        prev_was_regex_possible = matches!(ch, '=' | '(' | '[' | '{' | ',' | ';' | '!' | '&' | '|' | '^' | '~' | '<' | '>' | '+' | '-' | '*' | '%' | '?' | ':' | '@');
         i += 1;
     }
 

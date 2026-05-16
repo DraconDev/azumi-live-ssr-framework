@@ -118,19 +118,13 @@ async fn azumi_js_handler() -> impl IntoResponse {
     )
 }
 
-/// Escape HTML entities to prevent XSS in action fragments.
-fn escape_html(s: &str) -> String {
-    crate::escape_html(s)
-}
-
 /// Escape a string for safe inclusion in a JavaScript string literal.
 /// Escapes: backslash, backtick, quotes, newline, carriage return, angle brackets,
 /// forward slash, and semicolon.
 /// Backticks prevent template literal injection. Angle brackets and forward slash
 /// prevent HTML breakout when the JS string will be embedded in an HTML attribute.
 /// Semicolons prevent early statement termination in JS contexts.
-#[allow(dead_code)]
-fn escape_js_string(s: &str) -> String {
+pub fn escape_js_string(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
         match c {
@@ -152,21 +146,22 @@ fn escape_js_string(s: &str) -> String {
 
 /// HTML fragment for successful form actions (az-target swapping).
 ///
-/// Wraps content in a `<div class="success_message">` for standard error handling.
-/// Use this when an `az-action` form succeeds and you want to swap in a success message.
+/// Accepts any Component and renders it inside a `<div class="success_message">`.
+/// Content is rendered as-is (not double-escaped) since Components already handle
+/// their own escaping via `html!` interpolation.
 ///
 /// # Example
 ///
 /// ```rust,ignore
 /// async fn submit_form() -> impl axum::response::IntoResponse {
-///     azumi::action::success_fragment("<p>Saved!</p>")
+///     azumi::action::success_fragment(html! { <p>"Saved!"</p> })
 /// }
 /// ```
-pub fn success_fragment(html: impl Into<String>) -> Response {
-    let safe_html = escape_html(&html.into());
+pub fn success_fragment<C: Component + ?Sized>(component: &C) -> Response {
+    let html = crate::render_to_string(component);
     axum::response::Html(format!(
         r#"<div class="success_message">{}</div>"#,
-        safe_html
+        html
     ))
     .into_response()
 }
@@ -180,9 +175,9 @@ pub fn success_fragment(html: impl Into<String>) -> Response {
 /// The button uses `az-on="click call __azumi_retry"` for framework-consistent
 /// event delegation, which the Azumi client runtime handles as a built-in action.
 pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Response {
-    let msg = escape_html(&message.into());
+    let msg = crate::escape_html(&message.into());
     let retry = form_id.map(|id| {
-        let safe_id = escape_html(id);
+        let safe_id = crate::escape_html(id);
         format!(
             r#"<button type="button" az-on="click call __azumi_retry -> .error_message" data-retry-form="{}" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
             safe_id

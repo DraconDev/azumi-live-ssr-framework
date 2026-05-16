@@ -87,6 +87,14 @@ fn get_current_timestamp() -> u64 {
 /// Signs a state string with HMAC-SHA256 and includes a timestamp for replay protection.
 /// Returns format: "{json}|{timestamp}|{signature_base64}"
 ///
+/// # Format Design
+///
+/// The pipe `|` delimiter is safe despite JSON potentially containing `|` because:
+/// 1. Verification uses `rfind('|')` to locate the signature (rightmost pipe)
+/// 2. Then `rfind('|')` on the remainder to locate the timestamp
+/// 3. HMAC covers the entire payload, so any tampering with pipe placement invalidates the signature
+/// 4. A `TooManyPipes` limit (10) prevents pathological inputs from causing excessive parsing
+///
 /// For user-scoped signing (prevents replay across users), use `sign_state_for_user`.
 #[must_use]
 pub fn sign_state(state_json: &str) -> String {
@@ -453,6 +461,22 @@ mod tests {
         let json = r#"{"msg": "a|b|c"}"#;
         let signed = sign_state(json);
         let verified = verify_state(&signed).unwrap();
+        assert_eq!(verified, json);
+    }
+
+    #[test]
+    fn test_sign_verify_with_many_pipes_in_json() {
+        let json = r#"{"data": "||||||||"}"#;
+        let signed = sign_state(json);
+        let verified = verify_state(&signed).unwrap();
+        assert_eq!(verified, json);
+    }
+
+    #[test]
+    fn test_sign_verify_user_scoped_with_pipes_in_json() {
+        let json = r#"{"msg": "a|b|c"}"#;
+        let signed = sign_state_for_user("user1", json);
+        let verified = verify_state_for_user("user1", &signed).unwrap();
         assert_eq!(verified, json);
     }
 

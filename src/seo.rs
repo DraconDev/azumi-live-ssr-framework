@@ -3,18 +3,15 @@ use std::sync::RwLock;
 
 use crate::Component;
 
-/// Escape a string for safe inclusion in an HTML attribute value (double-quoted).
-/// Prevents XSS by escaping `"`, `<`, `>`, `&`, and `'`.
-fn html_attr_escape(s: &str) -> String {
-    crate::escape_html(s)
-}
-
-/// Escape a string for safe inclusion in XML text content or attribute values.
-/// Prevents malformed XML from special characters.
-fn xml_escape(s: &str) -> String {
-    crate::escape_xml(s)
-}
-
+/// Global site-wide SEO configuration.
+///
+/// # Limitation
+///
+/// This is a process-global singleton set once via `init_seo()`. It is NOT
+/// per-request — all requests share the same SEO config (title, base URL,
+/// OpenGraph defaults). For multi-tenant applications where different tenants
+/// need different SEO config, use `generate_head()` with explicit parameters
+/// instead of relying on the global config.
 static SITE_CONFIG: RwLock<Option<SeoConfig>> = RwLock::new(None);
 
 #[derive(Clone, Default, Debug)]
@@ -114,10 +111,10 @@ pub fn generate_head(
 
     let mut html = String::new();
 
-    let safe_title = html_attr_escape(&full_title);
-    let safe_desc = effective_desc.as_deref().map(html_attr_escape);
-    let safe_url = full_url.as_deref().map(html_attr_escape);
-    let safe_image = effective_image.as_deref().map(html_attr_escape);
+    let safe_title = crate::escape_html(&full_title);
+    let safe_desc = effective_desc.as_deref().map(crate::escape_html);
+    let safe_url = full_url.as_deref().map(crate::escape_html);
+    let safe_image = effective_image.as_deref().map(crate::escape_html);
 
     render_basic_meta(&mut html, &safe_title, safe_desc.as_deref(), safe_url.as_deref());
     render_open_graph(&mut html, &global, &safe_title, safe_desc.as_deref(), safe_url.as_deref(), safe_image.as_deref(), effective_type);
@@ -244,14 +241,14 @@ fn render_open_graph(
                 let _ = write!(html, r#"<meta property="og:image" content="{}">"#, i);
             }
             if let Some(s) = &og.site_name {
-                let safe_s = html_attr_escape(s);
+                let safe_s = crate::escape_html(s);
                 let _ = write!(
                     html,
                     r#"<meta property="og:site_name" content="{}">"#,
                     safe_s
                 );
             }
-            let safe_type = html_attr_escape(effective_type);
+            let safe_type = crate::escape_html(effective_type);
             let _ = write!(html, r#"<meta property="og:type" content="{}">"#, safe_type);
         }
     }
@@ -267,18 +264,18 @@ fn render_twitter_card(
 ) {
     if let Some(ref g) = global {
         if let Some(ref tw) = g.twitter {
-            let safe_card = html_attr_escape(&tw.card);
+            let safe_card = crate::escape_html(&tw.card);
             let _ = write!(
                 html,
                 r#"<meta name="twitter:card" content="{}">"#,
                 safe_card
             );
             if let Some(s) = &tw.site {
-                let safe_s = html_attr_escape(s);
+                let safe_s = crate::escape_html(s);
                 let _ = write!(html, r#"<meta name="twitter:site" content="{}">"#, safe_s);
             }
             if let Some(c) = &tw.creator {
-                let safe_c = html_attr_escape(c);
+                let safe_c = crate::escape_html(c);
                 let _ = write!(
                     html,
                     r#"<meta name="twitter:creator" content="{}">"#,
@@ -473,7 +470,7 @@ impl SitemapBuilder {
                 candidate
             };
 
-            let escaped_url = xml_escape(&url);
+            let escaped_url = crate::escape_xml(&url);
             let _ = write!(
                 xml,
                 "  <url>\n    <loc>{}</loc>\n    <changefreq>weekly</changefreq>\n  </url>\n",
@@ -675,7 +672,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sitemap_builder_xml_escapes_ampersand() {
+    fn test_sitemap_builder_crate::escape_xmls_ampersand() {
         let sitemap = SitemapBuilder::new("https://example.com")
             .add_url("/page?q=test&v=1")
             .build();
@@ -692,19 +689,19 @@ mod tests {
     }
 
     #[test]
-    fn test_html_attr_escape_double_quote() {
-        assert_eq!(html_attr_escape("say \"hello\""), "say &quot;hello&quot;");
+    fn test_crate::escape_html_double_quote() {
+        assert_eq!(crate::escape_html("say \"hello\""), "say &quot;hello&quot;");
     }
 
     #[test]
-    fn test_html_attr_escape_single_quote() {
-        assert_eq!(html_attr_escape("it's"), "it&#x27;s");
+    fn test_crate::escape_html_single_quote() {
+        assert_eq!(crate::escape_html("it's"), "it&#x27;s");
     }
 
     #[test]
-    fn test_html_attr_escape_xss_payload() {
+    fn test_crate::escape_html_xss_payload() {
         let input = "<img src=x onerror=alert(1)>";
-        let escaped = html_attr_escape(input);
+        let escaped = crate::escape_html(input);
         assert!(!escaped.contains("<script>"));
         assert!(escaped.contains("&lt;"));
         assert!(escaped.contains("&gt;"));
@@ -712,13 +709,13 @@ mod tests {
     }
 
     #[test]
-    fn test_xml_escape_escapes_ampersand() {
-        assert_eq!(xml_escape("a & b"), "a &amp; b");
+    fn test_crate::escape_xml_escapes_ampersand() {
+        assert_eq!(crate::escape_xml("a & b"), "a &amp; b");
     }
 
     #[test]
-    fn test_xml_escape_all_special_chars() {
-        assert_eq!(xml_escape("&<>\"'"), "&amp;&lt;&gt;&quot;&apos;");
+    fn test_crate::escape_xml_all_special_chars() {
+        assert_eq!(crate::escape_xml("&<>\"'"), "&amp;&lt;&gt;&quot;&apos;");
     }
 
     #[test]
