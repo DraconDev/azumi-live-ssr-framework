@@ -1,48 +1,65 @@
-use crate::examples::blog::data::get_posts;
-use crate::examples::blog::PostLikes;
-use crate::actions::contact::{ContactForm, client_validate};
+use crate::examples::blog::data::{get_posts, increment_likes, BlogPost};
 use azumi::prelude::*;
 
-/// Like/unlike a blog post
+/// Handles blog/contact form submissions
 #[azumi::action]
-pub async fn blog_like(
-    state: axum::extract::State<azumi::live::LiveState>,
-    form: azumi::action::Form<PostLikes>,
-) -> impl Component {
-    let post_id: usize = form.data.post_id.parse().unwrap_or(0);
-    let post_likes = state.get::<PostLikes>();
+pub async fn contact_action(
+    name: String,
+    email: String,
+    message: String,
+) -> ActionResult {
+    let mut errors = FormValidator::new();
 
-    if post_id > 0 && post_id <= post_likes.counts.len() {
-        post_likes.counts[post_id - 1] += 1;
+    if name.trim().is_empty() {
+        errors.field("name", "Name is required");
+    }
+    if email.trim().is_empty() {
+        errors.field("email", "Email is required");
+    } else if !email.contains('@') {
+        errors.field("email", "Please enter a valid email address");
+    }
+    if message.trim().is_empty() {
+        errors.field("message", "Message is required");
+    } else if message.trim().len() < 10 {
+        errors.field("message", "Message must be at least 10 characters");
     }
 
-    html! {
-        <span style="color: #ff4081;">{post_likes.counts[post_id.saturating_sub(1)]}" likes"</span>
+    if errors.has_errors() {
+        return error_fragment(errors.html());
     }
+
+    // In production: send email, save to DB, etc.
+    tracing::info!(
+        "Contact form: {} <{}> said: {}",
+        name,
+        email,
+        message
+    );
+
+    success_fragment(html! {
+        <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <strong>"Thanks, {name}!"</strong>" Your message has been sent. We'll get back to you at "{&email}
+        </div>
+    })
 }
 
-/// Submit contact form
+/// Handles blog/post like increments
 #[azumi::action]
-pub async fn contact_submit_action(
-    form: azumi::action::Form<ContactForm>,
-) -> azumi::action::ActionResult {
-    let errors = client_validate(&form.data);
+pub async fn like_post(slug: String) -> ActionResult {
+    let posts = get_posts();
+    let post = posts.iter().find(|p| p.slug == slug);
 
-    if !errors.is_empty() {
-        let mut validator = azumi::form::FormValidator::<ContactForm>::new();
-        for (field, error) in &errors {
-            validator.add_error(*field, error.to_string());
+    match post {
+        Some(p) => {
+            let new_count = increment_likes(&p.slug);
+            success_fragment(html! {
+                <span style="color: #888; font-size: 0.875rem;">{new_count} " likes"</span>
+            })
         }
-        validator.set_data(form.data.clone());
-        validator.mark_submitted();
-
-        return error_fragment(validator);
+        None => {
+            error_fragment(html! {
+                <span style="color: #d32f2f; font-size: 0.875rem;">"Post not found"</span>
+            })
+        }
     }
-
-    // In a real app, you'd send an email or save to a database here
-    let mut validator = azumi::form::FormValidator::<ContactForm>::new();
-    validator.set_data(form.data.clone());
-    validator.mark_submitted();
-
-    success_fragment(validator)
 }

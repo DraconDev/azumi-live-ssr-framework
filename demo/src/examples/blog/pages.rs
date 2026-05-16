@@ -1,105 +1,141 @@
-use crate::examples::blog::layout::layout;
-use crate::examples::blog::data::get_posts;
+use super::data::{get_post_by_slug, get_posts, Post};
+use super::layout::layout;
 use azumi::prelude::*;
 
-pub fn post_list() -> impl Component {
+// ─── Post List Page ──────────────────────────────────────────────────────────
+
+pub fn post_list_page() -> impl Component {
     let posts = get_posts();
 
-    layout("Azumi Blog", html! {
-        <h1 style="margin-bottom: 1.5rem; font-size: 2rem; color: #1a1a1a;">"Latest Posts"</h1>
-
-        @for post in &posts {
-            <article class={post_card}>
-                <h2 class={post_title}>
-                    <a href={format!("/blog/{}", post.slug)}>{&post.title}</a>
-                </h2>
-                <p class={post_meta}>
-                    {&post.author}" — "{&post.date}
-                </p>
-                <p class={post_excerpt}>{&post.excerpt}</p>
-                <div class={tag_row}>
-                    @for tag in &post.tags {
-                        <span class={tag}>{tag}</span>
-                    }
-                </div>
-            </article>
-        }
-    })
-}
-
-pub fn post_detail(slug: &str) -> impl Component {
-    let posts = get_posts();
-    let post = posts.iter().find(|p| p.slug == slug);
-
-    layout(
-        post.map(|p| p.title.as_str()).unwrap_or("Post Not Found"),
-        html! {
-            @match post {
-                Some(post) => {
-                    <a class={back_link} href="/blog">"← Back to all posts"</a>
-                    <article class={post_body}>
-                        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{&post.title}</h1>
-                        <p class={post_meta} style="margin-bottom: 1rem;">{&post.author}" — "{&post.date}</p>
-                        <div class={tag_row}>
-                            @for tag in &post.tags {
-                                <span class={tag}>{tag}</span>
-                            }
-                        </div>
-                        <div style="margin-top: 1.5rem; line-height: 1.8;">
-                            {raw_html(&post.content)}
-                        </div>
-                    </article>
-                },
-                None => {
-                    <div style="text-align: center; padding: 4rem;">
-                        <h1 style="font-size: 3rem; margin-bottom: 1rem;">"404"</h1>
-                        <p style="color: #888; margin-bottom: 1.5rem;">"This post doesn't exist yet."</p>
-                        <a class={btn} class:external={format!("btn {}", btn_primary)} href="/blog">"Browse all posts"</a>
+    layout("Blog — Azumi", html! {
+        <section class="post-list">
+            <h1 style="font-size: 2rem; margin-bottom: 2rem; color: #1a1a1a;">"Latest Posts"</h1>
+            @for post in &posts {
+                <article class="post-card">
+                    <h2 class="post-title">
+                        <a href={format!("/blog/posts/{}", post.slug)}>{&post.title}</a>
+                    </h2>
+                    <div class="post-meta">
+                        {&post.author} " · " {&post.date} " · " {post.likes} " likes"
                     </div>
-                },
+                    <div class="tag-row">
+                        @for tag in &post.tags {
+                            <span class="tag">{tag}</span>
+                        }
+                    </div>
+                    <p class="post-excerpt">{&post.excerpt}</p>
+                    <a href={format!("/blog/posts/{}", post.slug)}
+                       style="color: #0070f3; font-size: 0.875rem; font-weight: 500;">
+                        "Read more →"
+                    </a>
+                </article>
             }
-        },
-    )
-}
-
-pub fn about_page() -> impl Component {
-    layout("About — Azumi Blog", html! {
-        <div class={about_card}>
-            <h1>"About This Blog"</h1>
-            <p style="margin-bottom: 1rem;">"This blog is built with Azumi, a Rust web framework with compile-time validation for HTML, CSS, and JavaScript."</p>
-            <p>"No JavaScript frameworks. No virtual DOM. Just Rust."</p>
-        </div>
+        </section>
     })
 }
+
+// ─── Single Post Page ───────────────────────────────────────────────────────
+
+pub fn post_page(slug: &str) -> impl Component {
+    let post = get_post_by_slug(slug);
+
+    layout(&format!("{} — Azumi Blog", post.title), html! {
+        <a class="back-link" href="/blog">"← Back to Blog"</a>
+
+        <article class="post-body">
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{&post.title}</h1>
+            <div class="post-meta" style="margin-bottom: 1.5rem;">
+                {&post.author} " · " {&post.date} " · " {post.likes} " likes"
+            </div>
+            <div class="tag-row" style="margin-bottom: 1.5rem;">
+                @for tag in &post.tags {
+                    <span class="tag">{tag}</span>
+                }
+            </div>
+
+            <div class="post-content">
+                {PostContent(&post.content)}
+            </div>
+        </article>
+    })
+}
+
+/// Renders post content — supports basic markdown-ish HTML
+struct PostContent(&'static str);
+
+impl std::fmt::Display for PostContent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Fallback: just render as escaped HTML content
+        for line in self.0.lines() {
+            if line.is_empty() {
+                writeln!(f, "<br>")?;
+            } else if line.starts_with("## ") {
+                writeln!(f, "<h2>{}</h2>", &line[3..])?;
+            } else if line.starts_with("### ") {
+                writeln!(f, "<h3>{}</h3>", &line[4..])?;
+            } else if line.starts_with("- ") {
+                writeln!(f, "<li>{}</li>", &line[2..])?;
+            } else {
+                writeln!(f, "<p>{}</p>", line)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+// ─── Contact Page ────────────────────────────────────────────────────────────
 
 pub fn contact_page() -> impl Component {
     layout("Contact — Azumi Blog", html! {
-        <div class={contact_card}>
-            <h1 style="margin-bottom: 1.5rem; text-align: center;">"Get in Touch"</h1>
-            <p style="color: #888; text-align: center; margin-bottom: 1.5rem;">"Contact form coming soon."</p>
-            <p style="text-align: center; color: #555;">
-                "Email us at "<a href="mailto:hello@azumi.dev">"hello@azumi.dev"</a>
+        <div class="contact-card">
+            <h1 style="margin-bottom: 1.5rem; font-size: 1.75rem;">"Get in Touch"</h1>
+            <p style="color: #555; margin-bottom: 1.5rem;">
+                "Have a question or want to contribute? We'd love to hear from you."
             </p>
+
+            <form action="/blog/contact" method="POST" az-on:submit="submit">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.375rem; font-weight: 500; font-size: 0.875rem;" for="name">"Your Name"</label>
+                    <input type="text" name="name" id="name"
+                           style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit;" />
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.375rem; font-weight: 500; font-size: 0.875rem;" for="email">"Email Address"</label>
+                    <input type="email" name="email" id="email"
+                           style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit;" />
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.375rem; font-weight: 500; font-size: 0.875rem;" for="message">"Message"</label>
+                    <textarea name="message" id="message" rows="5"
+                              style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit"
+                        style="display: inline-block; padding: 0.5rem 1rem; background: #0070f3; color: #fff; border: none; border-radius: 4px; font-size: 0.875rem; cursor: pointer;">
+                    "Send Message"
+                </button>
+            </form>
         </div>
     })
 }
 
-// Axum handlers
+// ─── About Page ──────────────────────────────────────────────────────────────
 
-pub async fn blog_handler() -> axum::response::Html<String> {
-    axum::response::Html(azumi::render_to_string(&post_list()))
-}
-
-pub async fn post_handler(
-    axum::extract::Path(slug): axum::extract::Path<String>,
-) -> axum::response::Html<String> {
-    axum::response::Html(azumi::render_to_string(&post_detail(&slug)))
-}
-
-pub async fn about_handler() -> axum::response::Html<String> {
-    axum::response::Html(azumi::render_to_string(&about_page()))
-}
-
-pub async fn contact_handler() -> axum::response::Html<String> {
-    axum::response::Html(azumi::render_to_string(&contact_page()))
+pub fn about_page() -> impl Component {
+    layout("About — Azumi Blog", html! {
+        <div class="about-card">
+            <h1 style="margin-bottom: 1rem;">"About This Blog"</h1>
+            <p style="color: #555; margin-bottom: 1rem;">
+                "This blog is built with Azumi, a Rust web framework with compile-time HTML/CSS/JS validation."
+            </p>
+            <p style="color: #555; margin-bottom: 1rem;">
+                "Azumi catches XSS vectors, CSS typos, and invalid HTML patterns at compile time — before your code ever reaches production."
+            </p>
+            <p style="color: #555;">
+                "This demo shows: routing, component composition, forms with action handlers, SEO metadata, and CSS scoping — all in type-safe Rust."
+            </p>
+        </div>
+    })
 }

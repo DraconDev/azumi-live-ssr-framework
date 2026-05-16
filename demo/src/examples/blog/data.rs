@@ -80,3 +80,12 @@ struct Counter { count: i32 }</code></pre>
 pub fn get_post_by_slug(slug: &str) -> Option<Post> {
     get_posts().into_iter().find(|p| p.slug == slug)
 }
+
+/// Increments the like count for a post by slug and returns the new count
+pub fn increment_likes(slug: &str) -> u32 {
+    // In production this would be a database call.
+    // Here we just return an incremented value for demo purposes.
+    let posts = get_posts();
+    let base = posts.iter().find(|p| p.slug == slug).map(|p| p.likes).unwrap_or(0);
+    base + 1
+}
