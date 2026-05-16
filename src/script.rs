@@ -574,6 +574,43 @@ mod tests {
     }
 
     // =========================================================================
+    // AzumiScript
+    // =========================================================================
+
+    #[test]
+    fn test_azumi_script_new_renders_script_tag() {
+        let script = AzumiScript::new();
+        let output = test::render(&script);
+        assert!(output.starts_with("<script>"), "Should start with <script>");
+        assert!(output.ends_with("</script>"), "Should end with </script>");
+        assert!(!output.contains("nonce="), "Should NOT have nonce attribute");
+    }
+
+    #[test]
+    fn test_azumi_script_with_nonce_renders_nonce_attribute() {
+        let script = AzumiScript::new().with_nonce("abc123");
+        let output = test::render(&script);
+        assert!(output.contains(r#"nonce="abc123""#), "Should include nonce attribute");
+        assert!(output.starts_with("<script nonce="), "Should start with <script nonce=");
+        assert!(output.ends_with("</script>"), "Should end with </script>");
+    }
+
+    #[test]
+    fn test_azumi_script_nonce_escapes_html() {
+        let script = AzumiScript::new().with_nonce(r#"a"b<c"#);
+        let output = test::render(&script);
+        assert!(!output.contains(r#"nonce="a"b<c""#), "Should NOT have unescaped nonce");
+        assert!(output.contains("nonce=\"a&quot;b&lt;c\""), "Should escape nonce value");
+    }
+
+    #[test]
+    fn test_azumi_script_default_is_new() {
+        let default = AzumiScript::default();
+        let from_new = AzumiScript::new();
+        assert_eq!(test::render(&default), test::render(&from_new), "default() should equal new()");
+    }
+
+    // =========================================================================
     // SessionCleanupScript
     // =========================================================================
 
