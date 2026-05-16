@@ -1081,19 +1081,12 @@ impl Parse for IfBlock {
     fn parse(input: ParseStream) -> Result<Self> {
         let span = input.span();
         input.parse::<Token![if]>()?;
-        // Condition is everything until {
         let mut condition = TokenStream::new();
         while !input.peek(Brace) {
             let tt: TokenTree = input.parse()?;
             condition.extend(Some(tt));
         }
 
-        if !input.peek(Brace) {
-            return Err(Error::new(
-                input.span(),
-                "Expected block { ... } after if condition",
-            ));
-        }
         let content;
         syn::braced!(content in input);
         let then_branch = parse_nodes(&content)?;
@@ -1146,12 +1139,6 @@ impl Parse for ForBlock {
             iterator.extend(Some(tt));
         }
 
-        if !input.peek(Brace) {
-            return Err(Error::new(
-                input.span(),
-                "Expected block { ... } in for loop",
-            ));
-        }
         let content;
         syn::braced!(content in input);
         let body = parse_nodes(&content)?;
