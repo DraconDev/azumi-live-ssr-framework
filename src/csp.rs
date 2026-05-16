@@ -435,6 +435,13 @@ mod axum_middleware {
 
                 if let Ok(header_value) = HeaderValue::from_str(&csp_value) {
                     response.headers_mut().insert(header::CONTENT_SECURITY_POLICY, header_value);
+                } else {
+                    #[cfg(debug_assertions)]
+                    eprintln!(
+                        "Azumi Warning: CSP header value contains invalid characters and was dropped. \
+                        This is a security downgrade. Value: {:?}",
+                        csp_value
+                    );
                 }
 
                 response

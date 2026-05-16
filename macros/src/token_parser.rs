@@ -984,7 +984,6 @@ fn parse_script_content(input: ParseStream, tag_name: &str) -> Result<Vec<Node>>
                     eprintln!("Not CSS, checking if it's a Brace...");
                 }
                 if input.peek2(Brace) {
-                    // @{ ... } -> Expression
                     if debug {
                         eprintln!("Found @{{ ... }} expression!");
                     }
@@ -997,12 +996,10 @@ fn parse_script_content(input: ParseStream, tag_name: &str) -> Result<Vec<Node>>
                 }
                 nodes.push(Node::Block(input.parse()?));
                 continue;
-            } else if debug {
-                eprintln!("IS CSS, treating as text");
             }
         }
 
-        if !input.peek(Token![@]) || is_css_at_rule(input) {
+        if !input.peek(Token![@]) {
             // Parse as text until @ (if not CSS) or </tag_name>
             let span = input.span();
             let mut tokens = Vec::new();
@@ -1199,12 +1196,6 @@ impl Parse for MatchBlock {
             expr.extend(Some(tt));
         }
 
-        if !input.peek(Brace) {
-            return Err(Error::new(
-                input.span(),
-                "Expected block { ... } in match expression",
-            ));
-        }
         let content;
         syn::braced!(content in input);
 

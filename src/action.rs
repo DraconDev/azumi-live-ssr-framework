@@ -269,4 +269,34 @@ mod tests {
     fn test_escape_js_string_noop() {
         assert_eq!(escape_js_string("hello world"), "hello world");
     }
+
+    #[test]
+    fn test_action_result_ok() {
+        let result = ActionResult::ok(&"hello");
+        match result {
+            ActionResult::Ok(html) => assert_eq!(html, "hello"),
+            _ => panic!("Expected ActionResult::Ok"),
+        }
+    }
+
+    #[test]
+    fn test_action_result_err() {
+        let result = ActionResult::err("Something went wrong");
+        match result {
+            ActionResult::Err { message, form_id } => {
+                assert_eq!(message, "Something went wrong");
+                assert_eq!(form_id, None);
+            }
+            _ => panic!("Expected ActionResult::Err"),
+        }
+    }
+
+    #[test]
+    fn test_action_result_redirect() {
+        let result = ActionResult::redirect("/dashboard");
+        match result {
+            ActionResult::Redirect(url) => assert_eq!(url, "/dashboard"),
+            _ => panic!("Expected ActionResult::Redirect"),
+        }
+    }
 }
