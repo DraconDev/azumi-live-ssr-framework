@@ -21,7 +21,7 @@ error: Azumi: Raw() is not allowed inside html!.
        html! { @{Raw("...")} }
        html! { @{Raw(format!("..."))} }
 
-       See: AI_GUIDE_FOR_WRITING_AZUMI.md
+       See: docs/guide.md
  --> tests/ui/11-raw-in-for.rs:7:14
   |
 7 |             @{azumi::Raw(dangerous)}

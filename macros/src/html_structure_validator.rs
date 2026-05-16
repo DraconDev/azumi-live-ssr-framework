@@ -54,7 +54,7 @@ pub fn validate_raw_usage(nodes: &[Node]) -> Vec<TokenStream> {
                                 html! { @{Raw(\"...\")} }\n\
                                 html! { @{Raw(format!(\"...\"))} }\n\
                                 \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md"
+                                See: docs/guide.md"
                             );
                     });
                 }

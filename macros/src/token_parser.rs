@@ -501,7 +501,7 @@ For dynamic styles: use <style>{variable}</style> or style attribute with expres
                 return Err(Error::new(
                     if let Some(joined) = start_span.join(name_span) { joined } else { name_span },
                     format!(
-                                "Inline <{}> tags not allowed in Azumi\n\n{}\n\nUse external files or {{expression}} instead of Raw(). See: AI_GUIDE_FOR_WRITING_AZUMI.md.",
+                                "Inline <{}> tags not allowed in Azumi\n\n{}\n\nUse external files or {{expression}} instead of Raw(). See: docs/guide.md.",
                         name, tag_help
                     ),
                 ));

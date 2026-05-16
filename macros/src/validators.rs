@@ -489,7 +489,7 @@ pub(crate) fn validate_format_in_expressions(
                                 \n\
                                 html! { {format!(\"<div>{}</div>\", value)} }\n\
                                 \n\
-                                See: AI_GUIDE_FOR_WRITING_AZUMI.md"
+                                See: docs/guide.md"
                             );
                         });
                     }

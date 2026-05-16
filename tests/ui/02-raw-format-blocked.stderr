@@ -21,7 +21,7 @@ error: Azumi: Raw() is not allowed inside html!.
        html! { @{Raw("...")} }
        html! { @{Raw(format!("..."))} }
 
-       See: AI_GUIDE_FOR_WRITING_AZUMI.md
+       See: docs/guide.md
  --> tests/ui/02-raw-format-blocked.rs:6:10
   |
 6 |         @{Raw(format!("<div>{}</div>", x))}
@@ -54,7 +54,7 @@ error: Azumi: format!() detected building HTML/CSS/JS strings.
 
        html! { {format!("<div>{}</div>", value)} }
 
-       See: AI_GUIDE_FOR_WRITING_AZUMI.md
+       See: docs/guide.md
  --> tests/ui/02-raw-format-blocked.rs:6:10
   |
 6 |         @{Raw(format!("<div>{}</div>", x))}

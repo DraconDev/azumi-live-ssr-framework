@@ -25,7 +25,7 @@ error: Azumi: format!() detected building HTML/CSS/JS strings.
 
        html! { {format!("<div>{}</div>", value)} }
 
-       See: AI_GUIDE_FOR_WRITING_AZUMI.md
+       See: docs/guide.md
  --> tests/ui/05-format-css-blocked.rs:6:12
   |
 6 |         <p>{format!(".btn {{ color: {}; }}", color)}</p>
