@@ -1274,4 +1274,3 @@ class Azumi {
 // Initialize
 window.azumi = new Azumi();
 window.azumi.log("Azumi Live Client Initialized 🚀");
-}
