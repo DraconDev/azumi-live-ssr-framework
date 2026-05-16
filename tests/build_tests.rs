@@ -371,6 +371,20 @@ mod minify_js_tests {
         assert!(result.contains("10 / 2"), "number / number should be division: {}", result);
         assert!(!result.contains("real comment"), "actual comment should be stripped");
     }
+
+    #[test]
+    fn regex_after_in_keyword() {
+        let src = "for (var k in /pattern/.test(x)) {}";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after 'in' keyword should be preserved: {}", result);
+    }
+
+    #[test]
+    fn regex_after_case_keyword() {
+        let src = "case /pattern/:";
+        let result = minify_js(src);
+        assert!(result.contains("/pattern/"), "regex after 'case' keyword should be preserved: {}", result);
+    }
 }
 
 mod error_fragment_tests {

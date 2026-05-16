@@ -124,6 +124,7 @@ async fn azumi_js_handler() -> impl IntoResponse {
 /// Backticks prevent template literal injection. Angle brackets and forward slash
 /// prevent HTML breakout when the JS string will be embedded in an HTML attribute.
 /// Semicolons prevent early statement termination in JS contexts.
+#[must_use]
 pub fn escape_js_string(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
