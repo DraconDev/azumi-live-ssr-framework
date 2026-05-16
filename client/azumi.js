@@ -118,6 +118,7 @@ class Azumi {
                         window.location.reload();
                     }
                 } catch (e) {
+                    /* noop */
                     // Not a JSON message or malformed
                 }
             };
@@ -129,6 +130,7 @@ class Azumi {
                 }
             };
         } catch (e) {
+            /* noop */
             // Hot reload likely not enabled on server
         }
     }
@@ -1271,6 +1273,8 @@ class Azumi {
         }
     }
 
-// Initialize
-window.azumi = new Azumi();
-window.azumi.log("Azumi Live Client Initialized 🚀");
+    init() {
+        window.azumi = this;
+        this.log("Azumi Live Client Initialized 🚀");
+    }
+}
