@@ -713,8 +713,8 @@ fn test_sign_state_for_user_format() {
     assert_eq!(parts.len(), 2, "Signed state must contain exactly one '|'");
     let payload = parts[0];
     assert!(
-        payload.starts_with("user123:{"),
-        "Payload should start with user_id:json. Got: {}",
+        payload.starts_with("azu:user123:{"),
+        "Payload should start with azu:user_id:json. Got: {}",
         payload
     );
 }

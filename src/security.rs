@@ -583,4 +583,46 @@ mod tests {
         let verified = verify_state(&signed).unwrap();
         assert_eq!(verified, json);
     }
+
+    #[test]
+    fn test_json_with_colon_prefix_not_misidentified_as_user_scoped() {
+        let json = r#"{"key:value": 1}"#;
+        let signed = sign_state(json);
+        let result = verify_state(&signed);
+        assert!(result.is_ok(), "JSON with colon in key should verify as non-user-scoped");
+        assert_eq!(result.unwrap(), json);
+    }
+
+    #[test]
+    fn test_json_starting_with_alphanumeric_colon_not_misidentified() {
+        let json = r#"{"x": true}"#;
+        let signed = sign_state(json);
+        let result = verify_state(&signed);
+        assert!(result.is_ok(), "JSON starting with open-brace should never be misidentified as user-scoped");
+    }
+
+    #[test]
+    fn test_user_scoped_with_colon_in_json_verifies_correctly() {
+        let json = r#"{"msg": "a:b:c"}"#;
+        let signed = sign_state_for_user("user1", json);
+        let result = verify_state_for_user("user1", &signed);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), json);
+    }
+
+    #[test]
+    fn test_non_user_scoped_state_not_rejected_by_verify_state() {
+        let json = r#"{"count": 10}"#;
+        let signed = sign_state(json);
+        let result = verify_state(&signed);
+        assert!(result.is_ok(), "Non-user-scoped state should verify with verify_state()");
+    }
+
+    #[test]
+    fn test_user_scoped_state_rejected_by_verify_state_no_user() {
+        let json = r#"{"count": 10}"#;
+        let signed = sign_state_for_user("alice", json);
+        let result = verify_state(&signed);
+        assert!(result.is_err(), "User-scoped state must be rejected by verify_state() (no user context)");
+    }
 }
