@@ -593,20 +593,6 @@ pub fn reconstruct_css_from_parsed(style_input: &StyleInput) -> String {
     raw_css
 }
 
-/// Reconstruct CSS string from TokenStream (parsing and formatting)
-#[doc(hidden)]
-#[allow(dead_code)]
-pub fn reconstruct_css_from_tokens(input: TokenStream) -> String {
-    // Parse then delegate to the shared reconstruction function
-    let style_input: StyleInput = match parse2(input) {
-        Ok(input) => input,
-        Err(_e) => {
-            return String::new();
-        }
-    };
-    reconstruct_css_from_parsed(&style_input)
-}
-
 fn tokens_to_css_string(tokens: &TokenStream) -> String {
     let mut css = String::new();
     let mut last_char_was_hyphen = false;
