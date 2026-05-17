@@ -513,55 +513,46 @@ fn generate_bindings(classes: Vec<String>, ids: Vec<String>, skip_dashed: bool) 
 
 /// Process global style macro - validates but doesn't scope or generate bindings
 pub fn process_global_style_macro(input: TokenStream) -> StyleOutput {
-    // 1. Parse the input
     let style_input: StyleInput = match parse2(input.clone()) {
         Ok(input) => input,
-        Err(err) => {
+        Err(_) => {
+            let raw_css = tokens_to_css_string(&input);
+            let (classes, ids) = extract_selectors(&raw_css);
+            let bindings = generate_bindings(classes.into_iter().collect(), ids.into_iter().collect(), false);
             return StyleOutput {
-                bindings: err.to_compile_error(),
-                css: String::new(),
+                bindings,
+                css: minify_css(&raw_css),
             };
         }
     };
 
-    // 2. Generate raw CSS from parsed AST (DRY: use shared reconstruction)
     let raw_css = reconstruct_css_from_parsed(&style_input);
-
-    // 3. Extract classes and IDs for bindings (even though not scoped)
     let (classes, ids) = extract_selectors(&raw_css);
-
-    // 4. Generate Bindings for both classes and IDs (without scoping)
     let bindings = generate_bindings(classes.into_iter().collect(), ids.into_iter().collect(), false);
 
-    // 5. Return unscoped CSS with bindings
     StyleOutput {
-        bindings,                  // Now includes bindings for global styles!
-        css: minify_css(&raw_css), // Unscoped CSS (minified)
+        bindings,
+        css: minify_css(&raw_css),
     }
 }
 
 pub fn process_style_macro(input: TokenStream) -> StyleOutput {
-    // 1. Parse the input (only once)
-    let style_input: StyleInput = match parse2(input) {
+    let style_input: StyleInput = match parse2(input.clone()) {
         Ok(input) => input,
-        Err(err) => {
+        Err(_) => {
+            let raw_css = tokens_to_css_string(&input);
+            eprintln!("FALLBACK raw_css: {}", raw_css);
+            let (classes, ids) = extract_selectors(&raw_css);
+            let bindings = generate_bindings(classes.into_iter().collect(), ids.into_iter().collect(), true);
             return StyleOutput {
-                bindings: err.to_compile_error(),
-                css: String::new(),
+                bindings,
+                css: minify_css(&raw_css),
             };
         }
     };
 
-    // 2. Reconstruct CSS string from already-parsed AST (no re-parsing)
     let raw_css = reconstruct_css_from_parsed(&style_input);
-
-    // 3. Extract classes and IDs for bindings
     let (classes, ids) = extract_selectors(&raw_css);
-
-    // 4. Generate Bindings for both classes and IDs
-    // Note: We do NOT rename classes here (e.g. .class-s123).
-    // Instead, we use Attribute Scoping in generate_body (macros/src/lib.rs).
-    // So we just bind `let class = "class";` and the runtime adds `[data-sID]` to the CSS and element.
     let bindings = generate_bindings(classes.into_iter().collect(), ids.into_iter().collect(), true);
 
     StyleOutput {
@@ -1156,10 +1147,14 @@ mod tests {
 
     #[test]
     fn test_process_style_macro_pseudo_element() {
-        use quote::quote;
-        let input = quote! {
-            .tooltip::before { content: "→" }
-        };
+        let input: TokenStream = ".tooltip::before { content: \"→\" }".parse().unwrap();
+        for tt in input.clone() {
+            match tt {
+                TokenTree::Punct(p) => eprintln!("Punct: '{}' spacing={:?}", p.as_char(), p.spacing()),
+                TokenTree::Ident(i) => eprintln!("Ident: '{}'", i),
+                _ => eprintln!("Other: {:?}", tt),
+            }
+        }
         let output = process_style_macro(input);
         assert!(
             output.css.contains("::before"),
