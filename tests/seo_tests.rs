@@ -468,3 +468,28 @@ fn test_seo_xss_image_url_with_angle_brackets() {
         output
     );
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION: init_seo Result Behavior
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_init_seo_returns_ok_on_first_call() {
+    use azumi::seo::{self, SeoConfig};
+    let config = SeoConfig::new(format!("Unique test {}", std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos()));
+    let result = seo::init_seo(config);
+    assert!(result.is_ok(), "First init_seo() call should return Ok");
+}
+
+#[test]
+fn test_init_seo_returns_err_on_duplicate_call() {
+    use azumi::seo::{self, SeoConfig};
+    let _ = seo::init_seo(SeoConfig::new("First Init for Err Test"));
+    let result = seo::init_seo(SeoConfig::new("Duplicate Init for Err Test"));
+    assert!(result.is_err(), "Duplicate init_seo() call should return Err");
+    let rejected = result.unwrap_err();
+    assert_eq!(rejected.title, "Duplicate Init for Err Test", "Rejected config should be returned");
+}
