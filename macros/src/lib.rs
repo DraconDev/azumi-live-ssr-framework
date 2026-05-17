@@ -61,6 +61,12 @@ pub fn live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     live::expand_live_impl(attr, item)
 }
 
+#[doc(hidden)]
+#[proc_macro_attribute]
+pub fn predict(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    item
+}
+
 #[proc_macro]
 pub fn json_data(input: TokenStream) -> TokenStream {
     inline_inject::expand_json_data(input)

@@ -15,7 +15,7 @@ pub use azumi_macros::{
 };
 #[doc(hidden)]
 pub use azumi_macros::{
-    head, live_impl, page,
+    head, live_impl, page, predict,
 };
 #[cfg(feature = "axum")]
 pub use azumi_macros::action;

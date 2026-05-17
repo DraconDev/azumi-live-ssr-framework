@@ -589,7 +589,7 @@ fn test_survey_form() {
 // SECTION 5: ValidatedForm Render Output Tests
 // ════════════════════════════════════════════════════════════════════════════
 
-use azumi::form::{FormValidator, ValidatedForm, ValidationErrors};
+use azumi::form::{ValidatedForm, ValidationErrors};
 
 #[test]
 fn test_validated_input_renders_text_input() {

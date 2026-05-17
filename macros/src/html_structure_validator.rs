@@ -1133,34 +1133,6 @@ mod tests {
         })
     }
 
-    fn text_node(content: &str) -> Node {
-        Node::Text(crate::token_parser::Text {
-            content: content.to_string(),
-            span: proc_macro2::Span::call_site(),
-        })
-    }
-
-    fn element_with_attrs(name: &str, attrs: Vec<(&str, &str)>) -> Node {
-        let mut elem = Element {
-            name: name.to_string(),
-            attrs: vec![],
-            children: vec![],
-            bind_struct: None,
-            span: proc_macro2::Span::call_site(),
-            full_span: proc_macro2::Span::call_site(),
-        };
-        for (name, value) in attrs {
-            elem.attrs.push(crate::token_parser::Attribute {
-                name: name.to_string(),
-                name_span: proc_macro2::Span::call_site(),
-                value: crate::token_parser::AttributeValue::Static(value.to_string()),
-                span: proc_macro2::Span::call_site(),
-                value_span: None,
-            });
-        }
-        Node::Element(elem)
-    }
-
     // validate_node_order
     #[test]
     fn test_valid_order_content_then_style() {
