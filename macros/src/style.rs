@@ -1141,4 +1141,42 @@ mod tests {
             output.css
         );
     }
+
+    #[test]
+    fn test_tokens_to_css_string_pseudo_element() {
+        use quote::quote;
+        let input = quote! { .tooltip::before { content: "→" } };
+        let output = tokens_to_css_string(&input);
+        assert!(
+            output.contains("::before"),
+            "Pseudo-element ::before should be preserved, got: {}",
+            output
+        );
+    }
+
+    #[test]
+    fn test_process_style_macro_pseudo_element() {
+        use quote::quote;
+        let input = quote! {
+            .tooltip::before { content: "→" }
+        };
+        let output = process_style_macro(input);
+        assert!(
+            output.css.contains("::before"),
+            "Pseudo-element ::before should survive process_style_macro, got: {}",
+            output.css
+        );
+    }
+
+    #[test]
+    fn test_tokens_to_css_string_pseudo_class() {
+        use quote::quote;
+        let input = quote! { .card:hover { color: blue } };
+        let output = tokens_to_css_string(&input);
+        assert!(
+            output.contains(":hover"),
+            "Pseudo-class :hover should be preserved, got: {}",
+            output
+        );
+    }
 }
