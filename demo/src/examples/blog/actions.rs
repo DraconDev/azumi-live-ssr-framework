@@ -30,10 +30,14 @@ pub async fn contact_action(Form(form): Form<ContactForm>) -> ActionResult {
     }
 
     if !errors.is_empty() {
-        let error_html = errors.iter().map(|(field, msg)| {
-            format!(r#"<p data-error="{}" style="color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem;">{}</p>"#, field, msg)
-        }).collect::<Vec<_>>().join("");
-        return ActionResult::err(error_html);
+        let error_component = html! {
+            <div>
+                @for (field, msg) in &errors {
+                    <p data-error={field} style="color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem;">{msg}</p>
+                }
+            </div>
+        };
+        return ActionResult::err(azumi::render_to_string(&error_component));
     }
 
     // In production: send email, save to DB, etc.
