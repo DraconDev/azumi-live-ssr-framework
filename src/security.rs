@@ -102,7 +102,11 @@ pub fn sign_state(state_json: &str) -> String {
 }
 
 /// Signs a state string scoped to a specific user.
-/// Returns format: "{user_id}:{json}|{timestamp}|{signature}"
+/// Returns format: "azu:{user_id}:{json}|{timestamp}|{signature}"
+///
+/// The `azu:` prefix is an explicit marker that unambiguously identifies
+/// user-scoped state during verification, preventing misidentification
+/// of non-user-scoped JSON that happens to contain a colon.
 ///
 /// This prevents replay attacks where User A's state is replayed by User B.
 /// User B's verification will fail because the user_id won't match.
@@ -116,7 +120,7 @@ fn sign_state_internal(user_id: Option<&str>, state_json: &str) -> String {
     let timestamp = get_current_timestamp();
 
     let payload = match user_id {
-        Some(uid) => format!("{}:{}", uid, state_json),
+        Some(uid) => format!("azu:{}:{}", uid, state_json),
         None => state_json.to_string(),
     };
 
@@ -257,22 +261,21 @@ fn verify_state_internal_detailed(
     }
 
     let payload = &payload_with_ts[..second_last_pipe];
-    let (actual_user_id, state_json) = match payload.find(':') {
-        Some(idx) => {
-            let uid = &payload[..idx];
-            let rest = &payload[idx + 1..];
-            if uid
-                .chars()
-                .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
-                && !rest.is_empty()
-                && rest.starts_with('{')
-            {
-                (Some(uid), rest)
-            } else {
-                (None, payload)
+    let (actual_user_id, state_json) = if let Some(rest) = payload.strip_prefix("azu:") {
+        match rest.find(':') {
+            Some(idx) => {
+                let uid = &rest[..idx];
+                let json = &rest[idx + 1..];
+                if !uid.is_empty() && !json.is_empty() {
+                    (Some(uid), json)
+                } else {
+                    (None, payload)
+                }
             }
+            None => (None, payload),
         }
-        None => (None, payload),
+    } else {
+        (None, payload)
     };
 
     if let Some(expected) = expected_user_id {
@@ -539,7 +542,7 @@ mod tests {
     fn test_user_scoped_sign_and_verify() {
         let json = r#"{"count": 10}"#;
         let signed = sign_state_for_user("user123", json);
-        assert!(signed.starts_with("user123:"));
+        assert!(signed.starts_with("azu:user123:"));
 
         let verified = verify_state_for_user("user123", &signed).unwrap();
         assert_eq!(verified, json);
@@ -573,8 +576,8 @@ mod tests {
         let json = r#"{"count": 10}"#;
         let signed = sign_state(json);
 
-        // Should not start with user_id pattern
-        assert!(!signed.starts_with("user") || signed.chars().nth(4) != Some(':'));
+        // Should not start with "azu:" prefix
+        assert!(!signed.starts_with("azu:"));
 
         // verify_state should work fine
         let verified = verify_state(&signed).unwrap();
