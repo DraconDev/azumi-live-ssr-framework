@@ -88,16 +88,16 @@ impl SeoConfig {
 ///     eprintln!("SEO already initialized, rejected: {:?}", rejected);
 /// }
 /// ```
-pub fn init_seo(config: SeoConfig) -> Result<(), SeoConfig> {
+pub fn init_seo(config: SeoConfig) -> Result<(), Box<SeoConfig>> {
     if let Ok(mut guard) = SITE_CONFIG.write() {
         if guard.is_none() {
             *guard = Some(config);
             Ok(())
         } else {
-            Err(config)
+            Err(Box::new(config))
         }
     } else {
-        Err(config)
+        Err(Box::new(config))
     }
 }
 
