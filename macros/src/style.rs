@@ -542,7 +542,6 @@ pub fn process_style_macro(input: TokenStream) -> StyleOutput {
         Ok(input) => input,
         Err(_) => {
             let raw_css = tokens_to_css_string(&input);
-            eprintln!("FALLBACK raw_css: {}", raw_css);
             let (classes, ids) = extract_selectors(&raw_css);
             let bindings = generate_bindings(classes.into_iter().collect(), ids.into_iter().collect(), true);
             return StyleOutput {
@@ -982,20 +981,41 @@ fn is_valid_css_property(name: &str) -> bool {
 fn minify_css(css: &str) -> String {
     let parse_options = ParserOptions::default();
     if let Ok(stylesheet) = StyleSheet::parse(css, parse_options) {
-        let targets = Targets {
-            ..Targets::default()
-        };
         let print_options = PrinterOptions {
             minify: true,
-            targets,
+            targets: Targets::default(),
             ..PrinterOptions::default()
         };
         if let Ok(minified) = stylesheet.to_css(print_options) {
-            return minified.code;
+            return restore_pseudo_elements(&minified.code);
         }
     }
 
     css.trim().to_string()
+}
+
+fn restore_pseudo_elements(css: &str) -> String {
+    const CSS2_PSEUDO_ELEMENTS: &[(&str, &str)] = &[
+        (":before", "::before"),
+        (":after", "::after"),
+        (":first-line", "::first-line"),
+        (":first-letter", "::first-letter"),
+    ];
+    let mut result = css.to_string();
+    for (single, double) in CSS2_PSEUDO_ELEMENTS {
+        let mut start = 0;
+        while let Some(pos) = result[start..].find(single) {
+            let abs_pos = start + pos;
+            let preceded_by_colon = abs_pos > 0 && result.as_bytes()[abs_pos - 1] == b':';
+            if !preceded_by_colon {
+                result = format!("{}{}{}", &result[..abs_pos], double, &result[abs_pos + single.len()..]);
+                start = abs_pos + double.len();
+            } else {
+                start = abs_pos + 1;
+            }
+        }
+    }
+    result
 }
 
 #[cfg(test)]
@@ -1147,33 +1167,33 @@ mod tests {
     }
 
     #[test]
-    fn test_lightningcss_preserves_double_colon() {
+    fn test_minify_css_preserves_double_colon() {
         let css = ".tooltip::before { content: \"→\" }";
-        let parse_options = ParserOptions::default();
-        let stylesheet = StyleSheet::parse(css, parse_options).expect("parse should succeed");
-        let print_options = PrinterOptions {
-            minify: true,
-            targets: Targets::default(),
-            ..PrinterOptions::default()
-        };
-        let minified = stylesheet.to_css(print_options).expect("to_css should succeed");
+        let minified = minify_css(css);
         assert!(
-            minified.code.contains("::before"),
-            "lightningcss should preserve ::before with default targets, got: {}",
-            minified.code
+            minified.contains("::before"),
+            "minify_css should preserve ::before pseudo-element, got: {}",
+            minified
         );
+    }
+
+    #[test]
+    fn test_restore_pseudo_elements_basic() {
+        let css = ".card:before{color:red}.card:after{color:blue}";
+        let restored = restore_pseudo_elements(css);
+        assert_eq!(restored, ".card::before{color:red}.card::after{color:blue}");
+    }
+
+    #[test]
+    fn test_restore_pseudo_elements_preserves_already_double() {
+        let css = ".card::before{color:red}";
+        let restored = restore_pseudo_elements(css);
+        assert_eq!(restored, ".card::before{color:red}");
     }
 
     #[test]
     fn test_process_style_macro_pseudo_element() {
         let input: TokenStream = ".tooltip::before { content: \"→\" }".parse().unwrap();
-        for tt in input.clone() {
-            match tt {
-                TokenTree::Punct(p) => eprintln!("Punct: '{}' spacing={:?}", p.as_char(), p.spacing()),
-                TokenTree::Ident(i) => eprintln!("Ident: '{}'", i),
-                _ => eprintln!("Other: {:?}", tt),
-            }
-        }
         let output = process_style_macro(input);
         assert!(
             output.css.contains("::before"),
