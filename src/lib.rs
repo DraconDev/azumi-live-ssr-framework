@@ -362,8 +362,6 @@ where
         if let Some(c) = self.closure.borrow_mut().take() {
             c(f)
         } else {
-            // In debug mode, emit a visible warning. In release, silently return Ok.
-            #[cfg(debug_assertions)]
             f.write_str("<!-- Azumi Warning: FnOnceComponent rendered more than once -->")?;
             Ok(())
         }
