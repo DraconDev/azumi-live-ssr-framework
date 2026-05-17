@@ -1147,13 +1147,20 @@ mod tests {
     }
 
     #[test]
-    fn test_minify_css_preserves_double_colon() {
+    fn test_lightningcss_preserves_double_colon() {
         let css = ".tooltip::before { content: \"→\" }";
-        let minified = minify_css(css);
+        let parse_options = ParserOptions::default();
+        let stylesheet = StyleSheet::parse(css, parse_options).expect("parse should succeed");
+        let print_options = PrinterOptions {
+            minify: true,
+            targets: Targets::default(),
+            ..PrinterOptions::default()
+        };
+        let minified = stylesheet.to_css(print_options).expect("to_css should succeed");
         assert!(
-            minified.contains("::before"),
-            "minify_css should preserve ::before pseudo-element, got: {}",
-            minified
+            minified.code.contains("::before"),
+            "lightningcss should preserve ::before with default targets, got: {}",
+            minified.code
         );
     }
 
