@@ -327,4 +327,74 @@ mod tests {
         let id2 = compute_scope_id(2, 1);
         assert_ne!(id1, id2, "Different positions should produce different scope IDs");
     }
+
+    #[test]
+    fn test_is_pseudo_class() {
+        let result = scope_css(".card:is(.active) { color: green; }", "abc");
+        assert!(
+            result.contains("[data-abc]:is(.active)"),
+            ":is() should be treated as pseudo-class after scope attr, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_where_pseudo_class() {
+        let result = scope_css(".card:where(.featured) { border: 1px; }", "abc");
+        assert!(
+            result.contains("[data-abc]:where(.featured)"),
+            ":where() should be treated as pseudo-class after scope attr, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_not_pseudo_class() {
+        let result = scope_css(".card:not(.hidden) { display: block; }", "abc");
+        assert!(
+            result.contains("[data-abc]:not(.hidden)"),
+            ":not() should be treated as pseudo-class after scope attr, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_has_pseudo_class() {
+        let result = scope_css(".card:has(> .icon) { padding: 2rem; }", "abc");
+        assert!(
+            result.contains("[data-abc]:has(> .icon)"),
+            ":has() should be treated as pseudo-class after scope attr, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_is_with_pseudo_element() {
+        let result = scope_css(".card:is(.active)::before { content: ''; }", "abc");
+        assert!(
+            result.contains("[data-abc]:is(.active)::before"),
+            ":is() + ::before should place scope before pseudo-class, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_not_with_pseudo_element() {
+        let result = scope_css(".card:not(.hidden)::after { content: 'x'; }", "abc");
+        assert!(
+            result.contains("[data-abc]:not(.hidden)::after"),
+            ":not() + ::after should place scope before pseudo-class, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_nested_functional_pseudo() {
+        let result = scope_css(".card:is(.active, .featured) { color: blue; }", "abc");
+        assert!(
+            result.contains("[data-abc]:is(.active, .featured)"),
+            ":is() with multiple args should be scoped correctly, got: {}",
+            result
+        );
+    }
 }
