@@ -401,3 +401,40 @@ fn test_both_produce_valid_html() {
     assert_eq!(html_fn, html_fn_once);
     assert!(html_fn.contains("<div>content</div>"));
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SECTION 8: Release-mode safety — re-render always emits visible warning
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_fn_once_re_render_produces_visible_warning_in_all_modes() {
+    let component = from_fn_once(|f| write!(f, "<p>First</p>"));
+
+    let html1 = test::render(&component);
+    assert_eq!(html1, "<p>First</p>");
+
+    let html2 = test::render(&component);
+    assert!(
+        html2.contains("FnOnceComponent rendered more than once"),
+        "Re-render must always produce a visible warning comment, got: {}",
+        html2
+    );
+    assert!(
+        html2.contains("<!--"),
+        "Warning must be an HTML comment so it doesn't affect rendering, got: {}",
+        html2
+    );
+}
+
+#[test]
+fn test_fn_once_re_render_never_silently_produces_empty() {
+    let component = from_fn_once(|f| write!(f, "<div>Content</div>"));
+
+    let _ = test::render(&component);
+    let html2 = test::render(&component);
+
+    assert_ne!(
+        html2, "",
+        "FnOnceComponent must NEVER silently produce empty output on re-render"
+    );
+}
