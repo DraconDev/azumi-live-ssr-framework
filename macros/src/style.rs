@@ -1,6 +1,7 @@
 use crate::css::extract_selectors;
 use heck::ToSnakeCase;
 use lightningcss::stylesheet::{ParserOptions, PrinterOptions, StyleSheet};
+use lightningcss::targets::Targets;
 use proc_macro2::{TokenStream, TokenTree};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
@@ -980,12 +981,13 @@ fn is_valid_css_property(name: &str) -> bool {
 /// Minify CSS using lightningcss
 fn minify_css(css: &str) -> String {
     let parse_options = ParserOptions::default();
-    // We treat all CSS as a full stylesheet for parsing simplification
-    // For scoped CSS, this is fine as rename_css_selectors produces valid CSS.
     if let Ok(stylesheet) = StyleSheet::parse(css, parse_options) {
+        let targets = Targets {
+            ..Targets::default()
+        };
         let print_options = PrinterOptions {
             minify: true,
-            // Keep original targets if possible, or use standard defaults
+            targets,
             ..PrinterOptions::default()
         };
         if let Ok(minified) = stylesheet.to_css(print_options) {
@@ -993,7 +995,6 @@ fn minify_css(css: &str) -> String {
         }
     }
 
-    // Fallback: simple whitespace/cleanup if parsing (unexpectedly) fails
     css.trim().to_string()
 }
 
@@ -1142,6 +1143,17 @@ mod tests {
             output.contains("::before"),
             "Pseudo-element ::before should be preserved, got: {}",
             output
+        );
+    }
+
+    #[test]
+    fn test_minify_css_preserves_double_colon() {
+        let css = ".tooltip::before { content: \"→\" }";
+        let minified = minify_css(css);
+        assert!(
+            minified.contains("::before"),
+            "minify_css should preserve ::before pseudo-element, got: {}",
+            minified
         );
     }
 
