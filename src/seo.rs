@@ -75,13 +75,29 @@ impl SeoConfig {
     }
 }
 
-pub fn init_seo(config: SeoConfig) {
+/// Initialize the global SEO configuration.
+///
+/// Returns `Ok(())` on first call, `Err(config)` on subsequent calls
+/// (the returned config is the one that was rejected).
+///
+/// # Example
+///
+/// ```rust,ignore
+/// let config = SeoConfig::new("My Site").with_description("A cool site");
+/// if let Err(rejected) = init_seo(config) {
+///     eprintln!("SEO already initialized, rejected: {:?}", rejected);
+/// }
+/// ```
+pub fn init_seo(config: SeoConfig) -> Result<(), SeoConfig> {
     if let Ok(mut guard) = SITE_CONFIG.write() {
         if guard.is_none() {
             *guard = Some(config);
+            Ok(())
         } else {
-            eprintln!("WARNING: init_seo() called multiple times - first initialization preserved");
+            Err(config)
         }
+    } else {
+        Err(config)
     }
 }
 
