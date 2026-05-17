@@ -447,8 +447,9 @@ pub(crate) fn validate_format_in_expressions(
                 let normalized = content_str.replace(' ', "");
 
                 // Check for format! usage that's building HTML-like strings
-                if normalized.contains("format!") {
-                    if has_web_content_pattern(&content_str) {
+                if normalized.contains("format!")
+                    && has_web_content_pattern(&content_str)
+                {
                         errors.push(quote_spanned! { expr.span =>
                             compile_error!(
                                 "Azumi: format!() detected building HTML/CSS/JS strings.\n\n\
@@ -480,7 +481,6 @@ pub(crate) fn validate_format_in_expressions(
                                 See: docs/guide.md"
                             );
                         });
-                    }
                 }
             }
             token_parser::Node::Element(elem) => {

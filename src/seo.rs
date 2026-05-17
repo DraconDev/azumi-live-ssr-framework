@@ -128,13 +128,13 @@ pub fn generate_head(
 ///     Some(&site),
 /// );
 /// ```
-pub fn generate_head_with<'a>(
+pub fn generate_head_with(
     title: &str,
     description: Option<&str>,
     image: Option<&str>,
     url: Option<&str>,
     type_: Option<&str>,
-    site_config: Option<&'a SeoConfig>,
+    site_config: Option<&SeoConfig>,
 ) -> HeadContent {
     let global = site_config.cloned();
     let context_meta = crate::context::get_page_meta();

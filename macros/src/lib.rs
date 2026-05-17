@@ -196,7 +196,7 @@ fn generate_body(
                     format!("s{:x}", hasher.finish())
                 });
             (
-                crate::css::scope_css(&scoped_css, &scope_id),
+                crate::css::scope_css(scoped_css, &scope_id),
                 Some(scope_id),
             )
         } else {
