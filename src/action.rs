@@ -34,13 +34,25 @@ use axum::routing::get;
 ///
 /// # Example
 ///
-/// ```rust,ignore
-/// #[azumi::action]
-/// pub async fn save(form: SaveForm) -> ActionResult {
-///     if form.name.is_empty() {
-///         return ActionResult::err("Name is required");
-///     }
-///     ActionResult::ok(html! { <div>"Saved!"</div> })
+/// ```rust
+/// use azumi::prelude::*;
+///
+/// let component = html! { <div>"Saved!"</div> };
+/// let ok_result = ActionResult::ok(&component);
+/// let err_result = ActionResult::err("Name is required");
+/// let redirect_result = ActionResult::redirect("/success");
+///
+/// match ok_result {
+///     ActionResult::Ok(html) => assert!(html.contains("Saved!")),
+///     _ => panic!("expected Ok"),
+/// }
+/// match err_result {
+///     ActionResult::Err { message, .. } => assert_eq!(message, "Name is required"),
+///     _ => panic!("expected Err"),
+/// }
+/// match redirect_result {
+///     ActionResult::Redirect(url) => assert_eq!(url, "/success"),
+///     _ => panic!("expected Redirect"),
 /// }
 /// ```
 pub enum ActionResult {

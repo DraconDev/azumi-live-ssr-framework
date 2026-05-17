@@ -83,10 +83,12 @@ impl SeoConfig {
 /// # Example
 ///
 /// ```rust,ignore
+/// // Note: reset_seo() is only available in test builds
+/// azumi::seo::reset_seo();
 /// let config = SeoConfig::new("My Site").with_description("A cool site");
-/// if let Err(rejected) = init_seo(config) {
-///     eprintln!("SEO already initialized, rejected: {:?}", rejected);
-/// }
+/// assert!(init_seo(config).is_ok());
+/// let config2 = SeoConfig::new("My Site 2");
+/// assert!(init_seo(config2).is_err());
 /// ```
 pub fn init_seo(config: SeoConfig) -> Result<(), Box<SeoConfig>> {
     if let Ok(mut guard) = SITE_CONFIG.write() {
@@ -130,7 +132,9 @@ pub fn generate_head(
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```rust
+/// use azumi::seo::{generate_head_with, SeoConfig};
+///
 /// let site = SeoConfig::new("My Site")
 ///     .with_description("Default site description")
 ///     .with_image("/default-og.png");
@@ -143,6 +147,7 @@ pub fn generate_head(
 ///     Some("article"),
 ///     Some(&site),
 /// );
+/// // HeadContent contains meta tags and can be rendered in <head>
 /// ```
 pub fn generate_head_with(
     title: &str,

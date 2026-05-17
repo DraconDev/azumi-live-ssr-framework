@@ -1,4 +1,4 @@
-use super::data::{get_post_by_slug, get_posts, Post};
+use super::data::{get_post_by_slug, get_posts};
 use super::layout::layout;
 use azumi::prelude::*;
 
@@ -9,23 +9,23 @@ pub fn post_list_page_inner() -> impl Component {
     let posts = get_posts();
 
     html! {
-        <section class="post-list">
+        <section class:external="post-list">
             <h1>"Latest Posts"</h1>
             @for post in &posts {
-                <article class="post-card">
-                    <h2 class="post-title">
+                <article class:external="post-card">
+                    <h2 class:external="post-title">
                         <a href={format!("/blog/posts/{}", post.slug)}>{&post.title}</a>
                     </h2>
-                    <div class="post-meta">
+                    <div class:external="post-meta">
                         {&post.author} " · " {&post.date} " · " {post.likes} " likes"
                     </div>
-                    <div class="tag-row">
+                    <div class:external="tag-row">
                         @for tag in &post.tags {
-                            <span class="tag">{tag}</span>
+                            <span class:external="tag">{tag}</span>
                         }
                     </div>
-                    <p class="post-excerpt">{&post.excerpt}</p>
-                    <a href={format!("/blog/posts/{}", post.slug)} class="read-more">
+                    <p class:external="post-excerpt">{&post.excerpt}</p>
+                    <a href={format!("/blog/posts/{}", post.slug)} class:external="read-more">
                         "Read more →"
                     </a>
                 </article>
@@ -56,11 +56,11 @@ pub async fn post_list_page() -> impl axum::response::IntoResponse {
 // ─── Single Post Page ────────────────────────────────────────────────────────
 
 #[azumi::component]
-pub fn post_page_inner(slug: String) -> impl Component {
+pub fn post_page_inner(slug: String) -> Box<dyn Component> {
     let post = get_post_by_slug(&slug);
 
     let not_found = html! {
-        <div class="not-found">
+        <div class:external="not-found">
             <h1>"404"</h1>
             <p>"This post doesn't exist yet."</p>
             <a href="/blog">"Browse all posts"</a>
@@ -83,26 +83,35 @@ pub fn post_page_inner(slug: String) -> impl Component {
     };
 
     match post {
-        Some(p) => html! {
-            <>
-                <a class="back-link" href="/blog">"← Back to Blog"</a>
-                <article class="post-body">
-                    <h1>{&p.title}</h1>
-                    <div class="post-meta">
-                        {&p.author} " · " {&p.date} " · " {p.likes} " likes"
-                    </div>
-                    <div class="tag-row">
-                        @for tag in &p.tags {
-                            <span class="tag">{tag}</span>
-                        }
-                    </div>
-                    <div class="post-content">
-                        {PostContent(&p.content)}
-                    </div>
-                </article>
-            </>
-        },
-        None => not_found,
+        Some(p) => {
+            let title = p.title.clone();
+            let author = p.author.clone();
+            let date = p.date.clone();
+            let likes = p.likes;
+            let tags = p.tags.clone();
+            // Pre-render post content to owned String to avoid lifetime issues with Box<dyn Component>
+            let content_html = PostContent(&p.content).to_string();
+            Box::new(html! {
+                <div>
+                    <a class:external="back-link" href="/blog">"← Back to Blog"</a>
+                    <article class:external="post-body">
+                        <h1>{&title}</h1>
+                        <div class:external="post-meta">
+                            {&author} " · " {&date} " · " {likes} " likes"
+                        </div>
+                        <div class:external="tag-row">
+                            @for tag in &tags {
+                                <span class:external="tag">{tag}</span>
+                            }
+                        </div>
+                        <div class:external="post-content">
+                            {content_html}
+                        </div>
+                    </article>
+                </div>
+            })
+        }
+        None => Box::new(not_found),
     }
 }
 
@@ -118,9 +127,9 @@ pub async fn post_page(axum::extract::Path(slug): axum::extract::Path<String>) -
 }
 
 /// Renders post content — simple HTML passthrough for demo
-struct PostContent(&'static str);
+struct PostContent<'a>(&'a str);
 
-impl std::fmt::Display for PostContent {
+impl<'a> std::fmt::Display for PostContent<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for line in self.0.lines() {
             if line.is_empty() {
@@ -144,27 +153,27 @@ impl std::fmt::Display for PostContent {
 #[azumi::component]
 pub fn contact_page_inner() -> impl Component {
     html! {
-        <div class="contact-card">
+        <div class:external="contact-card">
             <h1>"Get in Touch"</h1>
             <p>"Have a question or want to contribute? We'd love to hear from you."</p>
 
             <form action="/blog/contact" method="POST" az-on:submit="submit">
-                <div class="form-group">
+                <div class:external="form-group">
                     <label for="name">"Your Name"</label>
-                    <input type="text" name="name" id="name" class="form-input" />
+                    <input type="text" name="name" id:external="name" class:external="form-input" />
                 </div>
 
-                <div class="form-group">
+                <div class:external="form-group">
                     <label for="email">"Email Address"</label>
-                    <input type="email" name="email" id="email" class="form-input" />
+                    <input type="email" name="email" id:external="email" class:external="form-input" />
                 </div>
 
-                <div class="form-group">
+                <div class:external="form-group">
                     <label for="message">"Message"</label>
-                    <textarea name="message" id="message" rows="5" class="form-textarea"></textarea>
+                    <textarea name="message" id:external="message" rows="5" class:external="form-textarea"></textarea>
                 </div>
 
-                <button type="submit" class="submit-btn">
+                <button type="submit" class:external="submit-btn">
                     "Send Message"
                 </button>
             </form>
@@ -216,7 +225,7 @@ pub async fn contact_page() -> impl axum::response::IntoResponse {
 #[azumi::component]
 pub fn about_page_inner() -> impl Component {
     html! {
-        <div class="about-card">
+        <div class:external="about-card">
             <h1>"About This Blog"</h1>
             <p>"This blog is built with Azumi, a Rust web framework with compile-time HTML/CSS/JS validation."</p>
             <p>"Azumi catches XSS vectors, CSS typos, and invalid HTML patterns at compile time — before they reach production."</p>

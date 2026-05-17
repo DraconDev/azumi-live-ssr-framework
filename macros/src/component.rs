@@ -98,41 +98,59 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let fn_generics = &input.sig.generics;
     let (impl_generics, ty_generics, where_clause) = fn_generics.split_for_impl();
 
-    // Check for live state parameter (first argument)
-    // Only trigger for parameters named "state" with a reference to a user-defined type
-    // This avoids false positives on primitive refs like &str
+    // Check for live state parameter
+    // Priority 1: explicit #[live_state] attribute on any parameter
+    // Priority 2: fallback to parameter named "state" (backward compatibility)
     let mut live_state_ident = None;
     let mut live_state_type = None;
-    if let Some(FnArg::Typed(PatType { pat, ty, .. })) = input.sig.inputs.first() {
-        if let Pat::Ident(pat_ident) = &**pat {
-            // Only consider parameter if it's named "state"
-            if pat_ident.ident == "state" {
-                // Extract the inner type from references: &T -> T, &mut T -> T
-                let inner_type: Box<Type> = match &**ty {
-                    Type::Reference(ref_ty) => ref_ty.elem.clone(),
-                    _ => ty.clone(),
-                };
-                // Avoid false positives on primitive types like &str, String, i32, etc.
-                // by checking if the type name is a known primitive
-                let is_primitive = if let Type::Path(type_path) = &*inner_type {
-                    if let Some(seg) = type_path.path.segments.first() {
-                        let name = seg.ident.to_string();
-                        matches!(
-                            name.as_str(),
-                            "str" | "String" | "i8" | "i16" | "i32" | "i64" | "i128" | "isize"
-                            | "u8" | "u16" | "u32" | "u64" | "u128" | "usize"
-                            | "f32" | "f64" | "bool" | "char"
-                            | "Vec" | "HashMap" | "BTreeMap" | "Option" | "Result"
-                        )
-                    } else {
-                        false
-                    }
-                } else {
-                    false
-                };
-                if !is_primitive {
+
+    // First pass: look for #[live_state] attribute
+    for arg in &input.sig.inputs {
+        if let FnArg::Typed(PatType { pat, ty, attrs, .. }) = arg {
+            let has_live_attr = attrs.iter().any(|a| a.path().is_ident("live_state"));
+            if has_live_attr {
+                if let Pat::Ident(pat_ident) = &**pat {
+                    let inner_type: Box<Type> = match &**ty {
+                        Type::Reference(ref_ty) => ref_ty.elem.clone(),
+                        _ => ty.clone(),
+                    };
                     live_state_ident = Some(&pat_ident.ident);
                     live_state_type = Some(inner_type);
+                    break;
+                }
+            }
+        }
+    }
+
+    // Second pass: fallback to "state" parameter name (backward compat)
+    if live_state_ident.is_none() {
+        if let Some(FnArg::Typed(PatType { pat, ty, .. })) = input.sig.inputs.first() {
+            if let Pat::Ident(pat_ident) = &**pat {
+                if pat_ident.ident == "state" {
+                    let inner_type: Box<Type> = match &**ty {
+                        Type::Reference(ref_ty) => ref_ty.elem.clone(),
+                        _ => ty.clone(),
+                    };
+                    let is_primitive = if let Type::Path(type_path) = &*inner_type {
+                        if let Some(seg) = type_path.path.segments.first() {
+                            let name = seg.ident.to_string();
+                            matches!(
+                                name.as_str(),
+                                "str" | "String" | "i8" | "i16" | "i32" | "i64" | "i128" | "isize"
+                                | "u8" | "u16" | "u32" | "u64" | "u128" | "usize"
+                                | "f32" | "f64" | "bool" | "char"
+                                | "Vec" | "HashMap" | "BTreeMap" | "Option" | "Result"
+                            )
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    };
+                    if !is_primitive {
+                        live_state_ident = Some(&pat_ident.ident);
+                        live_state_type = Some(inner_type);
+                    }
                 }
             }
         }
@@ -143,7 +161,20 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let scope_body = if let Some(state_ident) = live_state_ident {
         quote! {
             azumi::from_fn(move |f| {
-                let scope_json = <_ as azumi::LiveState>::to_scope(#state_ident);
+                let scope_json = match <_ as azumi::LiveState>::try_to_scope(#state_ident) {
+                    Ok(signed) => signed,
+                    Err(e) => {
+                        #[cfg(debug_assertions)]
+                        eprintln!(
+                            "⚠️  Azumi: Failed to serialize LiveState to JSON: {}. \
+                            This usually means a field doesn't implement Serialize. \
+                            Rendering scope with empty state. \
+                            Check that all state fields implement serde::Serialize.",
+                            e
+                        );
+                        azumi::security::sign_state("{}")
+                    }
+                };
                 let struct_name = <#live_state_type as azumi::LiveStateMetadata>::struct_name();
                 let local_json = azumi::LiveState::to_local_scope(#state_ident);
                 let predictions = <#live_state_type as azumi::LiveStateMetadata>::predictions();

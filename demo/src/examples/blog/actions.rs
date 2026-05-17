@@ -1,4 +1,5 @@
 use crate::examples::blog::data::{get_posts, increment_likes};
+use axum::extract::Form;
 use azumi::prelude::*;
 
 /// Contact form data
@@ -43,8 +44,9 @@ pub async fn contact_action(Form(form): Form<ContactForm>) -> ActionResult {
         form.message
     );
 
+    let success_style = "background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;";
     let component = html! {
-        <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        <div style={success_style}>
             <strong>{format!("Thanks, {}!", form.name)}</strong>" Your message has been sent."
         </div>
     };
@@ -61,8 +63,9 @@ pub async fn like_post(slug: String) -> ActionResult {
     match post {
         Some(p) => {
             let new_count = increment_likes(&p.slug);
+            let like_style = "color: #888; font-size: 0.875rem;";
             let component = html! {
-                <span style="color: #888; font-size: 0.875rem;">{new_count} " likes"</span>
+                <span style={like_style}>{new_count} " likes"</span>
             };
             ActionResult::ok(&component)
         }

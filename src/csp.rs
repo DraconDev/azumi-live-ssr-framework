@@ -5,7 +5,7 @@
 //!
 //! # Example (static CSP)
 //!
-//! ```rust,ignore
+//! ```rust
 //! use azumi::csp::ContentSecurityPolicy;
 //!
 //! let csp = ContentSecurityPolicy::new()
@@ -16,30 +16,24 @@
 //!     .form_action("'self'")
 //!     .build();
 //!
-//! // Use with Axum:
-//! // ([("content-security-policy", csp)], body)
+//! assert!(csp.contains("default-src 'self'"));
+//! assert!(csp.contains("script-src 'self'"));
+//! assert!(csp.contains("style-src 'self' 'unsafe-inline'"));
 //! ```
 //!
 //! # Example (nonce-based CSP)
 //!
 //! For stronger XSS protection, use per-request nonces instead of `'unsafe-inline'`:
 //!
-//! ```rust,ignore
+//! ```rust
 //! use azumi::csp::{CspNonce, ContentSecurityPolicy};
 //!
-//! // In your Axum handler:
-//! async fn home_handler(nonce: CspNonce) -> impl IntoResponse {
-//!     let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce)
-//!         .build();
+//! let nonce = CspNonce::generate();
+//! let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
 //!
-//!     // Access nonce for <style> tags:
-//!     // <style nonce={nonce.as_str()}>
-//!
-//!     (
-//!         [("content-security-policy", csp)],
-//!         axum::response::Html(render_to_string(&HomePage))
-//!     )
-//! }
+//! assert!(csp.contains("script-src 'self' 'nonce-"));
+//! assert!(csp.contains("style-src 'self' 'nonce-"));
+//! ```
 //! ```
 
 use std::fmt;
@@ -248,17 +242,12 @@ impl Default for ContentSecurityPolicy {
 ///
 /// # Usage with Axum
 ///
-/// ```rust,ignore
+/// ```rust
 /// use azumi::csp::{CspNonce, ContentSecurityPolicy};
 ///
-/// async fn handler(nonce: CspNonce) -> impl IntoResponse {
-///     let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
-///     // Pass nonce to components via context or direct parameter
-///     (
-///         [("content-security-policy", csp)],
-///         axum::response::Html(body)
-///     )
-/// }
+/// let nonce = CspNonce::generate();
+/// let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
+/// assert!(csp.contains("script-src 'self' 'nonce-"));
 /// ```
 ///
 /// # Usage in html!

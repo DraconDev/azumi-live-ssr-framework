@@ -5,26 +5,12 @@
 //!
 //! # Example
 //!
-//! ```rust,ignore
-//! use azumi::form::{FormValidator, ValidatedForm, ValidationErrors};
+//! ```rust
+//! use azumi::form::{FormValidator, ValidationRule};
 //!
-//! let mut validator = FormValidator::new();
-//! validator.field("email", &form.email)
-//!     .required()
-//!     .email();
-//! validator.field("password", &form.password)
-//!     .required()
-//!     .min_length(8);
-//!
-//! if let Some(errors) = validator.validate() {
-//!     // Render form with errors
-//!     return html! {
-//!         <form az-action="/register" az-target="#form">
-//!             {ValidatedForm::input("email", &form.email, errors.get("email"))}
-//!             {ValidatedForm::password("password", &form.password, errors.get("password"))}
-//!         </form>
-//!     };
-//! }
+//! let rules = vec![ValidationRule::Required, ValidationRule::Email];
+//! let attr = FormValidator::data_validate("email", &rules);
+//! assert_eq!(attr, "email:required,email");
 //! ```
 
 use crate::{Component, from_fn};
@@ -210,7 +196,7 @@ impl FormValidator {
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```rust
 /// use azumi::form::{FormValidator, ValidationRule};
 ///
 /// let rules = [
@@ -219,7 +205,7 @@ impl FormValidator {
 ///     ValidationRule::MinLength(8),
 /// ];
 /// let data_attr = FormValidator::data_validate("email", &rules);
-/// // data_attr = "required,email,min-length:8"
+/// assert_eq!(data_attr, "email:required,email,min-length:8");
 /// ```
 #[derive(Clone, Debug, PartialEq)]
 pub enum ValidationRule {
@@ -252,17 +238,12 @@ impl FormValidator {
     ///
     /// Use this in your html! macro to add validation attributes to inputs:
     ///
-    /// ```ignore
+    /// ```rust
     /// use azumi::form::{FormValidator, ValidationRule};
     ///
     /// let rules = [ValidationRule::Required, ValidationRule::Email];
-    /// html! {
-    ///     <input
-    ///         name="email"
-    ///         type="email"
-    ///         data-validate={FormValidator::data_validate("email", &rules)}
-    ///     />
-    /// }
+    /// let attr = FormValidator::data_validate("email", &rules);
+    /// assert_eq!(attr, "email:required,email");
     /// ```
     ///
     /// The client-side JavaScript reads `data-validate` and `data-field`

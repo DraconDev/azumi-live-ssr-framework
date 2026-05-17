@@ -1,6 +1,6 @@
 use azumi::prelude::*;
 
-pub fn layout(title: &str, children: impl Component) -> impl Component {
+pub fn layout<T: Component>(title: &str, children: T) -> impl Component + use<'_, T> {
     html! {
         <!DOCTYPE html>
         <html lang="en">
@@ -11,19 +11,19 @@ pub fn layout(title: &str, children: impl Component) -> impl Component {
             {azumi_script()}
         </head>
         <body>
-            <header class="header">
-                <nav class="nav">
-                    <a class="nav_link" href="/blog">"Blog"</a>
-                    <a class="nav_link" href="/blog/about">"About"</a>
-                    <a class="nav_link" href="/blog/contact">"Contact"</a>
+            <header class:external="header">
+                <nav class:external="nav">
+                    <a class:external="nav_link" href="/blog">"Blog"</a>
+                    <a class:external="nav_link" href="/blog/about">"About"</a>
+                    <a class:external="nav_link" href="/blog/contact">"Contact"</a>
                 </nav>
             </header>
 
-            <main class="main">
+            <main class:external="main">
                 {children}
             </main>
 
-            <footer class="footer">
+            <footer class:external="footer">
                 <p>"Built with Azumi — compile-time safe web development"</p>
             </footer>
 

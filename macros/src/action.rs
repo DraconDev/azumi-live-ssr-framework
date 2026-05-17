@@ -105,11 +105,31 @@ pub fn expand_action(item: TokenStream) -> TokenStream {
         }
     };
 
+    let path_const_name = quote::format_ident!("{}_PATH", fn_name);
+    let action_path_str = format!("/_azumi/action/{}", fn_name);
+
     let expanded = quote! {
         #(#fn_attrs)*
         #fn_vis #fn_async fn #fn_name(#fn_args) #fn_output {
             #fn_block
         }
+
+        /// The URL path for this action.
+        ///
+        /// Use this constant in `html!` `az-action` attributes
+        /// to prevent action URL typos at compile time.
+        ///
+        /// # Example
+        ///
+        /// ```rust,ignore
+        /// #[azumi::action]
+        /// fn like_post(form: LikeForm) -> ActionResult { ... }
+        ///
+        /// html! {
+        ///     <form az-action={like_post_PATH} az-target={"#like-area"}>
+        /// }
+        /// ```
+        pub const #path_const_name: &str = #action_path_str;
 
         pub async fn #wrapper_name(
             #(#extractor_params,)*
@@ -125,7 +145,7 @@ pub fn expand_action(item: TokenStream) -> TokenStream {
 
         azumi::inventory::submit! {
             azumi::action::ActionEntry {
-                path: concat!("/_azumi/action/", stringify!(#fn_name)),
+                path: #action_path_str,
                 handler: #router_helper_name,
             }
         }

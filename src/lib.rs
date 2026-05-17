@@ -99,6 +99,7 @@ pub const AZUMI_RULES: &[&str] = &[
     "For CSS injection: use <style>{var}</style>, NOT Raw() with <style>",
     "For JS injection: use <script>{var}</script>, NOT Raw() with <script> — content is auto-escaped inside html!",
     "<style>{var}</style> and <script>{var}</script> auto-escape </style> and </script> sequences",
+    "Use route constants for href and az-action — #[azumi::page(route = \"/path\")] generates page_name_ROUTE, #[azumi::action] generates action_name_PATH",
 ];
 
 pub trait Component {
@@ -131,15 +132,22 @@ pub trait LiveState:
     LiveStateMetadata + serde::Serialize + for<'de> serde::de::Deserialize<'de> + Send + Sync + 'static
 {
     fn to_scope(&self) -> String {
-        let json = match serde_json::to_string(self) {
-            Ok(j) => j,
+        match self.try_to_scope() {
+            Ok(signed) => signed,
             Err(e) => {
-                panic!("FATAL: Failed to serialize LiveState to JSON: {}. \
+                #[cfg(debug_assertions)]
+                eprintln!(
+                    "⚠️  Azumi: Failed to serialize LiveState to JSON: {}. \
                     This usually means a field doesn't implement Serialize. \
-                    Check that all state fields implement serde::Serialize.", e);
+                    Rendering scope with empty state. \
+                    Check that all state fields implement serde::Serialize.",
+                    e
+                );
+                // Return a signed empty state so the page still renders
+                // The scope div will show, but with empty state — server stays up
+                crate::security::sign_state("{}")
             }
-        };
-        crate::security::sign_state(&json)
+        }
     }
 
     /// Attempt to serialize state to a signed scope string.
@@ -212,13 +220,11 @@ pub struct FnComponent<F>(F);
 ///
 /// # Example
 ///
-/// ```ignore
-/// // This FnComponent IS Send + Sync because the closure captures nothing
-/// let comp = FnComponent::new(|f| write!(f, "Hello"));
+/// ```rust
+/// use azumi::{Component, render_to_string};
 ///
-/// // This FnComponent is NOT Send + Sync because it captures Rc
-/// let data = std::rc::Rc::new("Hello".to_string());
-/// let comp = FnComponent::new(move |f| write!(f, "{}", data)); // Not Send!
+/// let comp = azumi::html! { <span>"Hello"</span> };
+/// assert!(render_to_string(&comp).contains("Hello"));
 /// ```
 impl<F> Component for FnComponent<F>
 where
@@ -307,13 +313,12 @@ where
 ///
 /// # Example
 ///
-/// ```ignore
+/// ```rust,ignore
 /// let owned_data = String::from("hello");
-///
-/// // This works - move owned_data into both props AND children closure
 /// let component = FnOnceComponent::from_fn_once(move |f| {
-///     write!(f, "<div>{}</div>", owned_data)  // owned_data is consumed here
+///     write!(f, "<div>{}</div>", owned_data)
 /// });
+/// // FnOnceComponent renders once, then becomes a no-op
 /// ```
 ///
 /// # Difference from `FnComponent`
@@ -437,12 +442,14 @@ pub async fn render_page<C: Component + ?Sized>(component: &C) -> String {
 ///
 /// # Example
 ///
-/// ```rust,ignore
+/// ```rust
 /// use azumi::render_to_writer;
 ///
 /// let mut buf = Vec::new();
-/// render_to_writer(&my_component, &mut buf)?;
-/// // buf now contains the rendered HTML as bytes
+/// let component = azumi::html! { <p>"Hello"</p> };
+/// render_to_writer(&component, &mut buf).unwrap();
+/// let html = String::from_utf8(buf).unwrap();
+/// assert!(html.contains("Hello"));
 /// ```
 pub fn render_to_writer<C: Component + ?Sized, W: std::io::Write>(
     component: &C,

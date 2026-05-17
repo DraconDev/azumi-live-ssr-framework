@@ -10,9 +10,54 @@ type HmacSha256 = Hmac<Sha256>;
 
 #[cfg(debug_assertions)]
 const DEFAULT_SECRET: &str = "azumi-dev-secret-do-not-use-in-prod";
-const MAX_STATE_AGE_SECS: u64 = 3600; // 1 hour max age for signed state
+const DEFAULT_MAX_STATE_AGE_SECS: u64 = 3600; // 1 hour default max age for signed state
 
 static SECRET: OnceLock<String> = OnceLock::new();
+static MAX_STATE_AGE: OnceLock<u64> = OnceLock::new();
+
+/// Get the maximum allowed age for signed state.
+///
+/// Reads `AZUMI_STATE_MAX_AGE` environment variable (in seconds) at first call.
+/// Falls back to 3600 seconds (1 hour) if not set or invalid.
+///
+/// # Security Note
+///
+/// Increasing this value extends the window for replay attacks.
+/// Only increase if your application genuinely needs longer-lived state
+/// (e.g., multi-step forms that take longer than 1 hour).
+fn get_max_state_age_secs() -> u64 {
+    *MAX_STATE_AGE.get_or_init(|| {
+        match env::var("AZUMI_STATE_MAX_AGE") {
+            Ok(val) => match val.parse::<u64>() {
+                Ok(secs) if secs >= 60 => {
+                    #[cfg(debug_assertions)]
+                    eprintln!(
+                        "Azumi: Using custom state max age: {} seconds (from AZUMI_STATE_MAX_AGE)",
+                        secs
+                    );
+                    secs
+                }
+                Ok(secs) => {
+                    #[cfg(debug_assertions)]
+                    eprintln!(
+                        "⚠️  Azumi: AZUMI_STATE_MAX_AGE={} is too short (min 60s). Using default {}s.",
+                        secs, DEFAULT_MAX_STATE_AGE_SECS
+                    );
+                    DEFAULT_MAX_STATE_AGE_SECS
+                }
+                Err(_) => {
+                    #[cfg(debug_assertions)]
+                    eprintln!(
+                        "⚠️  Azumi: AZUMI_STATE_MAX_AGE='{}' is not a valid number. Using default {}s.",
+                        val, DEFAULT_MAX_STATE_AGE_SECS
+                    );
+                    DEFAULT_MAX_STATE_AGE_SECS
+                }
+            },
+            Err(_) => DEFAULT_MAX_STATE_AGE_SECS,
+        }
+    })
+}
 
 fn get_secret() -> &'static str {
     SECRET
@@ -243,11 +288,13 @@ fn verify_state_internal_detailed(
         return Err(VerifyStateError::TimestampMaxValue);
     }
 
-    if current_time.saturating_sub(timestamp) > MAX_STATE_AGE_SECS {
+    let max_age = get_max_state_age_secs();
+
+    if current_time.saturating_sub(timestamp) > max_age {
         return Err(VerifyStateError::TimestampExpired {
             ts: timestamp,
             now: current_time,
-            max_age: MAX_STATE_AGE_SECS,
+            max_age,
         });
     }
 

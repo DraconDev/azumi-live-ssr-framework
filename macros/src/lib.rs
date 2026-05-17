@@ -7,6 +7,7 @@ mod context;
 mod css;
 mod css_validator;
 mod head;
+mod html_rules;
 mod html_structure_validator;
 mod inline_inject;
 mod live;
@@ -14,6 +15,7 @@ mod page;
 mod schema;
 mod style;
 mod style_processing;
+mod tag_data;
 mod token_parser;
 mod validators;
 

@@ -8,14 +8,50 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::process::{Child, Command};
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
 /// Returns the router for Azumi development tools
 /// currently includes the hot reload websocket endpoint
+///
+/// # Security
+///
+/// This function is **development-only**. It will panic in release builds
+/// to prevent accidental exposure of dev endpoints in production.
+///
+/// If you see this panic, remove `devtools` from your Cargo features:
+/// ```toml
+/// [dependencies]
+/// azumi = { version = "47", default-features = true }
+/// # NOT: features = ["devtools"]  ← remove this for production
+/// ```
 pub fn router<S>() -> Router<S>
 where
     S: Clone + Send + Sync + 'static,
 {
+    // Guard: prevent devtools from running in release builds
+    #[cfg(not(debug_assertions))]
+    {
+        panic!(
+            "Azumi devtools enabled in release build! \
+            This exposes development endpoints (hot reload, template updates) in production. \
+            Remove the 'devtools' feature from your Cargo.toml before deploying. \
+            If you need hot reload, run with 'cargo run' (debug mode) instead."
+        );
+    }
+    // Guard: even in debug, verify we're not in a production-like environment
+    #[cfg(debug_assertions)]
+    {
+        static WARNED: OnceLock<bool> = OnceLock::new();
+        if std::env::var("AZUMI_ALLOW_DEVTOOLS_IN_RELEASE").is_ok()
+            && WARNED.set(true).is_ok()
+        {
+            eprintln!(
+                "⚠️  Azumi: AZUMI_ALLOW_DEVTOOLS_IN_RELEASE is set. \
+                Devtools endpoints are active. ONLY use this for staging/QA, never in production."
+            );
+        }
+    }
     crate::hot_reload::router()
 }
 

@@ -562,12 +562,18 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         impl azumi::LiveState for #struct_name {
             fn to_scope(&self) -> String {
-                match serde_json::to_string(self) {
-                    Ok(json) => azumi::security::sign_state(&json),
+                match self.try_to_scope() {
+                    Ok(signed) => signed,
                     Err(e) => {
-                        panic!("FATAL: Failed to serialize LiveState to JSON: {}. \
+                        #[cfg(debug_assertions)]
+                        eprintln!(
+                            "⚠️  Azumi: Failed to serialize LiveState to JSON: {}. \
                             This usually means a field doesn't implement Serialize. \
-                            Check that all state fields implement serde::Serialize.", e);
+                            Rendering scope with empty state. \
+                            Check that all state fields implement serde::Serialize.",
+                            e
+                        );
+                        azumi::security::sign_state("{}")
                     }
                 }
             }

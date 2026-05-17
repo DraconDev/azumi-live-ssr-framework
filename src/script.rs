@@ -170,14 +170,13 @@ impl AzumiScript {
     ///
     /// # Example
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use azumi::csp::CspNonce;
     ///
-    /// async fn handler(nonce: CspNonce) -> impl IntoResponse {
-    ///     let csp = ContentSecurityPolicy::azumi_nonce_defaults(&nonce).build();
-    ///     let script = azumi::azumi_script().with_nonce(nonce.as_str());
-    ///     // Use {script} in your html! template
-    /// }
+    /// let nonce = CspNonce::generate();
+    /// let script = azumi::azumi_script().with_nonce(nonce.as_str());
+    /// let rendered = azumi::render_to_string(&script);
+    /// assert!(rendered.contains("nonce="));
     /// ```
     #[must_use]
     pub fn with_nonce(mut self, nonce: &str) -> Self {

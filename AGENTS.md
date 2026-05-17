@@ -310,6 +310,79 @@ The `html!` macro runs these validators sequentially, short-circuiting on first 
 
 AIs should **never** generate code using these. If one is needed, flag it to the human developer.
 
+## Route Constants — Compile-Time Link Safety
+
+Azumi validates everything inside `html!` except **route strings**. A typo in `href="/abuot"` compiles fine but 404s at runtime. Prevent this with route constants:
+
+### `#[azumi::page(route = "/path")]` — Auto-Generated Route Constant
+
+```rust
+#[azumi::page(route = "/about")]
+fn about_page() -> impl Component {
+    html! { <div>"About"</div> }
+}
+
+// Auto-generated constant:
+// about_page_ROUTE == "/about"
+```
+
+Use the constant in `html!` and Axum router setup:
+
+```rust
+// In main.rs — type-safe router
+let app = Router::new()
+    .route(about_page_ROUTE, get(about_page));
+
+// In components — type-safe links
+html! {
+    <a href={about_page_ROUTE}>"About"</a>  // Can't typo the route
+}
+```
+
+### `action_name_PATH` — Auto-Generated Action Path
+
+Every `#[azumi::action]` function gets a `<name>_PATH` constant:
+
+```rust
+#[azumi::action]
+fn like_post(form: LikeForm) -> ActionResult { ... }
+
+// Auto-generated constant:
+// like_post_PATH == "/_azumi/action/like_post"
+```
+
+Use it in `html!`:
+
+```rust
+html! {
+    <form az-action={like_post_PATH} az-target={"#like-area"}>
+    </form>
+}
+```
+
+### Manual Route Constants
+
+For routes not tied to a `#[azumi::page]`, define constants manually:
+
+```rust
+pub mod routes {
+    pub const HOME: &str = "/";
+    pub const BLOG: &str = "/blog";
+    pub const BLOG_POST: &str = "/blog/posts/{slug}";
+}
+
+let app = Router::new()
+    .route(routes::HOME, get(home_handler))
+    .route(routes::BLOG, get(blog_handler));
+
+html! {
+    <a href={routes::BLOG}>"Blog"</a>
+    <a href={format!("/blog/posts/{}", slug)}>"Read"</a>  // Dynamic route
+}
+```
+
+**Rule**: Always use route constants for `href` and `az-action` values. Never hardcode raw URL strings in `html!`.
+
 ## Project Structure
 
 ```
