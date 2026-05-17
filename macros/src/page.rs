@@ -92,6 +92,7 @@ pub fn expand_page(attr: TokenStream, item: TokenStream) -> TokenStream {
             /// The URL path for this page.
             /// Use this constant in `html!` and Axum router setup
             /// to prevent route typos at compile time.
+            #[allow(non_upper_case_globals)]
             pub const #const_name: &str = #route_str;
         }
     } else {

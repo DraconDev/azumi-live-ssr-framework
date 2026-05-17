@@ -475,10 +475,10 @@ fn test_seo_xss_image_url_with_angle_brackets() {
 
 #[test]
 fn test_init_seo_duplicate_call_returns_err() {
-    use azumi::seo::{self, SeoConfig};
+    use azumi::seo::{self, SeoConfig, SeoError};
     let _ = seo::init_seo(SeoConfig::new("First Init for Err Test"));
     let result = seo::init_seo(SeoConfig::new("Duplicate Init for Err Test"));
     assert!(result.is_err(), "Duplicate init_seo() call should return Err");
-    let rejected = result.unwrap_err();
-    assert_eq!(rejected.title, "Duplicate Init for Err Test", "Rejected config should be returned");
+    let err = result.unwrap_err();
+    assert!(matches!(err, SeoError::AlreadyInitialized), "Error should be AlreadyInitialized");
 }

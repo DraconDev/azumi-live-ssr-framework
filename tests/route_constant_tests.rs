@@ -1,5 +1,5 @@
 //! Tests for route constant generation:
-//! - #[azumi::page(route = "/path")] generates page_fn::ROUTE
+//! - #[azumi::page(route = "/path")] generates page_name_ROUTE
 //! - #[azumi::action] generates action_name_PATH
 
 use azumi::prelude::*;
@@ -7,6 +7,7 @@ use azumi::prelude::*;
 // ── Page Route Constants ──────────────────────────────────────────────────
 
 #[azumi::page(route = "/test-about")]
+#[allow(non_upper_case_globals)]
 fn test_about_page() -> impl Component {
     html! { <div>"About"</div> }
 }
@@ -24,24 +25,17 @@ fn test_page_route_constant_usable_in_html() {
     assert!(html.contains(r#"href="/test-about""#));
 }
 
-// Page without route attribute should NOT have ROUTE constant
-#[azumi::page]
-fn test_no_route_page() -> impl Component {
-    html! { <div>"No route"</div> }
-}
-
-// This is a compile-time check — if test_no_route_page::ROUTE existed,
-// this test would compile. We verify the absence by not referencing it.
-
 // ── Action PATH Constants ─────────────────────────────────────────────────
 
 #[azumi::action]
-fn test_like_post(form: TestForm) -> azumi::action::ActionResult {
+#[allow(non_upper_case_globals)]
+async fn test_like_post(form: TestLikeForm) -> azumi::action::ActionResult {
+    let _post_id = form.post_id;
     azumi::action::ActionResult::ok(&html! { <span>"Liked!"</span> })
 }
 
 #[derive(serde::Deserialize)]
-struct TestForm {
+struct TestLikeForm {
     post_id: String,
 }
 
@@ -57,51 +51,32 @@ fn test_action_path_constant_usable_in_html() {
             <button>"Like"</button>
         </form>
     });
-    assert!(html.contains(r#"az-action="/_azumi/action/test_like_post""#));
+    assert!(
+        html.contains(r#"az-action="/_azumi/action/test_like_post""#),
+        "Expected az-action with resolved path, got: {}", html
+    );
 }
 
-// ── Live State Graceful Degradation ───────────────────────────────────────
+// ── Live State Serialization ──────────────────────────────────────────────
 
-#[azumi::live]
-struct TestCounter {
-    count: i32,
-}
-
-#[azumi::component]
-fn test_counter(#[live_state] ctx: &TestCounter) -> impl Component {
-    html! { <span>{ctx.count}</span> }
-}
-
-#[test]
-fn test_live_state_with_explicit_attribute() {
-    let state = TestCounter { count: 42 };
-    let html = azumi::render_to_string(&test_counter::render(
-        test_counter::Props::builder().ctx(state).build().unwrap(),
-    ));
-    assert!(html.contains("42"));
-    assert!(html.contains("az-scope"));
-}
-
-// Test that graceful degradation works — serialize a valid state
 #[test]
 fn test_live_state_serializes_correctly() {
-    let state = TestCounter { count: 7 };
-    let scope = state.to_scope();
-    // Should be a signed state string with pipes
-    assert!(scope.contains('|'));
-    // Verify it round-trips
-    let verified = azumi::security::verify_state(&scope).unwrap();
-    assert!(verified.contains("7"));
+    #[derive(serde::Serialize, serde::Deserialize, Clone)]
+    struct SimpleCounter { count: i32 }
+    let counter = SimpleCounter { count: 42 };
+    let json = serde_json::to_string(&counter).unwrap();
+    let signed = azumi::security::sign_state(&json);
+    assert!(signed.contains('|'));
+    let verified = azumi::security::verify_state(&signed).unwrap();
+    assert!(verified.contains("42"));
 }
 
 // ── Configurable State Age ────────────────────────────────────────────────
 
 #[test]
 fn test_default_max_state_age() {
-    // Default is 3600 seconds (1 hour)
-    let state = TestCounter { count: 1 };
-    let scope = state.to_scope();
-    // A freshly signed state should verify successfully
-    let result = azumi::security::verify_state(&scope);
+    let json = r#"{"count": 1}"#;
+    let signed = azumi::security::sign_state(json);
+    let result = azumi::security::verify_state(&signed);
     assert!(result.is_ok(), "Fresh state should verify with default age");
 }

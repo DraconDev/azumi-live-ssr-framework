@@ -216,7 +216,99 @@ pub fn validate_anchor_target_blank(elem: &Element) -> Option<TokenStream> {
     None
 }
 
-/// Rule 6: <iframe> must have a title attribute
+/// Rule 7: aria-* attribute values must be valid
+/// Validates known aria attributes with enumerated values.
+/// Unknown aria attributes are skipped (forward compatibility).
+pub fn validate_aria_values(elem: &Element) -> Option<TokenStream> {
+    for attr in &elem.attrs {
+        if !attr.name.starts_with("aria-") {
+            continue;
+        }
+
+        // Only validate static values
+        let AttributeValue::Static(val) = &attr.value else {
+            continue;
+        };
+
+        if let Some(msg) = validate_single_aria_attr(&attr.name, val) {
+            return Some(quote_spanned! { attr.span =>
+                compile_error!(#msg);
+            });
+        }
+    }
+    None
+}
+
+fn validate_single_aria_attr(name: &str, value: &str) -> Option<String> {
+    match name {
+        // Boolean/tristate attributes
+        "aria-expanded" | "aria-pressed"
+            if !matches!(value, "true" | "false" | "undefined") =>
+        {
+            Some(format!(
+                "Invalid {}=\"{}\". Valid values: true, false, undefined",
+                name, value
+            ))
+        }
+        "aria-checked"
+            if !matches!(value, "true" | "false" | "mixed" | "undefined") =>
+        {
+            Some(format!(
+                "Invalid {}=\"{}\". Valid values: true, false, mixed, undefined",
+                name, value
+            ))
+        }
+        "aria-disabled" | "aria-readonly" | "aria-required" | "aria-hidden"
+        | "aria-selected" | "aria-modal" | "aria-busy" | "aria-grabbed"
+        | "aria-atomic" | "aria-multiline" | "aria-multiselectable"
+        | "aria-orientation"
+            if !matches!(value, "true" | "false") =>
+        {
+            Some(format!(
+                "Invalid {}=\"{}\". Valid values: true, false",
+                name, value
+            ))
+        }
+        // Token list attributes
+        "aria-relevant" => {
+            for token in value.split_whitespace() {
+                if !matches!(token, "additions" | "removals" | "text" | "all") {
+                    return Some(format!(
+                        "Invalid aria-relevant token \"{}\". Valid tokens: additions, removals, text, all",
+                        token
+                    ));
+                }
+            }
+            None
+        }
+        "aria-live" if !matches!(value, "off" | "polite" | "assertive") => Some(format!(
+            "Invalid aria-live=\"{}\". Valid values: off, polite, assertive",
+            value
+        )),
+        "aria-dropeffect" => {
+            for token in value.split_whitespace() {
+                if !matches!(token, "copy" | "move" | "link" | "execute" | "popup" | "none") {
+                    return Some(format!(
+                        "Invalid aria-dropeffect token \"{}\". Valid tokens: copy, move, link, execute, popup, none",
+                        token
+                    ));
+                }
+            }
+            None
+        }
+        "aria-haspopup"
+            if !matches!(value, "false" | "true" | "menu" | "listbox" | "tree" | "grid" | "dialog") =>
+        {
+            Some(format!(
+                "Invalid aria-haspopup=\"{}\". Valid values: false, true, menu, listbox, tree, grid, dialog",
+                value
+            ))
+        }
+        // Skip unknown aria-* attributes for forward compatibility
+        _ => None,
+    }
+}
+
 pub fn validate_iframe_title(
     elem: &crate::token_parser::Element,
 ) -> Option<proc_macro2::TokenStream> {
@@ -475,6 +567,110 @@ mod tests {
         let elem = test_element("button");
         let result = validate_anchor_target_blank(&elem);
         assert!(result.is_none(), "non-anchor elements should be ignored");
+    }
+
+    // =========================================================================
+    // validate_aria_values
+    // =========================================================================
+
+    #[test]
+    fn test_aria_expanded_true_passes() {
+        let elem = test_element_with_attrs("button", vec![("aria-expanded", "true")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-expanded=true should pass");
+    }
+
+    #[test]
+    fn test_aria_expanded_false_passes() {
+        let elem = test_element_with_attrs("button", vec![("aria-expanded", "false")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-expanded=false should pass");
+    }
+
+    #[test]
+    fn test_aria_expanded_yes_fails() {
+        let elem = test_element_with_attrs("button", vec![("aria-expanded", "yes")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_some(), "aria-expanded=yes should fail");
+    }
+
+    #[test]
+    fn test_aria_expanded_open_fails() {
+        let elem = test_element_with_attrs("div", vec![("aria-expanded", "open")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_some(), "aria-expanded=open should fail");
+    }
+
+    #[test]
+    fn test_aria_checked_mixed_passes() {
+        let elem = test_element_with_attrs("input", vec![("aria-checked", "mixed")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-checked=mixed should pass");
+    }
+
+    #[test]
+    fn test_aria_hidden_true_passes() {
+        let elem = test_element_with_attrs("div", vec![("aria-hidden", "true")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-hidden=true should pass");
+    }
+
+    #[test]
+    fn test_aria_hidden_yes_fails() {
+        let elem = test_element_with_attrs("div", vec![("aria-hidden", "yes")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_some(), "aria-hidden=yes should fail");
+    }
+
+    #[test]
+    fn test_aria_live_polite_passes() {
+        let elem = test_element_with_attrs("div", vec![("aria-live", "polite")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-live=polite should pass");
+    }
+
+    #[test]
+    fn test_aria_live_gentle_fails() {
+        let elem = test_element_with_attrs("div", vec![("aria-live", "gentle")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_some(), "aria-live=gentle should fail");
+    }
+
+    #[test]
+    fn test_aria_haspopup_menu_passes() {
+        let elem = test_element_with_attrs("button", vec![("aria-haspopup", "menu")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-haspopup=menu should pass");
+    }
+
+    #[test]
+    fn test_aria_haspopup_true_passes() {
+        let elem = test_element_with_attrs("button", vec![("aria-haspopup", "true")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-haspopup=true should pass");
+    }
+
+    #[test]
+    fn test_aria_haspopup_popup_fails() {
+        let elem = test_element_with_attrs("button", vec![("aria-haspopup", "popup")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_some(), "aria-haspopup=popup should fail");
+    }
+
+    #[test]
+    fn test_aria_unknown_attribute_skipped() {
+        // Unknown aria-* attributes are skipped for forward compatibility
+        let elem = test_element_with_attrs("div", vec![("aria-future-attr", "anything")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "unknown aria-* attributes should be skipped");
+    }
+
+    #[test]
+    fn test_aria_label_not_validated() {
+        // aria-label accepts free-form text, not enumerated values
+        let elem = test_element_with_attrs("button", vec![("aria-label", "Close menu")]);
+        let result = validate_aria_values(&elem);
+        assert!(result.is_none(), "aria-label should not be value-validated");
     }
 
     // =========================================================================

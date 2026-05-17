@@ -1,7 +1,6 @@
 use crate::token_parser::Element;
 use crate::token_parser::Node;
 use crate::tag_data::{VALID_TAGS, GLOBAL_ATTRIBUTES, COMMON_ATTRIBUTES};
-use crate::html_rules;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned};
 

@@ -162,6 +162,9 @@ pub(crate) fn validate_nodes(
                     if let Some(err) = crate::accessibility_validator::validate_iframe_title(elem) {
                         errors.push(err);
                     }
+                    if let Some(err) = crate::accessibility_validator::validate_aria_values(elem) {
+                        errors.push(err);
+                    }
 
                     // HTML structure validations
                     for err in crate::html_structure_validator::validate_table_children(elem) {

@@ -8,7 +8,7 @@
 Azumi is an **AI-first, compiler-validated web framework**. Every decision prioritizes what makes AI-generated code correct by default:
 
 - **Safe macros for real work, bare tags for injection**: `json_data!` handles serde + variable naming; `<style>{var}</style>` and `<script>{var}</script>` auto-escape content
-- **Zero escape hatches**: `Raw()`, `from_fn()`, `TrustedHtml` are `#[doc(hidden)]` — AIs should never reach for them
+- **Zero escape hatches**: `Raw()`, `from_fn()` are `#[doc(hidden)]` — AIs should never reach for them. `TrustedHtml` is the public, documented escape hatch for pre-sanitized HTML.
 - **Compile-time validation**: Wrong patterns produce clear errors with exact alternatives shown
 
 ## Three Golden Rules for AI-Generated Code
@@ -49,6 +49,33 @@ html! {
 }
 // Renders: <script>APP_DATA = {"key":"value"};</script>
 ```
+
+### `TrustedHtml::new(html)` — Pre-Sanitized HTML Injection
+
+For injecting HTML from trusted sources (CMS output, markdown renderer, sanitized HTML).
+This is the **safe replacement for `Raw()`** — it's public and documented, unlike `Raw()` which is `#[doc(hidden)]`.
+
+```rust
+use azumi::TrustedHtml;
+
+let cms_body = TrustedHtml::new("<p>Hello from <strong>CMS</strong></p>");
+html! {
+    <div>{cms_body}</div>
+}
+// Renders: <div><p>Hello from <strong>CMS</strong></p></div>
+```
+
+**When to use:**
+- CMS/markdown HTML output that you trust
+- HTML from your own sanitization pipeline
+- Pre-rendered component HTML (e.g., subnavs, breadcrumbs built elsewhere)
+
+**When NOT to use:**
+- Untrusted user input → use `{user_input}` (auto-escaped)
+- Already-escaped strings → just use `{x}` directly
+- JavaScript → use `<script>{var}</script>`
+- CSS → use `<style>{var}</style>`
+- JSON data → use `json_data!`
 
 ## Control Flow in `html!`
 
@@ -239,6 +266,23 @@ fn counter(state: &Counter) -> impl Component {
 }
 ```
 
+### `#[live_state]` — Explicit Live State Attribute
+
+For components where the state parameter isn't named `state`, use `#[live_state]`:
+
+```rust
+#[azumi::component]
+fn counter(#[live_state] ctx: &Counter) -> impl Component {
+    html! { <span>{ctx.count}</span> }
+    // Also auto-wrapped with az-scope div
+}
+```
+
+**When to use `#[live_state]`:**
+- Parameter named something other than `state` (e.g., `ctx`, `app_state`, `model`)
+- Explicit is better than implicit — makes the intent clear
+- Both approaches work identically at runtime
+
 ## Manual Escaping Outside `html!`
 
 ### `escape_html(&str) -> String`
@@ -306,7 +350,7 @@ The `html!` macro runs these validators sequentially, short-circuiting on first 
 | `from_fn` | `#[doc(hidden)]` | Internal macro expansion only |
 | `from_fn_once` | `#[doc(hidden)]` | Internal macro expansion only |
 | `Raw<T>` | `#[doc(hidden)]` | Internal framework SEO generation only |
-| `TrustedHtml` | `#[doc(hidden)]` | Pre-sanitized HTML from trusted sources (rare edge case) |
+| `TrustedHtml` | **Public** | Pre-sanitized HTML from trusted sources (CMS, markdown renderer, sanitized output) |
 
 AIs should **never** generate code using these. If one is needed, flag it to the human developer.
 
@@ -450,6 +494,7 @@ azumi/
 | `escape_css_string` | CSS string escaping |
 | `escape_html` | HTML entity escaping (`&`, `<`, `>`, `"`, `'`) |
 | `escape_xml` | XML entity escaping (uses `&apos;` per XML spec) |
+| `TrustedHtml` | Pre-sanitized HTML injection (CMS/markdown output) |
 | `CspNonce` | CSP nonce (from `csp` module) |
 | `FormValidator`, `ValidatedForm`, `ValidationErrors` | Form validation |
 | `ActionResult`, `error_fragment`, `success_fragment` | Action responses (`axum` feature only) |
@@ -459,8 +504,9 @@ azumi/
 ```rust
 // ❌ Raw() is always wrong in html!
 html! { @{Raw(format!("<div>{}</div>", x))} }
-// ✅ Use auto-escaping or json_data!:
-html! { {azumi::json_data!("DATA" = &x)} }
+// ✅ Use TrustedHtml for pre-sanitized HTML, or auto-escaping for text:
+html! { <div>{TrustedHtml::new(cms_body)}</div> }
+html! { <div>{user_text}</div> }  // auto-escaped
 
 // ❌ format! building web content in html!
 html! { {format!("window.location = '{}'", url)} }

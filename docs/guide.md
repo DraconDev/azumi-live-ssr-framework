@@ -586,18 +586,79 @@ async fn notifications() -> impl axum::response::IntoResponse {
 
 ## Client Features
 
-See [docs/interactivity.md](interactivity.md) for the full catalog with examples.
+All interactivity is handled by `az-*` directives on HTML elements. No custom JavaScript required.
 
-| Feature | Attribute | Use Case |
+### Feature Catalog
+
+| Feature | Attribute | What It Does |
 |---|---|---|
-| Form actions | `az-action` + `az-target` | Submit form, swap result HTML |
-| Client state | `az-ui` + `az-on` | Tabs, toggles, counters |
-| Conditional classes | `az-bind:class` | Dynamic styling |
-| Dynamic text | `az-bind:text` | Live updates |
-| Confirmation | `az-confirm` | "Are you sure?" dialogs |
-| Auto-init | `az-init` | Run on page load |
-| Scroll reveal | `az-reveal` | Animate on scroll |
-| Scroll to top | `scroll-top` | Smooth scroll |
+| Form actions | `az-action` + `az-target` | Submit form, morph result HTML into target |
+| Client state | `az-ui` + `az-on` | Tabs, toggles, counters — no server roundtrip |
+| Event handlers | `az-on:click`, `az-on:change`, etc. | Declarative event binding |
+| Dynamic text | `az-bind:text` | Live text updates from state |
+| Conditional classes | `az-bind:class` | Dynamic styling based on state |
+| Confirmation | `az-confirm` | "Are you sure?" before action |
+| Auto-init | `az-init` | Run action on page load |
+| Scroll reveal | `az-reveal` | Animate elements on scroll into view |
+| Scroll top | `scroll-top` | Smooth scroll to top |
+
+### Pattern Catalog: Common UI Without JavaScript
+
+**Tabs:**
+```rust
+html! {
+    <div az-ui="tab:content" class="tabs">
+        <button az-on:click="set:tab:overview" class="tab_active">"Overview"</button>
+        <button az-on:click="set:tab:pricing" class="tab">"Pricing"</button>
+        @if tab == "overview" {
+            <div>{overview}</div>
+        }
+        @if tab == "pricing" {
+            <div>{pricing}</div>
+        }
+    </div>
+}
+```
+
+**Accordion:**
+```rust
+html! {
+    <div az-ui="toggle:section1" class="accordion">
+        <button az-on:click="toggle:section1">"Section 1"</button>
+        @if section1 {
+            <div class="panel">"Content here"</div>
+        }
+    </div>
+}
+```
+
+**Confirm dialog:**
+```rust
+html! {
+    <form az-action={delete_item_PATH} az-confirm="Delete this item?">
+        <button type="submit">"Delete"</button>
+    </form>
+}
+```
+
+**Scroll reveal:**
+```rust
+html! {
+    <section az-reveal={true} class="hero">
+        <h2>"Appears on scroll"</h2>
+    </section>
+}
+```
+
+### What Still Needs Custom JS
+
+Azumi covers the common interactive patterns. These still require custom JavaScript:
+- Complex drag-and-drop reordering
+- Canvas / WebGL / charting libraries
+- Third-party integrations that require JS SDKs (payments, maps)
+- Real-time collaborative editing
+
+For these, use `<script src="..."></script>` to load external JS. Azumi's 3KB runtime coexists with custom JS when needed.
 
 ---
 
@@ -665,7 +726,7 @@ Azumi is designed for AI-assisted development. The validation pipeline guides AI
 | `from_fn` | `#[doc(hidden)]` | Internal macro expansion only |
 | `from_fn_once` | `#[doc(hidden)]` | Internal macro expansion only |
 | `Raw<T>` | `#[doc(hidden)]` | Internal framework SEO only |
-| `TrustedHtml` | `#[doc(hidden)]` | Pre-sanitized HTML from trusted sources |
+| `TrustedHtml` | **Public** | Pre-sanitized HTML from trusted sources (CMS, markdown renderer) |
 
 ---
 

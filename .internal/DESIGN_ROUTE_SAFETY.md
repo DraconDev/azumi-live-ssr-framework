@@ -431,3 +431,18 @@ html! {
 4. **Incremental adoption** — use Level 1 (constants) today, get Level 2 (string validation) when ready.
 
 5. **Catches the #1 runtime bug class** — broken links and broken form actions become compile errors. This is what "if it compiles, it works" actually means for a web framework.
+
+---
+
+## Resolution (2026-05-17)
+
+**Decision: Solved by convention, not macro.**
+
+The `routes!` macro was not implemented. Instead:
+
+1. `#[azumi::page(route = "/path")]` auto-generates `<fn_name>_ROUTE` constant
+2. `#[azumi::action]` auto-generates `<fn_name>_PATH` constant  
+3. These constants are used in `html!` for `href` and `az-action` — typos become compile errors
+4. Axum already handles route-to-handler mapping well; a wrapper macro adds complexity without enough value
+
+This is Level 1 from the design above, which provides 80% of the benefit at 20% of the cost. Level 2 (string validation inside html!) can be revisited if needed.

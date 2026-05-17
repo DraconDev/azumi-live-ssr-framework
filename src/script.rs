@@ -66,6 +66,9 @@ pub fn escape_xml(s: &str) -> String {
 /// 
 /// This is the generic version — use [`escape_script_content`] or [`escape_style_content`]
 /// for the specific cases.
+///
+/// If `tag_name` is empty, the content is returned unescaped since there is no
+/// closing tag sequence to escape. This is a no-op rather than a panic.
 /// 
 /// # Examples
 /// ```
@@ -75,12 +78,16 @@ pub fn escape_xml(s: &str) -> String {
 /// 
 /// let css = escape_tag_content(".btn { color: red; } </style>", "style");
 /// assert_eq!(css, r".btn { color: red; } <\/style>");
+/// 
+/// // Empty tag_name is a no-op (returns content unescaped)
+/// let no_escape = escape_tag_content("hello", "");
+/// assert_eq!(no_escape, "hello");
 /// ```
 #[inline]
 #[must_use]
 pub fn escape_tag_content(content: &str, tag_name: &str) -> String {
     if tag_name.is_empty() {
-        panic!("escape_tag_content called with empty tag_name");
+        return content.to_string();
     }
     
     let tag_lower = tag_name.to_lowercase();
@@ -241,11 +248,37 @@ pub fn session_cleanup_script() -> SessionCleanupScript {
     SessionCleanupScript::default()
 }
 
-/// TrustedHtml — pre-sanitized HTML injection (use sparingly).
+/// Pre-sanitized HTML that renders without escaping.
 ///
-/// Bypasses ALL of Azumi's safety guarantees (escaping, scoping, validation).
-/// Only use for pre-sanitized HTML from known-trusted sources (e.g., markdown renderer output).
-#[doc(hidden)]
+/// Use this when you have HTML from a trusted source that should be injected
+/// as-is into the output — for example, CMS content, markdown renderer output,
+/// or HTML built by your own sanitization pipeline.
+///
+/// # Safety
+///
+/// `TrustedHtml` **bypasses auto-escaping**. Only use it when you are certain
+/// the content is safe. Never use it for untrusted user input.
+///
+/// # When to use vs alternatives
+///
+/// | Use case | Use this |
+/// |----------|----------|
+/// | CMS/markdown HTML output | `TrustedHtml` |
+/// | Already-escaped strings | Just use `{x}` (auto-escaped) |
+/// | JavaScript injection | `<script>{var}</script>` |
+/// | CSS injection | `<style>{var}</style>` |
+/// | JSON data for JS | `json_data!("VAR" = &data)` |
+///
+/// # Examples
+///
+/// ```rust
+/// use azumi::TrustedHtml;
+/// use azumi::html;
+///
+/// let cms_body = TrustedHtml::new("<p>Hello from <strong>CMS</strong></p>");
+/// let page = html! { <div>{cms_body}</div> };
+/// ```
+#[must_use]
 pub struct TrustedHtml(String);
 
 impl Component for TrustedHtml {
@@ -255,8 +288,20 @@ impl Component for TrustedHtml {
 }
 
 impl TrustedHtml {
+    /// Create a `TrustedHtml` from a string slice.
+    ///
+    /// The content will be rendered as-is without escaping.
+    /// Only call this with content from a trusted source.
     pub fn new(html: &str) -> Self {
         TrustedHtml(html.to_string())
+    }
+
+    /// Create a `TrustedHtml` from an owned `String`.
+    ///
+    /// Avoids the allocation of `new()` when you already own the string.
+    /// The content will be rendered as-is without escaping.
+    pub fn from_string(html: String) -> Self {
+        TrustedHtml(html)
     }
 }
 

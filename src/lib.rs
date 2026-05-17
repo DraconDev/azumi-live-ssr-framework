@@ -1,3 +1,47 @@
+//! # Azumi — Server-Rendered HTML with Client Interactivity
+//!
+//! Server-rendered HTML framework where toggles, reveals, and optimistic updates
+//! work without a network roundtrip. All Rust, zero custom JavaScript, no JS ecosystem.
+//!
+//! Think of it as HTMX that actually works for interactive apps.
+//!
+//! # Quick Start
+//!
+//! ```text
+//! cargo install azumi-cli
+//! azumi new my-app
+//! cd my-app && cargo run
+//! ```
+//!
+//! # Example
+//!
+//! ```rust,ignore
+//! use azumi::prelude::*;
+//!
+//! #[azumi::live]
+//! struct Counter { count: i32 }
+//!
+//! #[azumi::component]
+//! fn counter(state: &Counter) -> impl Component {
+//!     html! {
+//!         <div az-scope={state}>
+//!             <span>{state.count}</span>
+//!             <button az-on:click="increment">"+1"</button>
+//!         </div>
+//!     }
+//! }
+//! ```
+//!
+//! # Key Features
+//!
+//! - **~3KB JS runtime** — no WASM, no hydration, no virtual DOM
+//! - **Compile-time validation** — CSS typos, broken HTML, XSS vectors → compile errors
+//! - **HMAC-signed state** — users can't tamper with component state
+//! - **Client interactivity** — toggles, reveals, optimistic UI without network roundtrips
+//! - **Zero custom JavaScript** — all interactivity via `az-*` directives on HTML elements
+//!
+//! See [docs/why-azumi.md](../docs/why-azumi.md) for the full story.
+
 pub mod prelude {
     #[cfg(feature = "axum")]
     pub use crate::action::{ActionResult, error_fragment, success_fragment};
@@ -6,6 +50,7 @@ pub mod prelude {
         azumi_script, component, html, json_data, live,
         session_cleanup_script, AzumiScript, Component, escape_css_string, escape_html, escape_xml,
         FnComponent, render_to_string, render_to_writer, render_page,
+        TrustedHtml,
     };
     pub use crate::form::{FormValidator, ValidatedForm, ValidationErrors};
 }
@@ -37,7 +82,7 @@ pub mod seo;
 pub mod form;
 pub mod streaming;
 pub mod csp;
-pub use script::{AzumiScript, escape_html, escape_script_content, escape_style_content, escape_tag_content, escape_xml, SessionCleanupScript, session_cleanup_script};
+pub use script::{AzumiScript, escape_html, escape_script_content, escape_style_content, escape_tag_content, escape_xml, SessionCleanupScript, session_cleanup_script, TrustedHtml};
 // Re-export CSS scoping for backward compatibility
 pub use css_scoping::{compute_scope_id, scope_css};
 
@@ -100,6 +145,7 @@ pub const AZUMI_RULES: &[&str] = &[
     "For JS injection: use <script>{var}</script>, NOT Raw() with <script> — content is auto-escaped inside html!",
     "<style>{var}</style> and <script>{var}</script> auto-escape </style> and </script> sequences",
     "Use route constants for href and az-action — #[azumi::page(route = \"/path\")] generates page_name_ROUTE, #[azumi::action] generates action_name_PATH",
+    "For pre-sanitized HTML (CMS/markdown output): use TrustedHtml::new(html), NOT Raw()",
 ];
 
 pub trait Component {

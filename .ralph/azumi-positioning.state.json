@@ -1,14 +1,14 @@
 {
-  "name": "fix-demo-static-attrs",
-  "taskFile": ".ralph/fix-demo-static-attrs.md",
+  "name": "azumi-positioning",
+  "taskFile": ".ralph/azumi-positioning.md",
   "iteration": 1,
-  "maxIterations": 10,
+  "maxIterations": 200,
   "itemsPerIteration": 2,
   "reflectEvery": 0,
   "reflectInstructions": "REFLECTION CHECKPOINT\n\nPause and reflect on your progress:\n1. What has been accomplished so far?\n2. What's working well?\n3. What's not working or blocking progress?\n4. Should the approach be adjusted?\n5. What are the next priorities?\n\nUpdate the task file with your reflection, then continue working.",
   "active": false,
   "status": "completed",
-  "startedAt": "2026-05-17T12:14:32.152Z",
+  "startedAt": "2026-05-17T22:33:42.388Z",
   "lastReflectionAt": 0,
-  "completedAt": "2026-05-17T12:35:54.608Z"
+  "completedAt": "2026-05-17T22:40:20.334Z"
 }

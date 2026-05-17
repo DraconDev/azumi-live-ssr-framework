@@ -1,5 +1,6 @@
 use axum::{
     extract::Request,
+    http::HeaderValue,
     middleware::Next,
     response::Response,
     Router,
@@ -455,11 +456,17 @@ pub async fn no_cache_middleware(req: Request, next: Next) -> Response {
         let headers = response.headers_mut();
         // Prevent caching for all responses
         headers.insert(
-            "Cache-Control",
-            "no-cache, no-store, must-revalidate".parse().unwrap(),
+            axum::http::header::CACHE_CONTROL,
+            HeaderValue::from_static("no-cache, no-store, must-revalidate"),
         );
-        headers.insert("Pragma", "no-cache".parse().unwrap());
-        headers.insert("Expires", "0".parse().unwrap());
+        headers.insert(
+            axum::http::header::PRAGMA,
+            HeaderValue::from_static("no-cache"),
+        );
+        headers.insert(
+            axum::http::header::EXPIRES,
+            HeaderValue::from_static("0"),
+        );
     }
 
     response

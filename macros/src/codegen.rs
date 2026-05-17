@@ -206,16 +206,20 @@ pub(crate) fn generate_body_with_context(
                 for attr in &elem.attrs {
                     let attr_name = &attr.name;
 
-                    // Handle az-* attributes (DSL treated as string)
+                    // Handle az-* attributes
                     if attr_name.starts_with("az-") {
-                        // SPECIAL CASE: az-scope should evaluate its value as a Rust expression
-                        if attr_name == "az-scope" {
+                        // These az-* attributes evaluate their values as Rust expressions
+                        let is_expr_attr = matches!(
+                            attr_name.as_str(),
+                            "az-scope" | "az-action" | "az-target" | "az-init" | "az-reveal" | "az-confirm"
+                        );
+
+                        if is_expr_attr {
                             match &attr.value {
                                 token_parser::AttributeValue::Dynamic(tokens) => {
-                                    // Evaluate the expression and escape for HTML attribute
                                     instructions.push(quote! {
-                                        let __scope_val: String = #tokens;
-                                        write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(&__scope_val))?;
+                                        let __az_val: String = (#tokens).to_string();
+                                        write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(&__az_val))?;
                                     });
                                 }
                                 token_parser::AttributeValue::Static(val) => {
@@ -228,10 +232,10 @@ pub(crate) fn generate_body_with_context(
                             continue;
                         }
 
-                        // Other az-* attributes (like az-on) are DSL and treated as string literals
+                        // Other az-* attributes (like az-on, az-ui) are DSL and treated as string literals
                         match &attr.value {
                             token_parser::AttributeValue::Dynamic(tokens) => {
-                                let s = tokens.to_string(); // Stringify tokens
+                                let s = tokens.to_string();
                                 instructions.push(quote! {
                                     write!(#f_ident, " {}=\"{}\"", #attr_name, azumi::Escaped(&#s))?;
                                 });

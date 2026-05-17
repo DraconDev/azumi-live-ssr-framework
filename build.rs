@@ -17,6 +17,42 @@ fn fnv_hash(data: &str) -> u64 {
     hash
 }
 
+/// Verify idiomorph.js integrity using FNV-1a hash.
+/// Catches accidental modifications or corruption.
+/// When updating idiomorph.js, update IDEMORPH_HASH below.
+fn verify_idiomorph_integrity(content: &str) {
+    const IDEMORPH_HASH: u64 = 0xf909dd266d21f20d; // FNV-1a of known-good idiomorph.js
+    let computed = fnv_hash(content);
+    if computed != IDEMORPH_HASH {
+        panic!(
+            "Azumi: idiomorph.js integrity check FAILED!\n\
+             Expected FNV-1a hash: {:#018x}\n\
+             Got:                  {:#018x}\n\
+             If you intentionally updated idiomorph.js, update IDEMORPH_HASH in build.rs.\n\
+             If not, the file may be corrupted — re-download from upstream.",
+            IDEMORPH_HASH, computed
+        );
+    }
+}
+
+/// Verify azumi.js integrity using FNV-1a hash.
+/// Catches accidental modifications or corruption.
+/// When updating azumi.js, update AZUMI_JS_HASH below.
+fn verify_azumi_js_integrity(content: &str) {
+    const AZUMI_JS_HASH: u64 = 0x6ff9ebc720d6f962; // FNV-1a of known-good azumi.js
+    let computed = fnv_hash(content);
+    if computed != AZUMI_JS_HASH {
+        panic!(
+            "Azumi: azumi.js integrity check FAILED!\n\
+             Expected FNV-1a hash: {:#018x}\n\
+             Got:                  {:#018x}\n\
+             If you intentionally updated azumi.js, update AZUMI_JS_HASH in build.rs.\n\
+             If not, the file may be corrupted — restore from git.",
+            AZUMI_JS_HASH, computed
+        );
+    }
+}
+
 fn main() {
     // Only run if client files change
     println!("cargo:rerun-if-changed=client/idiomorph.js");
@@ -28,7 +64,11 @@ fn main() {
 
     // Read files - graceful handling if files are missing
     let idiomorph = match fs::read_to_string(client_dir.join("idiomorph.js")) {
-        Ok(content) => content,
+        Ok(content) => {
+            // Verify idiomorph.js integrity
+            verify_idiomorph_integrity(&content);
+            content
+        }
         Err(e) => {
             eprintln!(
                 "warning: Failed to read client/idiomorph.js: {}. Using empty content.",
@@ -38,7 +78,11 @@ fn main() {
         }
     };
     let azumi = match fs::read_to_string(client_dir.join("azumi.js")) {
-        Ok(content) => content,
+        Ok(content) => {
+            // Verify azumi.js integrity
+            verify_azumi_js_integrity(&content);
+            content
+        }
         Err(e) => {
             eprintln!(
                 "warning: Failed to read client/azumi.js: {}. Using empty content.",

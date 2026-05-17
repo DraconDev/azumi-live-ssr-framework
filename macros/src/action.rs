@@ -129,6 +129,7 @@ pub fn expand_action(item: TokenStream) -> TokenStream {
         ///     <form az-action={like_post_PATH} az-target={"#like-area"}>
         /// }
         /// ```
+        #[allow(non_upper_case_globals)]
         pub const #path_const_name: &str = #action_path_str;
 
         pub async fn #wrapper_name(

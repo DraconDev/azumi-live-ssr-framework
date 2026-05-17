@@ -3,6 +3,27 @@ use std::sync::RwLock;
 
 use crate::Component;
 
+/// Errors that can occur when initializing SEO configuration.
+#[derive(Debug)]
+pub enum SeoError {
+    /// SEO configuration has already been initialized.
+    /// Call `reset_seo()` (test-only) to re-initialize.
+    AlreadyInitialized,
+    /// The internal RwLock was poisoned.
+    PoisonedLock,
+}
+
+impl std::fmt::Display for SeoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SeoError::AlreadyInitialized => write!(f, "SEO configuration already initialized. Call reset_seo() to re-initialize (test-only)."),
+            SeoError::PoisonedLock => write!(f, "SEO configuration lock poisoned — another thread panicked while holding the lock."),
+        }
+    }
+}
+
+impl std::error::Error for SeoError {}
+
 /// Global site-wide SEO configuration.
 ///
 /// # Limitation
@@ -90,16 +111,21 @@ impl SeoConfig {
 /// let config2 = SeoConfig::new("My Site 2");
 /// assert!(init_seo(config2).is_err());
 /// ```
-pub fn init_seo(config: SeoConfig) -> Result<(), Box<SeoConfig>> {
+///
+/// # Errors
+///
+/// Returns [`SeoError::AlreadyInitialized`] if called more than once, or
+/// [`SeoError::PoisonedLock`] if the internal lock was poisoned.
+pub fn init_seo(config: SeoConfig) -> Result<(), SeoError> {
     if let Ok(mut guard) = SITE_CONFIG.write() {
         if guard.is_none() {
             *guard = Some(config);
             Ok(())
         } else {
-            Err(Box::new(config))
+            Err(SeoError::AlreadyInitialized)
         }
     } else {
-        Err(Box::new(config))
+        Err(SeoError::PoisonedLock)
     }
 }
 

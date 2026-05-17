@@ -5,7 +5,7 @@
 
 use crate::token_parser::Element;
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned};
+use quote::quote_spanned;
 
 /// Rule: Only valid children allowed inside `<table>`.
 pub fn validate_table_children(elem: &Element) -> Vec<TokenStream> {

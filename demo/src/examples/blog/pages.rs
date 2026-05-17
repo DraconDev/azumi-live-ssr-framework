@@ -134,12 +134,12 @@ impl<'a> std::fmt::Display for PostContent<'a> {
         for line in self.0.lines() {
             if line.is_empty() {
                 writeln!(f, "<br>")?;
-            } else if line.starts_with("## ") {
-                writeln!(f, "<h2>{}</h2>", &line[3..])?;
-            } else if line.starts_with("### ") {
-                writeln!(f, "<h3>{}</h3>", &line[4..])?;
-            } else if line.starts_with("- ") {
-                writeln!(f, "<li>{}</li>", &line[2..])?;
+            } else if let Some(rest) = line.strip_prefix("## ") {
+                writeln!(f, "<h2>{}</h2>", rest)?;
+            } else if let Some(rest) = line.strip_prefix("### ") {
+                writeln!(f, "<h3>{}</h3>", rest)?;
+            } else if let Some(rest) = line.strip_prefix("- ") {
+                writeln!(f, "<li>{}</li>", rest)?;
             } else {
                 writeln!(f, "<p>{}</p>", line)?;
             }

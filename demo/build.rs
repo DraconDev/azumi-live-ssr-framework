@@ -77,14 +77,13 @@ fn main() {
         "pub static ASSETS: phf::Map<&'static str, &'static str> = "
     )
     .unwrap();
-    write!(&mut file, "{}", map.build()).unwrap();
-    write!(&mut file, ";\n").unwrap();
+    writeln!(&mut file, "{};", map.build()).unwrap();
 
     // Generate JSON manifest for macros
     let json_map: std::collections::HashMap<&String, &String> =
         entries.iter().map(|(k, _, v_raw)| (k, v_raw)).collect();
 
     let manifest_json_path = Path::new("assets_manifest.json");
-    let json_file = fs::File::create(&manifest_json_path).unwrap();
+    let json_file = fs::File::create(manifest_json_path).unwrap();
     serde_json::to_writer_pretty(json_file, &json_map).unwrap();
 }

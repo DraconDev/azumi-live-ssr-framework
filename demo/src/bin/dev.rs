@@ -15,6 +15,7 @@ fn main() {
     println!("   Target Binary: {}", target_bin);
     println!("   Port: {}", port);
 
+    #[allow(clippy::zombie_processes)]
     let mut server = start_server(target_bin);
     let (tx, rx) = channel();
     let mut watcher = RecommendedWatcher::new(tx, Config::default()).unwrap();
@@ -29,36 +30,34 @@ fn main() {
     let mut last_run = Instant::now();
 
     loop {
-        match rx.recv() {
-            Ok(Ok(event)) => {
-                if last_run.elapsed() < Duration::from_millis(200) { continue; }
-                last_run = Instant::now();
+        if let Ok(Ok(event)) = rx.recv() {
+            if last_run.elapsed() < Duration::from_millis(200) { continue; }
+            last_run = Instant::now();
 
-                let is_rs = event.paths.iter().any(|p| p.extension().map_or(false, |e| e == "rs"));
-                if !is_rs { continue; }
+            let is_rs = event.paths.iter().any(|p| p.extension().is_some_and(|e| e == "rs"));
+            if !is_rs { continue; }
 
-                if let Some(path) = event.paths.first() {
-                    // Ignore changes that are ONLY CSS (handled by internal watcher)
-                    // We optimistically try to patch HTML
-                    if let Ok(true) = try_hot_patch(path, &port) {
-                        println!("⚡ Sub-second patch sent!");
-                        continue;
-                    }
+            if let Some(path) = event.paths.first() {
+                // Ignore changes that are ONLY CSS (handled by internal watcher)
+                // We optimistically try to patch HTML
+                if let Ok(true) = try_hot_patch(path, &port) {
+                    println!("⚡ Sub-second patch sent!");
+                    continue;
                 }
-
-                println!("🔄 Logic change detected. Restarting server...");
-                let _ = server.kill();
-                let _ = server.wait();
-                server = start_server(target_bin);
             }
-            _ => {}
+
+            println!("🔄 Logic change detected. Restarting server...");
+            let _ = server.kill();
+            let _ = server.wait();
+            server = start_server(target_bin);
         }
     }
 }
 
+#[allow(clippy::zombie_processes)]
 fn start_server(bin_name: &str) -> Child {
     Command::new("cargo")
-        .args(&["run", "--bin", bin_name])
+        .args(["run", "--bin", bin_name])
         .spawn()
         .expect("Failed to start server")
 }
@@ -111,9 +110,7 @@ fn extract_templates(content: &str, file_path: &str) -> HashMap<String, Vec<Stri
         
         let mut depth = 1;
         let mut inner_end = 0;
-        let mut chars = content[open_brace+1..].char_indices();
-        
-        while let Some((i, c)) = chars.next() {
+        for (i, c) in content[open_brace+1..].char_indices() {
             if c == '{' { depth += 1; }
             else if c == '}' { depth -= 1; }
             
