@@ -3,15 +3,8 @@ use axum::http::{Request, StatusCode};
 use axum::Router;
 use tower::ServiceExt;
 
-fn response_to_string(response: axum::response::Response) -> String {
-    let body = response.into_body();
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-    let bytes = rt.block_on(async {
-        axum::body::to_bytes(body, usize::MAX).await.unwrap()
-    });
+async fn body_to_string(body: axum::body::Body) -> String {
+    let bytes = axum::body::to_bytes(body, usize::MAX).await.unwrap();
     String::from_utf8(bytes.to_vec()).unwrap()
 }
 
@@ -55,9 +48,9 @@ async fn test_azumi_js_route_returns_runtime() {
         .await
         .unwrap();
 
-    let body = response_to_string(response.into());
+    let body = body_to_string(response.into_body()).await;
     assert!(
-        body.contains("azumi") || body.contains("Azumi") || !body.is_empty(),
+        !body.is_empty(),
         "azumi.js route should serve the client runtime, got {} bytes",
         body.len()
     );
