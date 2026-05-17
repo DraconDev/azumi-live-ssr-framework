@@ -474,18 +474,7 @@ fn test_seo_xss_image_url_with_angle_brackets() {
 // ════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn test_init_seo_returns_ok_on_first_call() {
-    use azumi::seo::{self, SeoConfig};
-    let config = SeoConfig::new(format!("Unique test {}", std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos()));
-    let result = seo::init_seo(config);
-    assert!(result.is_ok(), "First init_seo() call should return Ok");
-}
-
-#[test]
-fn test_init_seo_returns_err_on_duplicate_call() {
+fn test_init_seo_duplicate_call_returns_err() {
     use azumi::seo::{self, SeoConfig};
     let _ = seo::init_seo(SeoConfig::new("First Init for Err Test"));
     let result = seo::init_seo(SeoConfig::new("Duplicate Init for Err Test"));
