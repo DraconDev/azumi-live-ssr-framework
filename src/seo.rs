@@ -682,8 +682,8 @@ mod tests {
     #[test]
     fn test_generate_head_with_type() {
         reset_seo();
-        init_seo(SeoConfig {
-            title: "Test Site".to_string(),
+        let _ = init_seo(SeoConfig {
+            title: "Site".to_string(),
             open_graph: Some(OpenGraph {
                 site_name: Some("TestSite".to_string()),
                 ..Default::default()
