@@ -159,26 +159,48 @@ fn scope_selector(selector: &str, scope_attr: &str) -> String {
     
     fn find_last_real_colon(s: &str) -> Option<usize> {
         let mut bracket_depth = 0usize;
+        let mut paren_depth = 0usize;
         let mut last_colon = None;
         
         for (i, ch) in s.char_indices() {
             match ch {
                 '[' => bracket_depth = bracket_depth.saturating_add(1),
                 ']' => bracket_depth = bracket_depth.saturating_sub(1),
-                ':' if bracket_depth == 0 => { last_colon = Some(i); }
+                '(' => paren_depth = paren_depth.saturating_add(1),
+                ')' => paren_depth = paren_depth.saturating_sub(1),
+                ':' if bracket_depth == 0 && paren_depth == 0 => { last_colon = Some(i); }
                 _ => {}
             }
         }
         last_colon
     }
+
+    fn find_pseudo_element_boundary(s: &str) -> Option<usize> {
+        let mut paren_depth = 0usize;
+        let mut bracket_depth = 0usize;
+        let bytes = s.as_bytes();
+        for i in 0..bytes.len().saturating_sub(1) {
+            match bytes[i] {
+                b'(' => paren_depth = paren_depth.saturating_add(1),
+                b')' => paren_depth = paren_depth.saturating_sub(1),
+                b'[' => bracket_depth = bracket_depth.saturating_add(1),
+                b']' => bracket_depth = bracket_depth.saturating_sub(1),
+                _ => {}
+            }
+            if paren_depth == 0 && bracket_depth == 0 && bytes[i] == b':' && bytes[i + 1] == b':' {
+                return Some(i);
+            }
+        }
+        None
+    }
     
-    if let Some(pseudo_pos) = selector.find("::") {
+    if let Some(pseudo_pos) = find_pseudo_element_boundary(selector) {
         let base_and_pseudos = &selector[..pseudo_pos];
         let pseudo_element = &selector[pseudo_pos..];
         if let Some(class_pos) = find_last_real_colon(base_and_pseudos) {
             let base = &base_and_pseudos[..class_pos];
             let pseudo_classes = &base_and_pseudos[class_pos..];
-            return format!("{}{}{}{}", base, pseudo_classes, scope_attr, pseudo_element);
+            return format!("{}{}{}{}", base, scope_attr, pseudo_classes, pseudo_element);
         }
         return format!("{}{}{}", base_and_pseudos, scope_attr, pseudo_element);
     }
