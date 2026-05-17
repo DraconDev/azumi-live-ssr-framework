@@ -1,6 +1,7 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
 use azumi::prelude::*;
 
+#[azumi::page(route = "/")]
 #[azumi::component]
 pub fn homepage() -> impl Component {
     html! {
@@ -18,11 +19,10 @@ pub fn Lessons() -> impl Component {
 
             // Hero Section
             <header class={hero}>
-                <div class={hero_badge}>"🚀 The Future of Rust Web Development"</div>
+                <div class={hero_badge}>"🚀 Server-Rendered HTML with Client Interactivity"</div>
                 <h1 class={hero_title}>"Master Azumi"</h1>
                 <p class={hero_subtitle}>
-                    "A comprehensive, interactive journey through the Azumi framework.
-                    From basic components to production-ready applications."
+                    "All Rust. Zero custom JavaScript. No ecosystem churn.\n                    From basic components to production-ready applications."
                 </p>
 
                 <div class={hero_actions}>

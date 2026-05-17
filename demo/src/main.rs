@@ -47,7 +47,7 @@ async fn main() {
     // 🚀 Azumi Demo Server - Complete Learning Path
     let app = Router::new()
         // 🏠 Homepage - Learning Portal
-        .route("/", get(examples::lessons::pages::homepage::homepage_handler))
+        .route(examples::lessons::pages::homepage::homepage_ROUTE, get(examples::lessons::pages::homepage::homepage_handler))
 
         // 📝 Blog Example Routes
         .route("/blog", get(blog::pages::post_list_page))
