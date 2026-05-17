@@ -30,10 +30,11 @@ pub async fn contact_action(Form(form): Form<ContactForm>) -> ActionResult {
     }
 
     if !errors.is_empty() {
+        let error_style = "color: #d32f2f; font-size: 0.875rem; margin-top: 0.25rem;";
         let error_component = html! {
             <div>
                 @for (field, msg) in &errors {
-                    <p data-error={field} style={color: "#d32f2f"; font_size: "0.875rem"; margin_top: "0.25rem"}>{msg}</p>
+                    <p data-error={field} style={error_style}>{msg}</p>
                 }
             </div>
         };
