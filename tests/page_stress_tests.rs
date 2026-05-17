@@ -7,7 +7,7 @@ fn init_test_seo() {
     let config = seo::SeoConfig::new("Test Site")
         .with_description("Test Description")
         .with_image("/default-og.jpg");
-    seo::init_seo(config);
+    let _ = seo::init_seo(config);
 }
 
 // ════════════════════════════════════════════════════════════════════════════

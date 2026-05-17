@@ -42,7 +42,7 @@ async fn main() {
             ..Default::default()
         }),
         ..Default::default()
-    });
+    }).expect("SEO already initialized");
 
     // 🚀 Azumi Demo Server - Complete Learning Path
     let app = Router::new()
