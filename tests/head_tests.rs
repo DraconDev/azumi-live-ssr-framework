@@ -7,7 +7,7 @@ fn ensure_seo_init() {
         twitter: Some(TwitterCard::default()),
         ..Default::default()
     };
-    azumi::seo::init_seo(config);
+    let _ = azumi::seo::init_seo(config);
 }
 
 #[test]
