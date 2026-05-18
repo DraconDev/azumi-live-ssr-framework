@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 notify = "6.1"
 reqwest = { version = "0.11", features = ["blocking", "json"] }
-azumi = { path = "..", features = ["schema", "test-utils", "devtools"] }
+azumi-live-ssr-framework = { path = "..", features = ["schema", "test-utils", "devtools"] }
 axum = "0.8"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }

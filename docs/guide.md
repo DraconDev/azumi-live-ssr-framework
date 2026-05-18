@@ -116,7 +116,7 @@ cd my-app && cargo run
 ```bash
 cargo new my-azumi-app
 cd my-azumi-app
-cargo add azumi axum tokio serde serde_json tower-http tracing tracing-subscriber
+cargo add azumi-live-ssr-framework axum tokio serde serde_json tower-http tracing tracing-subscriber
 ```
 
 **Minimal `main.rs`:**
@@ -162,7 +162,7 @@ async fn home_handler() -> impl axum::response::IntoResponse {
 
 ```toml
 [dependencies]
-azumi = { version = "48", features = ["devtools"] }
+azumi-live-ssr-framework = { version = "48", features = ["devtools"] }
 # Production: remove "devtools" feature
 ```
 

@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Demo improvements**: Blog uses scoped CSS (no more `class:external`). Lessons have prev/next navigation.
 - **Lesson consistency**: Numbering matches file names, `#[azumi::page]` on 14 lessons, route constants in main.rs.
 - **Repo URL**: Updated to `DraconDev/azumi-live-ssr-framework` everywhere.
-- **README rewritten**: Leads with pain, code before explanation, `cargo add azumi` first.
+- **README rewritten**: Leads with pain, code before explanation, `cargo add azumi-live-ssr-framework` first.
 - **Internal docs**: Fixed 3KB references, dead links, repo name, "full-stack" → "Live SSR" positioning.
 
 ## [47.44.0] - 2026-05-18

@@ -9,6 +9,12 @@
 //! # Quick Start
 //!
 //! ```text
+//! cargo add azumi-live-ssr-framework
+//! ```
+//!
+//! Or use the CLI:
+//!
+//! ```text
 //! cargo install azumi-cli
 //! azumi new my-app
 //! cd my-app && cargo run

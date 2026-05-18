@@ -23,7 +23,7 @@ use std::time::{Duration, Instant};
 /// If you see this panic, remove `devtools` from your Cargo features:
 /// ```toml
 /// [dependencies]
-/// azumi = { version = "48", default-features = true }
+/// azumi-live-ssr-framework = { version = "48", default-features = true }
 /// # NOT: features = ["devtools"]  ← remove this for production
 /// ```
 pub fn router<S>() -> Router<S>

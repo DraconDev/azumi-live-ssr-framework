@@ -1,5 +1,5 @@
 [package]
-name = "azumi"
+name = "azumi-live-ssr-framework"
 version = "47.46.0"
 edition = "2021"
 rust-version = "1.70"
@@ -10,6 +10,9 @@ repository = "https://github.com/DraconDev/azumi-live-ssr-framework"
 keywords = ["ssr", "html", "htmx", "web-framework", "compile-time"]
 categories = ["template-engine", "web-programming", "gui"]
 readme = "README.md"
+
+[lib]
+name = "azumi"
 
 [workspace]
 members = ["macros", "demo", "examples/todo"]
@@ -41,7 +44,7 @@ lru = { version = "0.16", optional = true }
 futures = { version = "0.3", optional = true }
 
 [dev-dependencies]
-azumi = { version = "47", path = ".", features = ["test-utils"] }
+azumi-live-ssr-framework = { version = "47", path = ".", features = ["test-utils"] }
 trybuild = "1.0"
 criterion = { version = "0.5", features = ["html_reports"] }
 proptest = "1.5"

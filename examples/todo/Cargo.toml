@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-azumi = { path = "../.." }
+azumi-live-ssr-framework = { path = "../.." }
 axum = { version = "0.8", features = ["form"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }

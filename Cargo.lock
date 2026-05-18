@@ -162,11 +162,35 @@ dependencies = [
 ]
 
 [[package]]
-name = "azumi"
+name = "azumi-demo"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "axum-extra",
+ "azumi-live-ssr-framework",
+ "chrono",
+ "hex",
+ "notify",
+ "phf 0.13.1",
+ "phf_codegen 0.13.1",
+ "rand 0.8.5",
+ "reqwest",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "tokio",
+ "tower-http",
+ "walkdir",
+]
+
+[[package]]
+name = "azumi-live-ssr-framework"
 version = "47.46.0"
 dependencies = [
  "axum",
- "azumi",
+ "azumi-live-ssr-framework",
  "azumi-macros",
  "base64 0.22.1",
  "criterion",
@@ -190,30 +214,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "azumi-demo"
-version = "0.1.0"
-dependencies = [
- "axum",
- "axum-extra",
- "azumi",
- "chrono",
- "hex",
- "notify",
- "phf 0.13.1",
- "phf_codegen 0.13.1",
- "rand 0.8.5",
- "reqwest",
- "rusqlite",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "tokio",
- "tower-http",
- "walkdir",
-]
-
-[[package]]
 name = "azumi-macros"
 version = "8.0.0"
 dependencies = [
@@ -232,7 +232,7 @@ name = "azumi-todo-example"
 version = "0.1.0"
 dependencies = [
  "axum",
- "azumi",
+ "azumi-live-ssr-framework",
  "serde",
  "tokio",
 ]
