@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-azumi = { git = "https://github.com/DraconDev/azumi", tag = "{{azumi_version}}" }
+azumi-live-ssr-framework = { version = "{{azumi_version}}" }
 axum = "0.8"
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -13,4 +13,4 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [features]
-default = ["azumi/devtools"]
+default = ["azumi-live-ssr-framework/devtools"]

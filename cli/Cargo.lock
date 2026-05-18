@@ -4,4 +4,4 @@ version = 4
 
 [[package]]
 name = "azumi-cli"
-version = "47.20.46"
+version = "47.46.1"

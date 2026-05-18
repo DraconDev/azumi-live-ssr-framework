@@ -1,13 +1,14 @@
 mod templates;
 
-const AZUMI_VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
+const AZUMI_VERSION: &str = env!("CARGO_PKG_VERSION");
+const AZUMI_DISPLAY_VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
 
 use std::fs;
 use std::path::PathBuf;
 
 fn print_usage() {
     let name = std::env::args().next().unwrap_or_else(|| "azumi".to_string());
-    eprintln!("Azumi {AZUMI_VERSION} — Scaffolding CLI for the Azumi web framework");
+    eprintln!("Azumi {AZUMI_DISPLAY_VERSION} — Scaffolding CLI for the Azumi Live SSR framework (builds on Axum)");
     eprintln!();
     eprintln!("Usage:");
     eprintln!("  {name} new <project-name> [--out <path>] [--template <name>]");
@@ -77,7 +78,7 @@ fn main() {
             print_usage();
         }
         "--version" | "-V" => {
-            println!("azumi-cli {AZUMI_VERSION}");
+            println!("azumi-cli {AZUMI_DISPLAY_VERSION}");
         }
         _ => {
             eprintln!("Error: unknown command '{}'", args[1]);
