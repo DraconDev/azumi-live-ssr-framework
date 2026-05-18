@@ -106,7 +106,7 @@ pub fn expand_action(item: TokenStream) -> TokenStream {
     };
 
     let path_const_name = quote::format_ident!("{}_PATH", fn_name);
-    let action_path_str = format!("/_azumi/action/{}", fn_name);
+    let action_path_str = format!("/azumi/action/{}", fn_name);
 
     let expanded = quote! {
         #(#fn_attrs)*

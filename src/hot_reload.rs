@@ -219,14 +219,14 @@ async fn handle_socket(mut socket: WebSocket) {
     }
 }
 
-/// Mounts the hot reload route at `/_azumi/live_reload`
+/// Mounts the hot reload route at `/azumi/live_reload`
 ///
 /// # Security Warning
 ///
 /// These endpoints are **development-only** and should NOT be exposed in production:
 ///
-/// - `/_azumi/live_reload` - WebSocket endpoint for hot reload
-/// - `/_azumi/update_template` - POST endpoint to update templates
+/// - `/azumi/live_reload` - WebSocket endpoint for hot reload
+/// - `/azumi/update_template` - POST endpoint to update templates
 ///
 /// **Authentication**: Both endpoints require the `X-Azumi-Dev-Token` header
 /// to be set to the value of the `AZUMI_DEV_TOKEN` environment variable.
@@ -242,8 +242,8 @@ where
     S: Clone + Send + Sync + 'static,
 {
     Router::new()
-        .route("/_azumi/live_reload", get(ws_handler))
-        .route("/_azumi/update_template", post(update_template_handler))
+        .route("/azumi/live_reload", get(ws_handler))
+        .route("/azumi/update_template", post(update_template_handler))
         .layer(axum::middleware::from_fn(check_dev_token))
 }
 

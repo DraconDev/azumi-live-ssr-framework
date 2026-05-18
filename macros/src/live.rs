@@ -513,8 +513,8 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
             method_handlers.push(handler);
 
             // Generate inventory registration with NAMESPACED path
-            // /_azumi/action/{StructName}/{MethodName}
-            let action_path = format!("/_azumi/action/{}/{}", struct_name_str, method_name);
+            // /azumi/action/{StructName}/{MethodName}
+            let action_path = format!("/azumi/action/{}/{}", struct_name_str, method_name);
             let registration = quote! {
                 azumi::inventory::submit! {
                     azumi::action::ActionEntry {
@@ -528,7 +528,7 @@ pub fn expand_live_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let handler_mod_name =
-        format_ident!("__azumi_live_handlers_{}", struct_name_str.to_lowercase());
+        format_ident!("azumi_live_handlers_{}", struct_name_str.to_lowercase());
 
     let predictions_const: Vec<_> = predictions_entries
         .iter()

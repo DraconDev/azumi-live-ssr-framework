@@ -234,7 +234,7 @@ fn try_hot_patch_internal(path: &Path, port: &str) -> Result<bool, Box<dyn std::
     let mut success = false;
     for (id, parts) in templates {
         let payload = serde_json::json!({ "id": id, "parts": parts }).to_string();
-        if send_raw_post(port, "/_azumi/update_template", &payload) {
+        if send_raw_post(port, "/azumi/update_template", &payload) {
             success = true;
         } else {
             return Ok(false);

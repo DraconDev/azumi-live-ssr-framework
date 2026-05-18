@@ -102,7 +102,7 @@ class Azumi {
     // Hot Reload Logic
     connectHotReload() {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `${protocol}//${window.location.host}/_azumi/live_reload`;
+        const wsUrl = `${protocol}//${window.location.host}/azumi/live_reload`;
 
         try {
             const ws = new WebSocket(wsUrl);
@@ -258,7 +258,7 @@ class Azumi {
                 }
             }
 
-            let url = `/_azumi/action${namespace}/${actionName}`;
+            let url = `/azumi/action${namespace}/${actionName}`;
             let targetSelector = null;
             let swap = "morph";
 
@@ -430,7 +430,7 @@ class Azumi {
         const action = {
             type: "call",
             actionName,
-            url: `/_azumi/action${namespace}/${actionName}`,
+            url: `/azumi/action${namespace}/${actionName}`,
             target: targetSelector,
             swap,
         };
@@ -1061,10 +1061,10 @@ class Azumi {
 
     // Server action with optimistic prediction
     async callAction(action, element) {
-        // Built-in: __azumi_retry (error_fragment "Try Again" button)
+        // Built-in: azumi_retry (error_fragment "Try Again" button)
         // Note: unhides form by clearing inline display:none only;
         // forms hidden via CSS class will not be unhidden.
-        if (action.actionName === "__azumi_retry") {
+        if (action.actionName === "azumi_retry") {
             const formId = element.getAttribute("data-retry-form");
             if (formId) {
                 const form = document.getElementById(formId);
@@ -1088,18 +1088,18 @@ class Azumi {
                 scopeState = {};
                 this.scopes.set(scopeElement, scopeState);
             }
-            if (scopeState._azumi_pending) {
+            if (scopeState.azumi_pending) {
                 // Clear stale locks after 30 seconds (server crash / network hang)
-                if (Date.now() - (scopeState._azumi_pending_time || 0) > 30000) {
+                if (Date.now() - (scopeState.azumi_pending_time || 0) > 30000) {
                     this.warn("Clearing stale action lock (>30s timeout)");
-                    scopeState._azumi_pending = false;
+                    scopeState.azumi_pending = false;
                 } else {
                     this.warn("Action ignored: Request already pending for this component.");
                     return;
                 }
             }
-            scopeState._azumi_pending = true;
-            scopeState._azumi_pending_time = Date.now();
+            scopeState.azumi_pending = true;
+            scopeState.azumi_pending_time = Date.now();
         }
 
         // IMPORTANT: Capture state BEFORE prediction
@@ -1127,13 +1127,13 @@ class Azumi {
                     }
                 }
                 if (scopeElement) {
-                    data._azumi_scope = scopeElement.getAttribute("az-scope") || "";
+                    data.azumi_scope = scopeElement.getAttribute("az-scope") || "";
                 }
                 body = JSON.stringify(data);
             } else {
                 // File inputs present: send FormData directly
                 if (scopeElement) {
-                    body.append("_azumi_scope", scopeElement.getAttribute("az-scope") || "");
+                    body.append("azumi_scope", scopeElement.getAttribute("az-scope") || "");
                 }
             }
         } else {
@@ -1272,7 +1272,7 @@ class Azumi {
             if (scopeElement) {
                 const scopeState = this.scopes.get(scopeElement);
                 if (scopeState) {
-                    scopeState._azumi_pending = false;
+                    scopeState.azumi_pending = false;
                 }
             }
         }

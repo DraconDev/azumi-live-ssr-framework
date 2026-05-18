@@ -34,7 +34,7 @@ mod tests {
         let signed_scope = state.to_scope();
 
         // 1. Verify normal request works (Implicitly signed)
-        let response = __azumi_live_handlers_securecounter::increment_handler(signed_scope.clone()).await;
+        let response = azumi_live_handlers_securecounter::increment_handler(signed_scope.clone()).await;
         assert_eq!(
             response.status(),
             StatusCode::OK,
@@ -49,7 +49,7 @@ mod tests {
 
         // 3. Verify the handler REJECTS it automatically
         // We didn't write any verification code in SecureCounter, but the macro provided it.
-        let response = __azumi_live_handlers_securecounter::increment_handler(tampered_scope).await;
+        let response = azumi_live_handlers_securecounter::increment_handler(tampered_scope).await;
         assert_eq!(
             response.status(),
             StatusCode::BAD_REQUEST,

@@ -265,8 +265,8 @@ mod error_fragment_tests {
         let response = error_fragment("Error", Some("my_form"));
         let body = response_to_string(response).await;
         assert!(
-            body.contains("__azumi_retry"),
-            "should reference __azumi_retry: {}",
+            body.contains("azumi_retry"),
+            "should reference azumi_retry: {}",
             body
         );
     }
@@ -287,7 +287,7 @@ mod error_fragment_tests {
         let response = error_fragment("Error", None);
         let body = response_to_string(response).await;
         assert!(
-            !body.contains("__azumi_retry"),
+            !body.contains("azumi_retry"),
             "no retry button without form_id: {}",
             body
         );

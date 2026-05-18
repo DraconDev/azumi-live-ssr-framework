@@ -197,10 +197,10 @@ pub fn success_fragment<C: Component + ?Sized>(component: &C) -> Response {
 /// If `form_id` is provided, includes a "Try Again" button that re-shows the form.
 ///
 /// The `form_id` is HTML-escaped and placed in a `data-retry-form` attribute.
-/// The button uses `az-on="click call __azumi_retry"` for framework-consistent
+/// The button uses `az-on="click call azumi_retry"` for framework-consistent
 /// event delegation, which the Azumi client runtime handles as a built-in action.
 ///
-/// **Note:** The `__azumi_retry` client handler unhides the form by setting
+/// **Note:** The `azumi_retry` client handler unhides the form by setting
 /// `form.style.display = ""`, which removes inline `display:none`. This assumes
 /// the form was hidden via inline style (the framework's default behavior).
 /// If the form was hidden via a CSS class instead, the retry button will not
@@ -210,7 +210,7 @@ pub fn error_fragment(message: impl Into<String>, form_id: Option<&str>) -> Resp
     let retry = form_id.map(|id| {
         let safe_id = crate::escape_html(id);
         format!(
-            r#"<button type="button" az-on="click call __azumi_retry -> .error_message" data-retry-form="{}" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
+            r#"<button type="button" az-on="click call azumi_retry -> .error_message" data-retry-form="{}" class="submit_btn" style="margin-top:1rem">Try Again</button>"#,
             safe_id
         )
     });

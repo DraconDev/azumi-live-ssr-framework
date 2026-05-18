@@ -41,7 +41,7 @@ struct TestLikeForm {
 
 #[test]
 fn test_action_path_constant_generated() {
-    assert_eq!(test_like_post_PATH, "/_azumi/action/test_like_post");
+    assert_eq!(test_like_post_PATH, "/azumi/action/test_like_post");
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn test_action_path_constant_usable_in_html() {
         </form>
     });
     assert!(
-        html.contains(r#"az-action="/_azumi/action/test_like_post""#),
+        html.contains(r#"az-action="/azumi/action/test_like_post""#),
         "Expected az-action with resolved path, got: {}", html
     );
 }

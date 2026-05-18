@@ -75,7 +75,7 @@ fn try_hot_patch(path: &Path, port: &str) -> Result<bool, Box<dyn std::error::Er
     for (id, parts) in templates {
         let client = reqwest::blocking::Client::new();
         let payload = serde_json::json!({ "id": id, "parts": parts });
-        let url = format!("http://localhost:{}/_azumi/update_template", port);
+        let url = format!("http://localhost:{}/azumi/update_template", port);
         
         // Use shorter timeout
         if client.post(&url)
