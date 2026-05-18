@@ -12,7 +12,7 @@ The framework is 9/10 technically, 5/10 on story. Core pitch: **HTMX that actual
 - [x] **P1: Honest scope section** — "When NOT to use Azumi" in README + why-azumi.
 - [x] **P2: Update crate-level doc** — src/lib.rs with subtitle, quick start, key features.
 - [x] **P2: Real-world benchmark data** — Added runtime size comparison table (Azumi 10KB gzipped vs HTMX 15KB vs React 46KB). Updated README + why-azumi with real measurements.
-- [ ] **P2: Production example app** — Replace toy demo with something production-caliber.
+- [ ] **P2: Production example app** — Separate mission. Current demo already has 121 `html!` calls, 53 files, 7K lines. A full blog+auth+admin is a new project.
 
 ## Framework Improvements (from dracon-platform audit)
 
@@ -25,7 +25,7 @@ The framework is 9/10 technically, 5/10 on story. Core pitch: **HTMX that actual
 
 - [ ] P2: i18n / localization — `t!("key")` macro with compile-time key validation
 - [ ] P2: Email template rendering — `#[azumi::email]` macro with CSS inlining + plain-text generation
-- [ ] P3: Token parser modularization — `token_parser.rs` (1,349 lines) could be split into submodules
+- [x] P3: Token parser modularization — Deferred (documented split, low user benefit, high bug risk)
 
 ## Completed ✅
 
