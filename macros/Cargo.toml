@@ -2,11 +2,11 @@
 name = "azumi-macros"
 version = "8.0.0"
 edition = "2021"
-description = "Procedural macros for Azumi web framework"
+description = "Procedural macros for Azumi — server-rendered HTML framework with compile-time validation"
 repository = "https://github.com/DraconDev/azumi"
 license = "AGPL-3.0-only"
-keywords = ["html", "template", "macro", "web"]
-categories = ["template-engine", "web-programming"]
+keywords = ["html", "htmx", "ssr", "macro", "compile-time"]
+categories = ["template-engine", "web-programming", "gui"]
 
 [lib]
 proc-macro = true
