@@ -2,7 +2,7 @@
 name = "azumi-macros"
 version = "8.0.0"
 edition = "2021"
-description = "Procedural macros for Azumi — server-rendered HTML framework with compile-time validation"
+description = "Procedural macros for Azumi — Live SSR framework for Rust. Provides html!, #[azumi::component], #[azumi::live], #[azumi::action] with compile-time validation."
 repository = "https://github.com/DraconDev/azumi-live-ssr-framework"
 license = "AGPL-3.0-only"
 keywords = ["html", "htmx", "ssr", "macro", "compile-time"]
