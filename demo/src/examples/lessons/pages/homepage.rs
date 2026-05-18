@@ -27,7 +27,7 @@ pub fn Lessons() -> impl Component {
 
                 <div class={hero_actions}>
                     <a href="/lesson-0" class={btn_primary}>"Start Learning"</a>
-                    <a href="https://github.com/DraconDev/azumi-interactive-html" class={btn_secondary}>"View on GitHub"</a>
+                    <a href="https://github.com/DraconDev/azumi-live-ssr-framework" class={btn_secondary}>"View on GitHub"</a>
                 </div>
 
                 <div class={hero_stats}>
