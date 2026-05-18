@@ -1,6 +1,6 @@
-//! # Azumi — Server-Rendered HTML with Client Interactivity
+//! # Azumi — Live SSR for Rust
 //!
-//! Server-rendered HTML framework where toggles, reveals, and optimistic updates
+//! Server-rendered HTML with instant interactivity. Toggles, reveals, and optimistic updates
 //! work without a network roundtrip. All Rust, zero custom JavaScript, no JS ecosystem.
 //!
 //! Think of it as HTMX that actually works for interactive apps.

@@ -2,10 +2,6 @@
 
 **Live SSR for Rust — server-rendered HTML with instant interactivity. No JavaScript. No WASM. No ecosystem churn.**
 
-```bash
-cargo install azumi-cli && azumi new my-app && cd my-app && cargo run
-```
-
 ---
 
 ## You know the problem.
@@ -68,16 +64,19 @@ html! {
 
 ---
 
-## Quickstart
+## Add to your project
+
+```bash
+cargo add azumi
+```
+
+## Or start a new project
 
 ```bash
 cargo install azumi-cli
 azumi new my-app
 cd my-app && cargo run
-# → http://localhost:8080
 ```
-
-You get a landing page with an interactive counter — HMAC-signed state, server-side mutations, instant DOM updates. Zero custom JavaScript.
 
 ---
 

@@ -220,7 +220,7 @@ fn start_worker(bin_name: &str) -> Child {
 
     cmd.env("AZUMI_IS_WORKER", "1")
         .spawn()
-        .expect("Failed to start azumi worker")
+        .expect("Failed to start azumi worker. Ensure the binary is available in PATH.")
 }
 
 fn try_hot_patch_internal(path: &Path, port: &str) -> Result<bool, Box<dyn std::error::Error>> {
