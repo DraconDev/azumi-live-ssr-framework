@@ -171,7 +171,7 @@ Strict [Semantic Versioning](https://semver.org/). `azumi = "48"` in `Cargo.toml
 |---|---|
 | [Why Azumi](docs/why-azumi.md) | Origin story, competitive landscape, thesis |
 | [Developer Guide](docs/guide.md) | Components, live state, forms, security |
-| [Migrating from Axum](docs/migration/from-axum.md) | 6-step incremental adoption |
+| [Adding Azumi to Axum](docs/migration/from-axum.md) | 6-step incremental adoption |
 | [Changelog](CHANGELOG.md) | Release history |
 
 ---

@@ -1,11 +1,11 @@
 [package]
 name = "azumi"
-version = "47.44.0"
+version = "47.45.0"
 edition = "2021"
 rust-version = "1.70"
 authors = ["DraconDev <dracsharp@gmail.com>"]
 license = "AGPL-3.0-only"
-description = "Server-rendered HTML framework for Rust. Client interactivity without JavaScript. HTMX alternative with compile-time validation."
+description = "Live SSR for Rust — builds on Axum. Server-rendered HTML with instant interactivity, compile-time validation, zero custom JavaScript."
 repository = "https://github.com/DraconDev/azumi-live-ssr-framework"
 keywords = ["html", "htmx", "ssr", "web-framework", "compile-time"]
 categories = ["template-engine", "web-programming", "gui"]

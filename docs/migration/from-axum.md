@@ -1,6 +1,6 @@
-# Migrating from Axum to Azumi
+# Adding Azumi to Your Axum App
 
-Azumi is designed for **incremental adoption**. You don't need to rewrite your app — add Azumi to one route at a time, keeping your existing Axum handlers alongside new `html!` components.
+Azumi builds **on top of Axum**. You don't replace anything — add Azumi to one route at a time, keeping your existing Axum handlers alongside new `html!` components. Axum stays.
 
 ## The Spectrum
 
