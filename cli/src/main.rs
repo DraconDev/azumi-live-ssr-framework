@@ -157,7 +157,7 @@ fn create_components_project(name: &str, dir: &PathBuf) {
     println!("  └──────────────────────────────────────────────────┘");
     println!();
     println!("  📦 Component library available in: src/components.rs");
-    println!("  📖 Learn more: https://github.com/DraconDev/azumi-ssr-framework");
+    println!("  📖 Learn more: https://github.com/DraconDev/azumi-interactive-html");
 }
 
 fn print_success(dir: &PathBuf) {
@@ -169,7 +169,7 @@ fn print_success(dir: &PathBuf) {
     println!("  │  → http://localhost:8080                          │");
     println!("  └──────────────────────────────────────────────────┘");
     println!();
-    println!("  📖 Learn more: https://github.com/DraconDev/azumi-ssr-framework");
+    println!("  📖 Learn more: https://github.com/DraconDev/azumi-interactive-html");
 }
 
 fn is_valid_crate_name(name: &str) -> bool {
