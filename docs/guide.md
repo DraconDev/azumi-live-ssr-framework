@@ -799,7 +799,7 @@ AZUMI_DEBUG=1 cargo build
 
 ```bash
 # Development (with hot reload)
-cargo run --features azumi/devtools
+cargo run --features azumi-live-ssr-framework/devtools
 
 # Production (no devtools, set secret)
 AZUMI_SECRET="your-64-char-random-secret" cargo run --release
