@@ -162,7 +162,7 @@ async fn home_handler() -> impl axum::response::IntoResponse {
 
 ```toml
 [dependencies]
-azumi-live-ssr-framework = { version = "48", features = ["devtools"] }
+azumi-live-ssr-framework = { version = "47", features = ["devtools"] }
 # Production: remove "devtools" feature
 ```
 
@@ -409,7 +409,7 @@ impl Counter {
 2. USER CLICKS BUTTON
    Client: Auto-detect prediction from az-predictions JSON
            Apply "count = count + 1" instantly (0ms latency)
-   Client: POST /_azumi/action/Counter/increment
+   Client: POST /azumi/action/Counter/increment
            Body: {signed_state_json} (original, pre-prediction)
 
 3. SERVER HANDLER

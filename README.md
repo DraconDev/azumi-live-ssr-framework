@@ -161,7 +161,7 @@ No ecosystem to keep up with. No framework rewrites every 2 years. No migration 
 > Next.js: pages router → app router (massive migration)
 > **Azumi: 0 rewrites. Your code works.**
 
-Strict [Semantic Versioning](https://semver.org/). `azumi-live-ssr-framework = "48"` in `Cargo.toml` will never break your build.
+Strict [Semantic Versioning](https://semver.org/). `azumi-live-ssr-framework = "47"` in `Cargo.toml` will never break your build.
 
 ---
 

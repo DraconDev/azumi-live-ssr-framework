@@ -145,9 +145,9 @@ For ephemeral UI state that doesn't need to persist or round-trip to the server 
 
 If you are using `azumi.js` without `DraconDev/azumi-live-ssr-framework`, your server must implement the following:
 
-1.  **Endpoint**: `POST /_azumi/action/{StructName}/{MethodName}` (namespaced)
+1.  **Endpoint**: `POST /azumi/action/{StructName}/{MethodName}` (namespaced)
 2.  **Request Body**:
-    -   **Forms**: `JSON` object of form fields with `_azumi_scope` key.
+    -   **Forms**: `JSON` object of form fields with `azumi_scope` key.
     -   **Others**: `JSON` object of the current `az-scope` state.
 3.  **Response**:
     -   **Success (200)**: HTML fragment to morph into the target.
@@ -155,7 +155,7 @@ If you are using `azumi.js` without `DraconDev/azumi-live-ssr-framework`, your s
 
 ### 6. Hot Reload
 
-The client automatically attempts to connect to `ws://{host}/_azumi/live_reload`.
+The client automatically attempts to connect to `ws://{host}/azumi/live_reload`.
 When the connection is lost (server restart), it polls the current page via `HEAD` requests and refreshes when the server is back up.
 
 ## JavaScript API
@@ -168,7 +168,7 @@ window.azumi.execute(
     {
         type: "call",
         actionName: "refresh",
-        url: "/_azumi/action/refresh",
+        url: "/azumi/action/refresh",
         target: "#my-component",
     },
     elementReference

@@ -455,7 +455,7 @@ Every `#[azumi::action]` function gets a `<name>_PATH` constant:
 fn like_post(form: LikeForm) -> ActionResult { ... }
 
 // Auto-generated constant:
-// like_post_PATH == "/_azumi/action/like_post"
+// like_post_PATH == "/azumi/action/like_post"
 ```
 
 Use it in `html!`:

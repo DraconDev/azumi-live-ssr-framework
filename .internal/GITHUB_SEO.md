@@ -57,4 +57,4 @@ gui
 6. GitHub auto-redirects old URL → new URL
 7. Update any external links (blog posts, etc.)
 
-Note: crate name stays `azumi` (cargo add azumi). Only the repo display name changes.
+Note: Crate name: `azumi-live-ssr-framework` (`cargo add azumi-live-ssr-framework`). Lib name: `azumi` (`use azumi::prelude::*`).

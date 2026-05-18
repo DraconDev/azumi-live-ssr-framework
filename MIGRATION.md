@@ -87,5 +87,5 @@ This enables:
 If you need to stay on v26:
 ```toml
 [dependencies]
-azumi = "=26.7.0"  # Pin to v26
+azumi-live-ssr-framework = "=26.7.0"  # Pin to v26
 ```

@@ -317,7 +317,7 @@ fn todo_list(state: TodoState) -> impl azumi::Component {
 
 **Key Concepts:**
 
--   `#[azumi::action]` registers server handler at `/_azumi/action/{name}`
+-   `#[azumi::action]` registers server handler at `/azumi/action/{name}`
 -   Actions receive state JSON, return new HTML
 -   DOM morphing preserves focus/scroll state
 
@@ -458,7 +458,7 @@ pub fn like_view<'a>(state: &'a LikeButton) -> impl Component + 'a {
 ├────────────────────────────────────────────────────────────────┤
 │  1. OPTIMISTIC: Auto-detect prediction from az-predictions    │
 │     Execute "count = count + 1" instantly (0ms)               │
-│  2. SERVER: POST /_azumi/action/Counter/increment             │
+│  2. SERVER: POST /azumi/action/Counter/increment             │
 │     with ORIGINAL signed state JSON                           │
 │  3. MORPH: Server returns new HTML, morphed into DOM          │
 │  4. RECONCILE: If prediction wrong, server HTML wins          │
