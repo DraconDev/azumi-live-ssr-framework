@@ -56,6 +56,7 @@ mod tests {
     }
 }
 
+#[azumi::page(route = "/lesson-18")]
 #[azumi::component]
 pub fn render_page() -> impl Component {
     let initial_state = SecureCounter {
@@ -218,6 +219,6 @@ pub fn secure_view<'a>(state: &'a SecureCounter) -> impl Component + 'a {
     }
 }
 
-pub async fn handler() -> impl IntoResponse {
+pub async fn lesson18_handler() -> impl IntoResponse {
     Html(azumi::render_to_string(&render_page()))
 }

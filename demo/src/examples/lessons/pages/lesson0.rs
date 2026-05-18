@@ -1,11 +1,11 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
-use azumi::html;
+use azumi::prelude::*;
 
-/// Lesson 1: Introduction to Azumi Components
+/// Lesson 0: Introduction to Azumi Components
 ///
 /// Basic component structure with proper syntax
 #[azumi::component]
-pub fn hello_world() -> impl azumi::Component {
+pub fn hello_world() -> impl Component {
     html! {
         <div class={greeting}>"Hello, Azumi!"</div>
         <style>
@@ -25,7 +25,7 @@ pub fn hello_world() -> impl azumi::Component {
 
 /// Example: Component with styling and structure
 #[azumi::component]
-pub fn basic_component() -> impl azumi::Component {
+pub fn basic_component() -> impl Component {
     html! {
         <div class={container}>
             <h1 class={title}>"Basic Azumi Component"</h1>
@@ -48,7 +48,7 @@ pub fn basic_component() -> impl azumi::Component {
 
 /// Example: Component with multiple elements
 #[azumi::component]
-pub fn multi_element_component() -> impl azumi::Component {
+pub fn multi_element_component() -> impl Component {
     html! {
         <div class={card}>
             <h2 class={card_title}>"Multi-Element Component"</h2>
@@ -70,8 +70,9 @@ pub fn multi_element_component() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-0")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>
@@ -85,7 +86,7 @@ pub fn page() -> impl azumi::Component {
                     <ul class={points_list}>
                         <li class={point}>"✅ Components use #[azumi::component] macro"</li>
                         <li class={point}>"✅ CSS is automatically scoped to each component"</li>
-                        <li class={point}>"✅ Components return impl azumi::Component"</li>
+                        <li class={point}>"✅ Components return impl Component"</li>
                         <li class={point}>"✅ HTML structure uses html! macro"</li>
                         <li class={point}>"✅ All text content must be quoted"</li>
                     </ul>
@@ -164,6 +165,6 @@ pub fn page() -> impl azumi::Component {
 }
 
 // Handler for Axum
-pub async fn handler() -> impl axum::response::IntoResponse {
+pub async fn lesson0_handler() -> impl axum::response::IntoResponse {
     axum::response::Html(azumi::render_to_string(&page()))
 }

@@ -1,8 +1,8 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
-use azumi::html;
+use azumi::prelude::*;
 
 #[azumi::component]
-pub fn container(children: impl azumi::Component) -> impl azumi::Component {
+pub fn container(children: impl Component) -> impl Component {
     html! {
         <div class={content_box}>
             {children}
@@ -22,7 +22,7 @@ pub fn container(children: impl azumi::Component) -> impl azumi::Component {
 
 /// Example: Layout with children
 #[azumi::component]
-pub fn layout_example() -> impl azumi::Component {
+pub fn layout_example() -> impl Component {
     html! {
         <div>
             <div class={header}>
@@ -46,7 +46,7 @@ pub fn layout_example() -> impl azumi::Component {
 
 /// Example: Nested children components
 #[azumi::component]
-pub fn nested_children() -> impl azumi::Component {
+pub fn nested_children() -> impl Component {
     html! {
         <div>
             <h3 class={title}>"Nested Children Example"</h3>
@@ -77,7 +77,7 @@ pub fn nested_children() -> impl azumi::Component {
 
 /// Example: Children with multiple elements
 #[azumi::component]
-pub fn multiple_children_example() -> impl azumi::Component {
+pub fn multiple_children_example() -> impl Component {
     html! {
         <div>
             @container() {
@@ -121,13 +121,14 @@ pub fn multiple_children_example() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-4")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>
                 <header class={header}>
-                    <h1 class={main_title}>"Lesson 5: Children Pattern"</h1>
+                    <h1 class={main_title}>"Lesson 4: Children & Layouts"</h1>
                     <p class={subtitle}>"Components with children parameter"</p>
                 </header>
 

@@ -1,11 +1,12 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use azumi::prelude::*;
 
-/// Lesson 4: Component Composition Patterns
+/// Lesson 3: Component Composition
 ///
 /// Building complex UIs from simple components
 #[azumi::component]
-pub fn card<'a>(title: &'a str, content: &'a str) -> impl azumi::Component + 'a {
-    azumi::html! {
+pub fn card<'a>(title: &'a str, content: &'a str) -> impl Component + 'a {
+    html! {
         <div class={card}>
             <h3 class={card_title}>{title}</h3>
             <p class={card_content}>{content}</p>
@@ -36,8 +37,8 @@ pub fn card<'a>(title: &'a str, content: &'a str) -> impl azumi::Component + 'a 
 
 /// Example: Dashboard composed of multiple cards
 #[azumi::component]
-pub fn dashboard() -> impl azumi::Component {
-    azumi::html! {
+pub fn dashboard() -> impl Component {
+    html! {
         <div>
             <div class={dash_header}>
                 <h2 class={dashboard_title}>"Component Composition Dashboard"</h2>
@@ -73,8 +74,8 @@ pub fn dashboard() -> impl azumi::Component {
 
 /// Example: Complex layout with nested composition
 #[azumi::component]
-pub fn complex_layout() -> impl azumi::Component {
-    azumi::html! {
+pub fn complex_layout() -> impl Component {
+    html! {
         <div class={layout_container}>
             <div class={header_section}>
                 <h2 class={header_title}>"Complex Layout Composition"</h2>
@@ -133,13 +134,14 @@ pub fn complex_layout() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-3")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
-    azumi::html! {
+pub fn page() -> impl Component {
+    html! {
         @DarkModernLayout() {
             <div class={container}>
                 <header class={header}>
-                    <h1 class={main_title}>"Lesson 4: Component Composition Patterns"</h1>
+                    <h1 class={main_title}>"Lesson 3: Component Composition"</h1>
                     <p class={subtitle}>"Building complex UIs from simple components"</p>
                 </header>
 

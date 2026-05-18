@@ -1,4 +1,4 @@
-use azumi::html;
+use azumi::prelude::*;
 
 use crate::examples::lessons::components::layout::DarkModernLayout;
 
@@ -14,7 +14,7 @@ struct UserForm {
 }
 
 #[azumi::component]
-pub fn user_form_component() -> impl azumi::Component {
+pub fn user_form_component() -> impl Component {
     html! {
 
         <form class={form}>
@@ -60,7 +60,7 @@ pub fn user_form_component() -> impl azumi::Component {
 
 /// Example: Validation feedback
 #[azumi::component]
-pub fn validation_example() -> impl azumi::Component {
+pub fn validation_example() -> impl Component {
     html! {
 
         <div class={validation_container}>
@@ -92,7 +92,7 @@ pub fn validation_example() -> impl azumi::Component {
 
 /// Example: Complex form with multiple fields
 #[azumi::component]
-pub fn complex_form_example() -> impl azumi::Component {
+pub fn complex_form_example() -> impl Component {
     html! {
 
         <form class={complex_form}>
@@ -165,8 +165,9 @@ pub fn complex_form_example() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-7")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>

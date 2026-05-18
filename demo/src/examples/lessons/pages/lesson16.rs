@@ -3,6 +3,10 @@ use azumi::prelude::*;
 use sqlx::{Pool, Sqlite};
 use std::sync::OnceLock;
 
+/// Lesson 16: Async Database
+///
+/// SQLite integration with optimistic UI
+
 // Global DB pool for the demo
 static DB_POOL: OnceLock<Pool<Sqlite>> = OnceLock::new();
 

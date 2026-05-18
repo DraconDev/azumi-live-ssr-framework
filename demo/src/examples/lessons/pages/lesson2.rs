@@ -1,11 +1,11 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
-use azumi::html;
+use azumi::prelude::*;
 
-/// Lesson 3: Global vs Component CSS
+/// Lesson 2: Global vs Component CSS
 ///
 /// Understanding style scoping options
 #[azumi::component]
-pub fn global_css_example() -> impl azumi::Component {
+pub fn global_css_example() -> impl Component {
     html! {
         <div class={wrapper}>
             <div class={component_card}>
@@ -57,7 +57,7 @@ pub fn global_css_example() -> impl azumi::Component {
 
 /// Example: Multiple components with different scoping
 #[azumi::component]
-pub fn mixed_scoping_example() -> impl azumi::Component {
+pub fn mixed_scoping_example() -> impl Component {
     html! {
         <div class={container}>
             <div class={header}>
@@ -110,7 +110,7 @@ pub fn mixed_scoping_example() -> impl azumi::Component {
 
 /// Example: CSS scoping best practices
 #[azumi::component]
-pub fn scoping_best_practices() -> impl azumi::Component {
+pub fn scoping_best_practices() -> impl Component {
     html! {
         <div class={best_practices}>
             <h3 class={bp_title}>"CSS Scoping Best Practices"</h3>
@@ -154,13 +154,14 @@ pub fn scoping_best_practices() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-2")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>
                 <header class={header}>
-                    <h1 class={main_title}>"Lesson 3: Global vs Component CSS"</h1>
+                    <h1 class={main_title}>"Lesson 2: Global vs Component CSS"</h1>
                     <p class={subtitle}>"Understanding style scoping options"</p>
                 </header>
 

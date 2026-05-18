@@ -1,4 +1,4 @@
-use azumi::html;
+use azumi::prelude::*;
 
 use crate::examples::lessons::components::layout::DarkModernLayout;
 
@@ -6,7 +6,7 @@ use crate::examples::lessons::components::layout::DarkModernLayout;
 ///
 /// @if, @else, @for, @match patterns
 #[azumi::component]
-pub fn control_flow_example() -> impl azumi::Component {
+pub fn control_flow_example() -> impl Component {
     html! {
 
         <div class={content}>
@@ -56,7 +56,7 @@ pub fn control_flow_example() -> impl azumi::Component {
 
 /// Example: Complex conditional logic
 #[azumi::component]
-pub fn complex_conditions() -> impl azumi::Component {
+pub fn complex_conditions() -> impl Component {
     html! {
 
         <div class={conditions_container}>
@@ -94,7 +94,7 @@ pub fn complex_conditions() -> impl azumi::Component {
 
 /// Example: Pattern matching with enums
 #[azumi::component]
-pub fn pattern_matching_example() -> impl azumi::Component {
+pub fn pattern_matching_example() -> impl Component {
     html! {
 
         <div class={pattern_container}>
@@ -126,8 +126,9 @@ pub fn pattern_matching_example() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-6")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>

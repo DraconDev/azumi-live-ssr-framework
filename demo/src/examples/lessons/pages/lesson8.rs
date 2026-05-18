@@ -23,7 +23,7 @@ use crate::examples::lessons::components::layout::DarkModernLayout;
 /// Lesson 8: Action System Deep Dive
 ///
 /// Server-side interactivity patterns
-pub fn counter_display(state: CounterState) -> impl azumi::Component {
+pub fn counter_display(state: CounterState) -> impl Component {
     html! {
         <div id={counter_box} class={counter} az-scope={serde_json::to_string(&state).unwrap_or_default()}>
             <div class={count_display}>{state.count}</div>
@@ -59,7 +59,7 @@ pub fn counter_display(state: CounterState) -> impl azumi::Component {
 }
 
 #[azumi::action]
-pub async fn increment_counter(state: CounterState) -> impl azumi::Component {
+pub async fn increment_counter(state: CounterState) -> impl Component {
     let new_state = CounterState {
         count: state.count + 1,
     };
@@ -67,7 +67,7 @@ pub async fn increment_counter(state: CounterState) -> impl azumi::Component {
 }
 
 /// Example: Action with state management
-pub fn state_management_example(state: ManagementState) -> impl azumi::Component {
+pub fn state_management_example(state: ManagementState) -> impl Component {
     html! {
 
         <div id={state_box} class={state_container} az-scope={serde_json::to_string(&state).unwrap_or_default()}>
@@ -114,7 +114,7 @@ pub fn state_management_example(state: ManagementState) -> impl azumi::Component
 }
 
 #[azumi::action]
-pub async fn update_state(state: ManagementState) -> impl azumi::Component {
+pub async fn update_state(state: ManagementState) -> impl Component {
     let new_count = state.count + 1;
     let new_status = if new_count % 2 == 0 {
         "Active"
@@ -129,7 +129,7 @@ pub async fn update_state(state: ManagementState) -> impl azumi::Component {
 }
 
 /// Example: Action composition
-pub fn action_composition_example(state: CompositionState) -> impl azumi::Component {
+pub fn action_composition_example(state: CompositionState) -> impl Component {
     html! {
 
         <div id={composition_box} class={composition_container} az-scope={serde_json::to_string(&state).unwrap_or_default()}>
@@ -172,7 +172,7 @@ pub fn action_composition_example(state: CompositionState) -> impl azumi::Compon
 }
 
 #[azumi::action]
-pub async fn compose_actions(state: CompositionState) -> impl azumi::Component {
+pub async fn compose_actions(state: CompositionState) -> impl Component {
     let new_step = state.step + 1;
     let new_message = format!("Action composed at step {}", new_step);
     let new_state = CompositionState {
@@ -183,8 +183,9 @@ pub async fn compose_actions(state: CompositionState) -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-8")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     let counter_state = CounterState { count: 0 };
     let management_state = ManagementState {
         status: "Active".to_string(),

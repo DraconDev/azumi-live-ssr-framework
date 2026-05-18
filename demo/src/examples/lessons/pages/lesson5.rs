@@ -1,11 +1,11 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
-use azumi::html;
+use azumi::prelude::*;
 
-/// Lesson 6.5: @let Pattern for Local Variables
+/// Lesson 5: @let Pattern for Local Variables
 ///
 /// Using @let for local variable declarations
 #[azumi::component]
-pub fn let_pattern_example() -> impl azumi::Component {
+pub fn let_pattern_example() -> impl Component {
     html! {
         <div class={let_demo}>
             <h2 class={title}>"@let Pattern Examples"</h2>
@@ -84,7 +84,7 @@ pub fn let_pattern_example() -> impl azumi::Component {
 
 /// Example: @let with conditional logic
 #[azumi::component]
-pub fn let_with_conditions() -> impl azumi::Component {
+pub fn let_with_conditions() -> impl Component {
     html! {
         <div class={conditions_demo}>
             <h3 class={title}>"@let with Conditions"</h3>
@@ -134,7 +134,7 @@ pub fn let_with_conditions() -> impl azumi::Component {
 
 /// Example: @let for component composition
 #[azumi::component]
-pub fn let_composition_example() -> impl azumi::Component {
+pub fn let_composition_example() -> impl Component {
     html! {
         <div class={composition_demo}>
             <h3 class={section_title}>"@let for Composition"</h3>
@@ -171,13 +171,14 @@ pub fn let_composition_example() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-5")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>
                 <header class={header}>
-                    <h1 class={main_title}>"Lesson 6.5: @let Pattern for Local Variables"</h1>
+                    <h1 class={main_title}>"Lesson 5: @let Pattern for Local Variables"</h1>
                     <p class={subtitle}>"Using @let for local variable declarations"</p>
                 </header>
 

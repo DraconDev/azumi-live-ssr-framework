@@ -85,6 +85,7 @@ mod tests {
 // Lesson Page (Documentation)
 // -----------------------------------------------------------------------------
 
+#[azumi::page(route = "/lesson-17")]
 #[azumi::component]
 pub fn render_page() -> impl Component {
     html! {
@@ -181,6 +182,6 @@ pub fn render_page() -> impl Component {
     }
 }
 
-pub async fn handler() -> impl IntoResponse {
+pub async fn lesson17_handler() -> impl IntoResponse {
     Html(azumi::render_to_string(&render_page()))
 }

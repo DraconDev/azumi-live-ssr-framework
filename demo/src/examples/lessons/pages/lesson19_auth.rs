@@ -157,7 +157,7 @@ pub fn lesson19_page<'a>(state: &'a AuthState) -> impl Component + 'a {
 
 // Look how clean this is! No traits, no complex imports.
 // We just ask for `CurrentUser` from our infrastructure.
-pub async fn handler(CurrentUser(user): CurrentUser) -> impl IntoResponse {
+pub async fn lesson19_handler(CurrentUser(user): CurrentUser) -> impl IntoResponse {
     let state = AuthState {
         username: user.map(|u| u.username),
     };

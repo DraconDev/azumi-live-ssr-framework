@@ -1,11 +1,11 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
-use azumi::html;
+use azumi::prelude::*;
 
-/// Lesson 2: CSS Scoping & Validation Fundamentals
+/// Lesson 1: CSS Scoping & Validation Fundamentals
 ///
 /// Automatic CSS scoping demonstration
 #[azumi::component]
-pub fn scoped_component() -> impl azumi::Component {
+pub fn scoped_component() -> impl Component {
     html! {
         <div class={container}>
             <div class={icon}>"🔒"</div>
@@ -39,7 +39,7 @@ pub fn scoped_component() -> impl azumi::Component {
 
 /// Example: Multiple components with same class names
 #[azumi::component]
-pub fn multiple_scoped_components() -> impl azumi::Component {
+pub fn multiple_scoped_components() -> impl Component {
     html! {
         <div class={grid}>
             <div class={card}>
@@ -86,7 +86,7 @@ pub fn multiple_scoped_components() -> impl azumi::Component {
 
 /// Example: CSS validation - valid styles
 #[azumi::component]
-pub fn valid_css_example() -> impl azumi::Component {
+pub fn valid_css_example() -> impl Component {
     html! {
         <div class={valid_container}>
             <div class={header}>
@@ -123,13 +123,14 @@ pub fn valid_css_example() -> impl azumi::Component {
 }
 
 /// Main lesson demonstration component
+#[azumi::page(route = "/lesson-1")]
 #[azumi::component]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     html! {
         @DarkModernLayout() {
             <div class={container}>
                 <header class={header}>
-                    <h1 class={main_title}>"Lesson 2: Scoping & Validation"</h1>
+                    <h1 class={main_title}>"Lesson 1: Scoping & Validation"</h1>
                     <p class={subtitle}>"Automatic CSS scoping and validation rules"</p>
                 </header>
 

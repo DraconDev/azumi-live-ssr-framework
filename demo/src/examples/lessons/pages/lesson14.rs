@@ -133,6 +133,7 @@ pub fn tabs_view<'a>(state: &'a TabState) -> impl Component + 'a {
 }
 
 /// Full page component for Lesson 14
+#[azumi::page(route = "/lesson-14")]
 #[azumi::component]
 pub fn render_page() -> impl Component {
     let tab_state = TabState { active_index: 0 };

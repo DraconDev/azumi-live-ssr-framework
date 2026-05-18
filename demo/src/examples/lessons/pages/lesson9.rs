@@ -130,7 +130,7 @@ pub fn counter_view<'a>(state: &'a Counter) -> impl Component + 'a {
 /// This uses #[azumi::page] so SEO is automatic!
 #[azumi::page(route = "/lesson-9")]
 #[allow(non_upper_case_globals)]
-pub fn page() -> impl azumi::Component {
+pub fn page() -> impl Component {
     let state = Counter {
         count: 0,
         active: true,

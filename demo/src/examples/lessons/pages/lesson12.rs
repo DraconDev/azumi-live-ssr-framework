@@ -4,6 +4,7 @@ use azumi::prelude::*;
 /// Lesson 12: Image Optimization
 ///
 /// Demonstrates the `@Image` component for performance.
+#[azumi::page(route = "/lesson-12")]
 #[azumi::component]
 pub fn render_page() -> impl Component {
     html! {

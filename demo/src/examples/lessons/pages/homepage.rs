@@ -26,7 +26,7 @@ pub fn Lessons() -> impl Component {
                 </p>
 
                 <div class={hero_actions}>
-                    <a href="/lesson-0" class={btn_primary}>"Start Learning"</a>
+                    <a href={crate::examples::lessons::pages::lesson0::page_ROUTE} class={btn_primary}>"Start Learning"</a>
                     <a href="https://github.com/DraconDev/azumi-live-ssr-framework" class={btn_secondary}>"View on GitHub"</a>
                 </div>
 
@@ -52,51 +52,51 @@ pub fn Lessons() -> impl Component {
             <section class={section}>
                 <h2 class={section_title}>"🌱 Foundations"</h2>
                 <div class={grid}>
-                    @LessonCard(num="00", title="Introduction", desc="Understanding the component structure.", link="/lesson-0", accent="#10b981")
-                    @LessonCard(num="01", title="Components", desc="Building your first reusable blocks.", link="/lesson-1", accent="#10b981")
-                    @LessonCard(num="02", title="CSS Scoping", desc="How styles are isolated safely.", link="/lesson-2", accent="#10b981")
-                    @LessonCard(num="03", title="Global Styles", desc="Managing global vs local CSS.", link="/lesson-3", accent="#10b981")
+                    @LessonCard(num="00", title="Introduction", desc="Understanding the component structure.", link=crate::examples::lessons::pages::lesson0::page_ROUTE, accent="#10b981")
+                    @LessonCard(num="01", title="Components", desc="Building your first reusable blocks.", link=crate::examples::lessons::pages::lesson1::page_ROUTE, accent="#10b981")
+                    @LessonCard(num="02", title="CSS Scoping", desc="How styles are isolated safely.", link=crate::examples::lessons::pages::lesson2::page_ROUTE, accent="#10b981")
+                    @LessonCard(num="03", title="Global Styles", desc="Managing global vs local CSS.", link=crate::examples::lessons::pages::lesson3::page_ROUTE, accent="#10b981")
                 </div>
             </section>
 
             <section class={section}>
                 <h2 class={section_title}>"🏗️ Structure & Forms"</h2>
                 <div class={grid}>
-                    @LessonCard(num="04", title="HTML Structure", desc="Compile-time HTML validation.", link="/lesson-4", accent="#3b82f6")
-                    @LessonCard(num="05", title="Accessibility", desc="Building inclusive interfaces.", link="/lesson-5", accent="#3b82f6")
-                    @LessonCard(num="06", title="Basic Forms", desc="Standard form handling patterns.", link="/lesson-6", accent="#3b82f6")
-                    @LessonCard(num="07", title="Event Handling", desc="Interactivity with event listeners.", link="/lesson-7", accent="#3b82f6")
+                    @LessonCard(num="04", title="HTML Structure", desc="Compile-time HTML validation.", link=crate::examples::lessons::pages::lesson4::page_ROUTE, accent="#3b82f6")
+                    @LessonCard(num="05", title="@let Pattern", desc="Local variable declarations.", link=crate::examples::lessons::pages::lesson5::page_ROUTE, accent="#3b82f6")
+                    @LessonCard(num="06", title="Control Flow", desc="@if, @for, @match patterns.", link=crate::examples::lessons::pages::lesson6::page_ROUTE, accent="#3b82f6")
+                    @LessonCard(num="07", title="Form Handling", desc="Standard form handling patterns.", link=crate::examples::lessons::pages::lesson7::page_ROUTE, accent="#3b82f6")
                 </div>
             </section>
 
             <section class={section}>
                 <h2 class={section_title}>"⚡ Advanced Patterns"</h2>
                 <div class={grid}>
-                    @LessonCard(num="08", title="State Management", desc="Managing complex component state.", link="/lesson-8", accent="#8b5cf6")
-                    @LessonCard(num="09", title="Advanced Patterns", desc="Composition and slots.", link="/lesson-9", accent="#8b5cf6")
-                    @LessonCard(num="10", title="Performance", desc="Optimizing rendering and updates.", link="/lesson-10", accent="#8b5cf6")
-                    @LessonCard(num="11", title="Async Patterns", desc="Loading states and error handling.", link="/lesson-11", accent="#8b5cf6")
+                    @LessonCard(num="08", title="Action System", desc="Server-side interactivity.", link=crate::examples::lessons::pages::lesson8::page_ROUTE, accent="#8b5cf6")
+                    @LessonCard(num="09", title="Azumi Live", desc="Compiler-driven optimistic UI.", link=crate::examples::lessons::pages::lesson9::page_ROUTE, accent="#8b5cf6")
+                    @LessonCard(num="10", title="Client-Side UI", desc="az-ui vs az-scope state.", link=crate::examples::lessons::pages::lesson10::render_page_ROUTE, accent="#8b5cf6")
+                    @LessonCard(num="11", title="Async Patterns", desc="Loading states and error handling.", link=crate::examples::lessons::pages::lesson11::page_ROUTE, accent="#8b5cf6")
                 </div>
             </section>
 
             <section class={section}>
                 <h2 class={section_title}>"🔥 Production Ready"</h2>
                 <div class={grid}>
-                    @LessonCard(num="12", title="Image Optimization", desc="Automatic lazy loading & attributes.", link="/lesson-12", accent="#f59e0b")
+                    @LessonCard(num="12", title="Images & Media", desc="Responsive images and optimization.", link=crate::examples::lessons::pages::lesson12::render_page_ROUTE, accent="#f59e0b")
                     @LessonCard(num="13", title="Live Forms", desc="Real-time validation and feedback.", link="/lesson-13", accent="#f59e0b")
-                    @LessonCard(num="14", title="Composition", desc="Building complex Live UIs.", link="/lesson-14", accent="#f59e0b")
-                    @LessonCard(num="15", title="Full Application", desc="Interactive Todo App (In-Memory).", link="/lesson-15-sql-basics", accent="#f59e0b")
+                    @LessonCard(num="14", title="Composition", desc="Building complex Live UIs.", link=crate::examples::lessons::pages::lesson14::render_page_ROUTE, accent="#f59e0b")
+                    @LessonCard(num="15", title="Full Application", desc="Interactive Todo App (In-Memory).", link=crate::examples::lessons::pages::lesson15::render_page_ROUTE, accent="#f59e0b")
                 </div>
             </section>
 
             <section class={section}>
                 <h2 class={section_title}>"🛡️ Enterprise Features"</h2>
                 <div class={grid}>
-                    @LessonCard(num="16", title="Async Database", desc="SQLite integration with optimistic UI.", link="/lesson-16-async-db", accent="#ef4444")
-                    @LessonCard(num="17", title="Testing", desc="Unit and Integration testing strategies.", link="/lesson-17-testing", accent="#ef4444")
-                    @LessonCard(num="18", title="Security", desc="XSS prevention and safe practices.", link="/lesson-18-security", accent="#ef4444")
-                    @LessonCard(num="19", title="Authentication", desc="User sessions and login flows.", link="/lesson-19-auth", accent="#ef4444")
-                    @LessonCard(num="20", title="Premium Sliders", desc="Modernized UI with 'appearance' property.", link="/lesson-20", accent="#ef4444")
+                    @LessonCard(num="16", title="Async Database", desc="SQLite integration with optimistic UI.", link="/lesson-16", accent="#ef4444")
+                    @LessonCard(num="17", title="Testing", desc="Unit and Integration testing.", link=crate::examples::lessons::pages::lesson17_testing::render_page_ROUTE, accent="#ef4444")
+                    @LessonCard(num="18", title="Security", desc="XSS prevention and safe practices.", link=crate::examples::lessons::pages::lesson18_security::render_page_ROUTE, accent="#ef4444")
+                    @LessonCard(num="19", title="Authentication", desc="User sessions and login flows.", link="/lesson-19", accent="#ef4444")
+                    @LessonCard(num="20", title="Custom Inputs", desc="Sliders and live state.", link="/lesson-20", accent="#ef4444")
                 </div>
             </section>
         </div>

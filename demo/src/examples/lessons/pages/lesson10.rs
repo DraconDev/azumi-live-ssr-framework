@@ -4,6 +4,7 @@ use azumi::prelude::*;
 /// Lesson 10: Client-Side UI State with `az-ui` and `set`
 ///
 /// Learn when to use az-ui (client-side) vs az-scope (server-side) state.
+#[azumi::page(route = "/lesson-10")]
 #[azumi::component]
 pub fn render_page() -> impl Component {
     html! {
