@@ -3,7 +3,7 @@
 These values must be set on the GitHub repository to maximize discoverability.
 
 ## Repository Name
-`azumi` (keep it short — the brand is memorable)
+`azumi-ssr-framework` — descriptive, SEO-friendly, tells you exactly what it is
 
 ## GitHub Description (most important for search)
 ```
@@ -39,7 +39,7 @@ gui
 ## What this targets in GitHub search:
 - "rust html framework" → our description contains all 4 words
 - "htmx alternative" → explicitly in description
-- "rust ssr" → in topics + description
+- "rust ssr" → in repo name + description + topics
 - "server rendered html rust" → in description
 - "rust web framework" → in topics + keywords
 
@@ -48,8 +48,13 @@ gui
 - `keywords`: html, htmx, ssr, web-framework, compile-time
 - `categories`: template-engine, web-programming, gui
 
-## Org name options (if renaming):
-- `azumi-rs/azumi` — Rust convention, clean
-- `DraconDev/azumi` — current (works fine, personal brand)
+## GitHub rename action items:
+1. Go to https://github.com/DraconDev/azumi/settings
+2. Rename repo to `azumi-ssr-framework`
+3. Set the description above
+4. Set the homepage URL
+5. Add all 18 topics
+6. GitHub auto-redirects old URL → new URL
+7. Update any external links (blog posts, etc.)
 
-Recommendation: Keep `DraconDev/azumi` for now. If the project grows beyond DraconDev, create `azumi-rs` org and transfer.
+Note: crate name stays `azumi` (cargo add azumi). Only the repo display name changes.

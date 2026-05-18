@@ -2,7 +2,7 @@
 
 The `azumi.js` client is a lightweight, framework-agnostic runtime that powers Azumi's interactivity. It provides declarative event delegation, optimistic UI updates, and intelligent DOM morphing without requiring a heavy frontend framework.
 
-While designed to work seamlessly with `azumi-rs`, it can be used independently with any backend that follows the Azumi protocol.
+While designed to work seamlessly with `DraconDev/azumi-ssr-framework`, it can be used independently with any backend that follows the Azumi protocol.
 
 ## Features
 
@@ -143,7 +143,7 @@ For ephemeral UI state that doesn't need to persist or round-trip to the server 
 
 ### 5. Server Protocol
 
-If you are using `azumi.js` without `azumi-rs`, your server must implement the following:
+If you are using `azumi.js` without `DraconDev/azumi-ssr-framework`, your server must implement the following:
 
 1.  **Endpoint**: `POST /_azumi/action/{StructName}/{MethodName}` (namespaced)
 2.  **Request Body**:
