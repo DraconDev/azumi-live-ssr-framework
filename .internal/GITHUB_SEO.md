@@ -3,7 +3,7 @@
 These values must be set on the GitHub repository to maximize discoverability.
 
 ## Repository Name
-`azumi-ssr-framework` — descriptive, SEO-friendly, tells you exactly what it is
+`azumi-live-ssr-framework` — descriptive, SEO-friendly, tells you exactly what it is
 
 ## GitHub Description (most important for search)
 ```
@@ -49,8 +49,8 @@ gui
 - `categories`: template-engine, web-programming, gui
 
 ## GitHub rename action items:
-1. Go to https://github.com/DraconDev/azumi/settings
-2. Rename repo to `azumi-ssr-framework`
+1. Go to https://github.com/DraconDev/azumi-live-ssr-framework/settings
+2. Rename repo to `azumi-live-ssr-framework`
 3. Set the description above
 4. Set the homepage URL
 5. Add all 18 topics

@@ -34,7 +34,7 @@ async fn main() {
         title: "Azumi Demo".to_string(),
         open_graph: Some(azumi::seo::OpenGraph {
             site_name: Some("Azumi Framework".to_string()),
-            image: Some("https://azumi.dev/og-default.jpg".to_string()),
+            image: Some("https://github.com/DraconDev/azumi-live-ssr-framework".to_string()),
             ..Default::default()
         }),
         twitter: Some(azumi::seo::TwitterCard {

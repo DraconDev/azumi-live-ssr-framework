@@ -18,7 +18,7 @@ Every step is optional. Stop wherever you're comfortable.
 ```toml
 # Cargo.toml
 [dependencies]
-azumi = { version = "47", features = ["axum"] }
+azumi = { version = "48", features = ["axum"] }
 ```
 
 Keep all your existing code unchanged. Azumi doesn't take over your router.

@@ -17,7 +17,7 @@
 | Dimension | Azumi | Astro | Next.js | Leptos | Svelte 5 | HTMX | Maud | Rails |
 |-----------|-------|-------|---------|--------|----------|------|------|-------|
 | **Language** | Rust | TypeScript | TypeScript | Rust | TypeScript | HTML | Rust | Ruby |
-| **Initial JS** | **<3KB** | 0KB | ~80KB | ~150KB | ~15KB | ~14KB | 0KB | ~30KB |
+| **Initial JS** | **~10KB** | 0KB | ~80KB | ~150KB | ~15KB | ~14KB | 0KB | ~30KB |
 | **Hydration** | **Zero** | Zero | High | High | Low | Zero | Zero | Zero |
 | **Latency** | **~0ms** | Varies | Varies | ~0ms | Fast | Network RTT | Full refresh | Full refresh |
 | **Type Safety** | **100% E2E** | ~80% | ~80% | 100% | ~90% | 0% | 100% server | 0% |

@@ -5,6 +5,20 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [47.45.0] - 2026-05-18
+
+### Changed
+- **Crate description**: Now says "builds on Axum" — Azumi is an Axum add-on, not a replacement.
+- **Docs audit**: All docs now consistently say "builds on Axum". No more "migrating from Axum" language.
+- **Version references**: Updated from "47" to "48" in guide.md, from-axum.md, devtools.rs.
+- **CLI version constant**: Uses `env!("CARGO_PKG_VERSION")` instead of hardcoded string — never drifts again.
+- **Stale 3KB references**: Fixed in src/csp.rs, benches/full_page.rs, demo/blog/data.rs, archive docs.
+- **Demo improvements**: Blog uses scoped CSS (no more `class:external`). Lessons have prev/next navigation.
+- **Lesson consistency**: Numbering matches file names, `#[azumi::page]` on 14 lessons, route constants in main.rs.
+- **Repo URL**: Updated to `DraconDev/azumi-live-ssr-framework` everywhere.
+- **README rewritten**: Leads with pain, code before explanation, `cargo add azumi` first.
+- **Internal docs**: Fixed 3KB references, dead links, repo name, "full-stack" → "Live SSR" positioning.
+
 ## [47.44.0] - 2026-05-18
 
 ### Added

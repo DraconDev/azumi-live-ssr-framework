@@ -179,7 +179,7 @@ fn my_page() -> impl Component { ... }
 
 ### 7. Partial Hydration / Island Architecture
 
-**Problem:** Currently, if ANY part of a page is interactive, the entire Azumi JS runtime (3KB) loads. For mostly-static pages with one interactive counter, this is overkill.
+**Problem:** Currently, if ANY part of a page is interactive, the entire Azumi JS runtime (~10KB gzipped) loads. For mostly-static pages with one interactive counter, this is overkill.
 
 **Proposal:** Add `az-island` attribute that selectively hydrates only interactive components.
 
@@ -202,7 +202,7 @@ html! {
 - Non-island content requires zero JS registration
 - The runtime could be split: core (1KB) + islands (2KB), only loading islands when `az-island` exists
 
-**Impact:** Sub-1KB JS for static pages. 3KB only when interactivity is needed. Best of both worlds.
+**Impact:** Sub-1KB JS for static pages. ~10KB (gzipped) only when interactivity is needed. Best of both worlds.
 
 ---
 

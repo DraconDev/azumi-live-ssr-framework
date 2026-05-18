@@ -51,7 +51,7 @@ azumi/                      # Main crate — user-facing API
 │   └── ui/                      # Compile-fail UI tests
 │
 ├── client/                 # Browser-side runtime
-│   ├── azumi.js            # Azumi coordinator (~3KB)
+│   ├── azumi.js            # Azumi coordinator (~10KB gzipped)
 │   └── idiomorph.js        # DOM morphing library
 │
 ├── demo/                   # Workspace member — tutorial/example app

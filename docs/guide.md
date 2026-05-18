@@ -162,7 +162,7 @@ async fn home_handler() -> impl axum::response::IntoResponse {
 
 ```toml
 [dependencies]
-azumi = { version = "47", features = ["devtools"] }
+azumi = { version = "48", features = ["devtools"] }
 # Production: remove "devtools" feature
 ```
 

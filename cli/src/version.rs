@@ -1,1 +1,1 @@
-pub const AZUMI_VERSION: &str = "v47.20.28";
+pub const AZUMI_VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
