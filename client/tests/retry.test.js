@@ -1,9 +1,9 @@
 /**
- * Unit tests for __azumi_retry client-side behavior.
+ * Unit tests for azumi_retry client-side behavior.
  *
  * Run: node client/tests/retry.test.js
  *
- * Tests the built-in __azumi_retry action handler in isolation by
+ * Tests the built-in azumi_retry action handler in isolation by
  * extracting just the retry logic and testing it against a jsdom DOM.
  * No browser or Playwright needed.
  */
