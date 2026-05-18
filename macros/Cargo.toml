@@ -1,6 +1,6 @@
 [package]
 name = "azumi-macros"
-version = "8.1.0"
+version = "8.2.0"
 edition = "2021"
 description = "Procedural macros for Azumi — Live SSR framework for Rust. Provides html!, #[azumi::component], #[azumi::live], #[azumi::action] with compile-time validation."
 repository = "https://github.com/DraconDev/azumi-live-ssr-framework"
