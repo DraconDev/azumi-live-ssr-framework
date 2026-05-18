@@ -1,9 +1,11 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
-/// Lesson 12: Image Optimization
+/// Lesson 12: Images & Media
 ///
-/// Demonstrates the `@Image` component for performance.
+/// Responsive images, lazy loading, and srcset patterns.
 #[azumi::page(route = "/lesson-12")]
 #[azumi::component]
 pub fn render_page() -> impl Component {
@@ -84,6 +86,12 @@ pub fn render_page() -> impl Component {
                         </div>
                     </div>
                 </div>
+                @LessonNav(
+                    prev_num=Some(11),
+                    next_num=Some(13),
+                    prev_title="Async Patterns",
+                    next_title="Live Forms",
+                )
             </div>
             <style>
                 .container { max-width: "800px"; margin: "0 auto"; }

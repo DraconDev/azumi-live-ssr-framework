@@ -1,3 +1,5 @@
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use axum::response::{Html, IntoResponse};
 use azumi::prelude::*;
 
@@ -127,6 +129,12 @@ pub fn render_page() -> impl Component {
                     <div class={success_icon}>"✓"</div>
                     <p>"If you are seeing this page, the unit tests in this file passed!"</p>
                 </div>
+                @LessonNav(
+                    prev_num=Some(16),
+                    next_num=Some(18),
+                    prev_title="Async Database",
+                    next_title="Security",
+                )
             </div>
             <style>
                 .container { max-width: "800px"; margin: "0 auto"; }

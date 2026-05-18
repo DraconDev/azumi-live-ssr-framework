@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 15: Full Application Pattern
@@ -226,6 +228,12 @@ pub fn render_page() -> impl Component {
                 <div class={demo_area}>
                     @todo_app_view(state = &app_state)
                 </div>
+                @LessonNav(
+                    prev_num=Some(14),
+                    next_num=Some(16),
+                    prev_title="Composing Live",
+                    next_title="Async Database",
+                )
             </div>
             <style>
                 .container { max-width: "800px"; margin: "0 auto"; }

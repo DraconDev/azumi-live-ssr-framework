@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 2: Global vs Component CSS
@@ -190,6 +192,12 @@ pub fn page() -> impl Component {
                         @scoping_best_practices()
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(1),
+                    next_num=Some(3),
+                    prev_title="CSS Scoping",
+                    next_title="Composition",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

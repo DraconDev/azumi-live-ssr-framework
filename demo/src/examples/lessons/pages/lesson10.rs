@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 10: Client-Side UI State with `az-ui` and `set`
@@ -107,6 +109,12 @@ pub fn render_page() -> impl Component {
                         <li class={info_item}><strong class={strong}>"az-scope + call:"</strong>" Business data (user profile, shopping cart, database records). Persisted on server."</li>
                     </ul>
                 </div>
+                @LessonNav(
+                    prev_num=Some(9),
+                    next_num=Some(11),
+                    prev_title="Azumi Live",
+                    next_title="Async Patterns",
+                )
             </div>
             <style>
                 .container { max-width: "800px"; margin: "0 auto"; }

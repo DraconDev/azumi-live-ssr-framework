@@ -1,3 +1,5 @@
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use axum::response::{IntoResponse, Redirect};
 use axum_extra::extract::cookie::{Cookie, CookieJar};
 use azumi::prelude::*;
@@ -61,6 +63,12 @@ pub fn lesson19_page<'a>(state: &'a AuthState) -> impl Component + 'a {
                         </ol>
                     </div>
                 </div>
+                @LessonNav(
+                    prev_num=Some(18),
+                    next_num=Some(20),
+                    prev_title="Security",
+                    next_title="Custom Inputs",
+                )
             </div>
             <style>
                  .container { max-width: "600px"; margin: "0 auto"; }

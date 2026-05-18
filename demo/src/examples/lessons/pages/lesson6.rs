@@ -1,6 +1,8 @@
 use azumi::prelude::*;
 
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 
 /// Lesson 6: Control Flow Patterns
 ///
@@ -159,6 +161,12 @@ pub fn page() -> impl Component {
                         @pattern_matching_example()
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(5),
+                    next_num=Some(7),
+                    prev_title="@let Pattern",
+                    next_title="Form Handling",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

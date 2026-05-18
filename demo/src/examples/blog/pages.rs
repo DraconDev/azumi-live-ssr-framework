@@ -9,23 +9,23 @@ pub fn post_list_page_inner() -> impl Component {
     let posts = get_posts();
 
     html! {
-        <section class:external="post-list">
-            <h1>"Latest Posts"</h1>
+        <section class={"post-list"}>
+            <h1 class={heading}>"Latest Posts"</h1>
             @for post in &posts {
-                <article class:external="post-card">
-                    <h2 class:external="post-title">
+                <article class={post_card}>
+                    <h2 class={post_title}>
                         <a href={format!("/blog/posts/{}", post.slug)}>{&post.title}</a>
                     </h2>
-                    <div class:external="post-meta">
+                    <div class={post_meta}>
                         {&post.author} " · " {&post.date} " · " {post.likes} " likes"
                     </div>
-                    <div class:external="tag-row">
+                    <div class={tag_row}>
                         @for tag in &post.tags {
-                            <span class:external="tag">{tag}</span>
+                            <span class={tag}>{tag}</span>
                         }
                     </div>
-                    <p class:external="post-excerpt">{&post.excerpt}</p>
-                    <a href={format!("/blog/posts/{}", post.slug)} class:external="read-more">
+                    <p class={post_excerpt}>{&post.excerpt}</p>
+                    <a href={format!("/blog/posts/{}", post.slug)} class={read_more}>
                         "Read more →"
                     </a>
                 </article>
@@ -33,16 +33,32 @@ pub fn post_list_page_inner() -> impl Component {
         </section>
 
         <style>
-            .post-list h1 {
-                font-size: 2rem;
-                margin-bottom: 2rem;
-                color: #1a1a1a;
+            .heading { font-size: "2rem"; margin-bottom: "2rem"; color: "#1a1a1a"; }
+            .post_card {
+                background: "#fff";
+                border: "1px solid #eaeaea";
+                border-radius: "8px";
+                padding: "1.5rem";
+                margin-bottom: "1rem";
+                transition: "box-shadow 0.2s";
             }
-            .read-more {
-                color: #0070f3;
-                font-size: 0.875rem;
-                font-weight: 500;
+            .post_card:hover { box-shadow: "0 4px 12px rgba(0,0,0,0.08)"; }
+            .post_title { font-size: "1.5rem"; margin-bottom: "0.5rem"; }
+            .post_title a { color: "#333"; }
+            .post_title a:hover { color: "#0070f3"; }
+            .post_meta { color: "#888"; font-size: "0.875rem"; margin-bottom: "0.75rem"; }
+            .post_excerpt { color: "#555"; margin-bottom: "1rem"; }
+            .tag {
+                display: "inline-block";
+                padding: "0.125rem 0.5rem";
+                border-radius: "999px";
+                font-size: "0.75rem";
+                background: "#e8f0fe";
+                color: "#1a73e8";
+                margin-right: "0.25rem";
             }
+            .tag_row { margin-bottom: "1rem"; }
+            .read_more { color: "#0070f3"; font-size: "0.875rem"; font-weight: "500"; }
         </style>
     }
 }
@@ -60,25 +76,16 @@ pub fn post_page_inner(slug: String) -> Box<dyn Component> {
     let post = get_post_by_slug(&slug);
 
     let not_found = html! {
-        <div class:external="not-found">
+        <div class={not_found}>
             <h1>"404"</h1>
             <p>"This post doesn't exist yet."</p>
             <a href="/blog">"Browse all posts"</a>
         </div>
 
         <style>
-            .not-found {
-                text-align: center;
-                padding: 4rem;
-            }
-            .not-found h1 {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-            }
-            .not-found p {
-                color: #888;
-                margin-bottom: 1.5rem;
-            }
+            .not_found { text-align: "center"; padding: "4rem"; }
+            .not_found h1 { font-size: "3rem"; margin-bottom: "1rem"; }
+            .not_found p { color: "#888"; margin-bottom: "1.5rem"; }
         </style>
     };
 
@@ -93,22 +100,46 @@ pub fn post_page_inner(slug: String) -> Box<dyn Component> {
             let content_html = PostContent(&p.content).to_string();
             Box::new(html! {
                 <div>
-                    <a class:external="back-link" href="/blog">"← Back to Blog"</a>
-                    <article class:external="post-body">
+                    <a class={back_link} href="/blog">"← Back to Blog"</a>
+                    <article class={post_body}>
                         <h1>{&title}</h1>
-                        <div class:external="post-meta">
+                        <div class={post_meta}>
                             {&author} " · " {&date} " · " {likes} " likes"
                         </div>
-                        <div class:external="tag-row">
+                        <div class={tag_row_inner}>
                             @for tag in &tags {
-                                <span class:external="tag">{tag}</span>
+                                <span class={tag}>{tag}</span>
                             }
                         </div>
-                        <div class:external="post-content">
-                            {content_html}
+                        <div class={"post-content"}>
+                            {TrustedHtml::from_string(content_html)}
                         </div>
                     </article>
                 </div>
+                <style>
+                    .back_link { display: "inline-block"; margin-bottom: "1.5rem"; color: "#555"; font-size: "0.875rem"; }
+                    .back_link:hover { color: "#0070f3"; }
+                    .post_body {
+                        background: "#fff";
+                        border: "1px solid #eaeaea";
+                        border-radius: "8px";
+                        padding: "2rem";
+                    }
+                    .post_body h1 { margin-bottom: "0.5rem"; }
+                    .post_body h2 { margin: "1.5rem 0 0.75rem"; font-size: "1.25rem"; }
+                    .post_body p { margin-bottom: "1rem"; }
+                    .post_meta { color: "#888"; font-size: "0.875rem"; margin-bottom: "0.75rem"; }
+                    .tag_row_inner { margin-bottom: "1rem"; }
+                    .tag {
+                        display: "inline-block";
+                        padding: "0.125rem 0.5rem";
+                        border-radius: "999px";
+                        font-size: "0.75rem";
+                        background: "#e8f0fe";
+                        color: "#1a73e8";
+                        margin-right: "0.25rem";
+                    }
+                </style>
             })
         }
         None => Box::new(not_found),
@@ -153,63 +184,41 @@ impl<'a> std::fmt::Display for PostContent<'a> {
 #[azumi::component]
 pub fn contact_page_inner() -> impl Component {
     html! {
-        <div class:external="contact-card">
+        <div class={contact_card}>
             <h1>"Get in Touch"</h1>
             <p>"Have a question or want to contribute? We'd love to hear from you."</p>
 
             <form action="/blog/contact" method="POST" az-on:submit="submit">
-                <div class:external="form-group">
+                <div class={form_group}>
                     <label for="name">"Your Name"</label>
-                    <input type="text" name="name" id:external="name" class:external="form-input" />
+                    <input type="text" name="name" id:external="name" class={form_input} />
                 </div>
 
-                <div class:external="form-group">
+                <div class={form_group}>
                     <label for="email">"Email Address"</label>
-                    <input type="email" name="email" id:external="email" class:external="form-input" />
+                    <input type="email" name="email" id:external="email" class={form_input} />
                 </div>
 
-                <div class:external="form-group">
+                <div class={form_group}>
                     <label for="message">"Message"</label>
-                    <textarea name="message" id:external="message" rows="5" class:external="form-textarea"></textarea>
+                    <textarea name="message" id:external="message" rows="5" class={form_textarea}></textarea>
                 </div>
 
-                <button type="submit" class:external="submit-btn">
+                <button type="submit" class={submit_btn}>
                     "Send Message"
                 </button>
             </form>
         </div>
 
         <style>
-            .form-group {
-                margin-bottom: 1rem;
-            }
-            .form-group label {
-                display: block;
-                margin-bottom: 0.375rem;
-                font-weight: 500;
-                font-size: 0.875rem;
-            }
-            .form-input, .form-textarea {
-                width: 100%;
-                padding: 0.5rem 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 1rem;
-                font-family: inherit;
-            }
-            .form-textarea {
-                resize: vertical;
-            }
-            .submit-btn {
-                display: inline-block;
-                padding: 0.5rem 1rem;
-                background: #0070f3;
-                color: #fff;
-                border: none;
-                border-radius: 4px;
-                font-size: 0.875rem;
-                cursor: pointer;
-            }
+            .contact_card { background: "#fff"; border: "1px solid #eaeaea"; border-radius: "8px"; padding: "2rem"; max-width: "500px"; margin: "0 auto"; }
+            .contact_card h1 { margin-bottom: "1rem"; }
+            .contact_card p { color: "#555"; margin-bottom: "1.5rem"; }
+            .form_group { margin-bottom: "1rem"; }
+            .form_group label { display: "block"; margin-bottom: "0.375rem"; font-weight: "500"; font-size: "0.875rem"; }
+            .form_input { width: "100%"; padding: "0.5rem 0.75rem"; border: "1px solid #ddd"; border-radius: "4px"; font-size: "1rem"; font-family: "inherit"; }
+            .form_textarea { width: "100%"; padding: "0.5rem 0.75rem"; border: "1px solid #ddd"; border-radius: "4px"; font-size: "1rem"; font-family: "inherit"; resize: "vertical"; }
+            .submit_btn { display: "inline-block"; padding: "0.5rem 1rem"; background: "#0070f3"; color: "#fff"; border: "none"; border-radius: "4px"; font-size: "0.875rem"; cursor: "pointer"; }
         </style>
     }
 }
@@ -225,12 +234,17 @@ pub async fn contact_page() -> impl axum::response::IntoResponse {
 #[azumi::component]
 pub fn about_page_inner() -> impl Component {
     html! {
-        <div class:external="about-card">
+        <div class={about_card}>
             <h1>"About This Blog"</h1>
             <p>"This blog is built with Azumi, a Rust web framework with compile-time HTML/CSS/JS validation."</p>
             <p>"Azumi catches XSS vectors, CSS typos, and invalid HTML patterns at compile time — before they reach production."</p>
             <p>"This demo shows: routing, component composition, forms with action handlers, SEO metadata, and CSS scoping — all in type-safe Rust."</p>
         </div>
+        <style>
+            .about_card { background: "#fff"; border: "1px solid #eaeaea"; border-radius: "8px"; padding: "2rem"; max-width: "600px"; margin: "0 auto"; text-align: "center"; }
+            .about_card h1 { margin-bottom: "1rem"; }
+            .about_card p { color: "#555"; margin-bottom: "1rem"; }
+        </style>
     }
 }
 

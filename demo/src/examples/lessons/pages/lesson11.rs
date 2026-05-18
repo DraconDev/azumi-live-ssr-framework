@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 11: Async Loading Patterns
@@ -131,6 +133,13 @@ pub fn user_loader_view<'a>(state: &'a UserLoader) -> impl Component + 'a {
                     </button>
                 </div>
             </div>
+
+                @LessonNav(
+                    prev_num=Some(10),
+                    next_num=Some(12),
+                    prev_title="Client-Side UI State",
+                    next_title="Images & Media",
+                )
         </div>
         <style>
             .container { max-width: "700px"; margin: "0 auto"; }

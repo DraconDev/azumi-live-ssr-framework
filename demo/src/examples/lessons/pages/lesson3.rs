@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 3: Component Composition
@@ -166,6 +168,12 @@ pub fn page() -> impl Component {
                         @complex_layout()
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(2),
+                    next_num=Some(4),
+                    prev_title="Global vs Component CSS",
+                    next_title="Children & Layouts",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

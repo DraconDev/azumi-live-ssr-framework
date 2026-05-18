@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 1: CSS Scoping & Validation Fundamentals
@@ -159,6 +161,12 @@ pub fn page() -> impl Component {
                         @valid_css_example()
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(0),
+                    next_num=Some(2),
+                    prev_title="Introduction",
+                    next_title="Global vs Component CSS",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

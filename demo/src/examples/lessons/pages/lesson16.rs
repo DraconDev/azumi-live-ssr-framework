@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 use sqlx::{Pool, Sqlite};
 use std::sync::OnceLock;
@@ -189,6 +191,13 @@ pub fn database_todo_view<'a>(state: &'a DatabaseTodo) -> impl Component + 'a {
                     "Clear Database"
                 </button>
             </div>
+
+            @LessonNav(
+                prev_num=Some(15),
+                next_num=Some(17),
+                prev_title="Full Application",
+                next_title="Testing",
+            )
         </div>
 
         <style>

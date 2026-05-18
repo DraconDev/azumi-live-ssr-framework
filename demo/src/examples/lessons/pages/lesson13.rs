@@ -221,6 +221,8 @@ pub fn contact_form_view<'a>(state: &'a ContactForm) -> impl Component + 'a {
 }
 
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 
 /// Full page component ensuring script injection
 #[azumi::component]
@@ -245,6 +247,13 @@ pub fn lesson13_page<'a>(state: &'a ContactForm) -> impl Component + 'a {
                 <div class={demo_area}>
                     @contact_form_view(state = state)
                 </div>
+
+                @LessonNav(
+                    prev_num=Some(12),
+                    next_num=Some(14),
+                    prev_title="Images & Media",
+                    next_title="Composing Live",
+                )
             </div>
         }
         <style>

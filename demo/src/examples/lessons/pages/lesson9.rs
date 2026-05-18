@@ -1,4 +1,5 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
 use azumi::prelude::*;
 
 /// Lesson 9: Introducing Azumi Live
@@ -157,6 +158,13 @@ pub fn page() -> impl Component {
                         <li class={concept_item}><strong>"Zero JS Required"</strong> " - Compiler generates predictions"</li>
                     </ul>
                 </div>
+
+                @LessonNav(
+                    prev_num=Some(8),
+                    next_num=Some(10),
+                    prev_title="Action System",
+                    next_title="Client-Side UI State",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

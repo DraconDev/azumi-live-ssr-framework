@@ -1,6 +1,8 @@
 use azumi::prelude::*;
 
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 
 /// Lesson 7: Form Handling with Validation
 ///
@@ -198,6 +200,12 @@ pub fn page() -> impl Component {
                         @complex_form_example()
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(6),
+                    next_num=Some(8),
+                    prev_title="Control Flow",
+                    next_title="Action System",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 0: Introduction to Azumi Components
@@ -106,6 +108,13 @@ pub fn page() -> impl Component {
                         @multi_element_component()
                     </div>
                 </section>
+
+                @LessonNav(
+                    prev_num=None,
+                    next_num=Some(1),
+                    prev_title="Home",
+                    next_title="CSS Scoping",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

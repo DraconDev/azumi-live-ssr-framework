@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 #[azumi::component]
@@ -154,6 +156,12 @@ pub fn page() -> impl Component {
                         @multiple_children_example()
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(3),
+                    next_num=Some(5),
+                    prev_title="Composition",
+                    next_title="@let Pattern",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

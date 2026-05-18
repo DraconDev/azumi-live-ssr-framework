@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 14: Composition with Live Components
@@ -156,6 +158,13 @@ pub fn render_page() -> impl Component {
                 <div class={demo_area}>
                     @tabs_view(state=&tab_state)
                 </div>
+
+                @LessonNav(
+                    prev_num=Some(13),
+                    next_num=Some(15),
+                    prev_title="Live Forms",
+                    next_title="Full Application",
+                )
             </div>
              <style>
                 .container { max-width: "800px"; margin: "0 auto"; }

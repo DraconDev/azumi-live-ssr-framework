@@ -1,3 +1,5 @@
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use axum::response::{Html, IntoResponse};
 use azumi::prelude::*;
 
@@ -98,6 +100,12 @@ pub fn render_page() -> impl Component {
                         <li class={step_item}>"Click 'Secure Increment' and watch the network request fail (400 Bad Request)."</li>
                     </ol>
                 </div>
+                @LessonNav(
+                    prev_num=Some(17),
+                    next_num=Some(19),
+                    prev_title="Testing",
+                    next_title="Authentication",
+                )
             </div>
             <style>
                 .container { max-width: "700px"; margin: "0 auto"; }

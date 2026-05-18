@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 /// Lesson 5: @let Pattern for Local Variables
@@ -204,6 +206,12 @@ pub fn page() -> impl Component {
                         @let_composition_example()
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(4),
+                    next_num=Some(6),
+                    prev_title="Children & Layouts",
+                    next_title="Control Flow",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }

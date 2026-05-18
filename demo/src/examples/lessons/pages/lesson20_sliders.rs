@@ -1,4 +1,6 @@
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 use azumi::prelude::*;
 
 #[azumi::live]
@@ -118,6 +120,12 @@ pub async fn lesson20_handler() -> impl axum::response::IntoResponse {
     let full_page = html! {
         @DarkModernLayout() {
             {slider}
+            @LessonNav(
+                prev_num=Some(19),
+                next_num=None,
+                prev_title="Authentication",
+                next_title="Home",
+            )
         }
     };
 

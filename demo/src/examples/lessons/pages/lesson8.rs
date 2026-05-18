@@ -19,6 +19,8 @@ pub struct CompositionState {
 }
 
 use crate::examples::lessons::components::layout::DarkModernLayout;
+use crate::examples::lessons::components::lesson_nav::LessonNav;
+use crate::examples::lessons::components::lesson_nav::lesson_prev_next;
 
 /// Lesson 8: Action System Deep Dive
 ///
@@ -226,6 +228,12 @@ pub fn page() -> impl Component {
                         { action_composition_example(composition_state.clone()) }
                     </div>
                 </section>
+                @LessonNav(
+                    prev_num=Some(7),
+                    next_num=Some(9),
+                    prev_title="Form Handling",
+                    next_title="Azumi Live",
+                )
             </div>
             <style>
                 .container { max-width: "900px"; margin: "0 auto"; }
