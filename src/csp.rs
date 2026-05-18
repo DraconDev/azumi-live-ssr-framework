@@ -1,7 +1,7 @@
 //! Content-Security-Policy helpers for Azumi applications.
 //!
 //! Provides a builder for constructing CSP headers that work well with
-//! Azumi's zero-hydration architecture and ~3KB runtime.
+//! Azumi's zero-hydration architecture and ~10KB runtime (gzipped).
 //!
 //! # Example (static CSP)
 //!

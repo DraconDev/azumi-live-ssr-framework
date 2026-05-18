@@ -67,8 +67,8 @@ struct Counter { count: i32 }</code></pre>
 <p>Then use <code>state.count</code> directly in your template. When an action modifies the state, Azumi sends only the changed HTML fragment to the browser — no client-side JavaScript framework required.</p>
 <h2>Optimistic Updates</h2>
 <p>Before the server confirms a state change, Azumi applies a predicted update to the DOM. If the server rejects the change, it rolls back automatically. This makes UIs feel instant while maintaining server authority.</p>
-<h2>The 3KB Runtime</h2>
-<p>The client-side JavaScript is minimal: event delegation, DOM morphing via Idiomorph, and optimistic update rollback. No virtual DOM, no reactivity system, no framework weight.</p>"#.to_string(),
+<h2>The ~10KB Runtime</h2>
+<p>The client-side JavaScript is minimal: event delegation, DOM morphing via Idiomorph, and optimistic update rollback. No virtual DOM, no reactivity system, no framework weight. ~10KB gzipped total.</p>"#.to_string(),
             author: "Marcus Chen".to_string(),
             date: "2026-05-14".to_string(),
             likes: 35,

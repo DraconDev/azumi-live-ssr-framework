@@ -17,7 +17,7 @@ The framework is 9/10 technically, 5/10 on story. Core pitch: **HTMX that actual
 ## Framework Improvements (from dracon-platform audit)
 
 - [x] **FN-034 (HIGH):** Borrow-friendly component props — `&str`/`&T` params in `#[azumi::component]` auto-inject lifetimes. Zero-clone rendering from `&self`.
-- [x] **FN-035 (NORMAL):** Migration guide — `docs/migration/from-axum.md` with 6-step incremental adoption path (add dep → html! → component → action → live → safe patterns)
+- [x] **FN-035 (NORMAL):** Adding Azumi to Axum guide — `docs/migration/from-axum.md` with 6-step incremental adoption path (add dep → html! → component → action → live → safe patterns)
 - [x] **FN-033 (HIGH, partial):** `TrustedHtml` promoted to public API ✅. `html_content!` evaluated — **not needed**, TrustedHtml already solves CMS injection. Closed.
 - [x] **FN-036 (NORMAL):** Demo review — homepage positioning updated, blog actions.rs format!→html! fixed, route constants added to homepage+lesson9, .clone() audited (legitimately needed), no Raw/aria issues found.
 

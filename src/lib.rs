@@ -1,7 +1,8 @@
 //! # Azumi — Live SSR for Rust
 //!
-//! Server-rendered HTML with instant interactivity. Toggles, reveals, and optimistic updates
-//! work without a network roundtrip. All Rust, zero custom JavaScript, no JS ecosystem.
+//! Server-rendered HTML with instant interactivity. Builds on Axum.
+//! Toggles, reveals, and optimistic updates work without a network roundtrip.
+//! All Rust, zero custom JavaScript, no JS ecosystem.
 //!
 //! Think of it as HTMX that actually works for interactive apps.
 //!

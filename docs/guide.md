@@ -1,6 +1,6 @@
 # Azumi Guide
 
-> Complete framework guide — from first component to production deployment.
+> Complete guide for Azumi — live SSR that builds on Axum. From first component to production deployment.
 
 ---
 

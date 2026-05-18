@@ -32,7 +32,7 @@ fn bench_render_large_page(c: &mut Criterion) {
                             </article>
                             <article class={card}>
                                 <h3>"Tiny Runtime"</h3>
-                                <p>"~3KB for interactive pages. Zero bytes for static pages."</p>
+                                <p>"~10KB gzipped for interactive pages. Zero bytes for static pages."</p>
                             </article>
                             <article class={card}>
                                 <h3>"Type-Safe State"</h3>

@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **aria-* value validation**: 15+ ARIA attributes now validate their values at compile time (e.g., `aria-expanded` only accepts `true`/`false`).
 - **Vendored JS integrity checks**: FNV-1a checksums for `idiomorph.js` and `azumi.js` in `build.rs` — build fails if files are tampered.
 - **TypeScript definitions**: `client/azumi.d.ts` with full API type definitions.
-- **`docs/migration/from-axum.md`**: 6-step incremental migration guide from plain Axum.
+- **`docs/migration/from-axum.md`**: 6-step guide for adding Azumi to an existing Axum app.
 
 ### Security
 - **Timing attack fix**: `is_dev_token_valid` in `hot_reload.rs` uses constant-time comparison without length leak.

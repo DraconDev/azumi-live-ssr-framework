@@ -25,7 +25,7 @@ Keep all your existing code unchanged. Azumi doesn't take over your router.
 
 ---
 
-## Step 2: Replace One Handler with `html!`
+## Step 2: Convert One Handler to `html!`
 
 Pick a simple page — an "About" page, a settings page, anything with static HTML.
 
@@ -195,7 +195,7 @@ fn counter(state: &Counter) -> impl Component {
 
 ## Step 6: Replace `format!` + `Raw()` with Safe Patterns
 
-If you're migrating from an older Azumi codebase or from a framework that encouraged string-building HTML:
+If you're updating an older Azumi codebase or converting from a framework that encouraged string-building HTML:
 
 | ❌ Old Pattern | ✅ Azumi Replacement |
 |---------------|---------------------|
@@ -267,7 +267,7 @@ html! { <div class:external="container-fluid">...</div> }
 
 ---
 
-## Migration Checklist
+## Adoption Checklist
 
 - [ ] Add `azumi` dependency with `features = ["axum"]`
 - [ ] Replace one simple page with `html!` + component
