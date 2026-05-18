@@ -58,11 +58,18 @@ This is the **safe replacement for `Raw()`** — it's public and documented, unl
 ```rust
 use azumi::TrustedHtml;
 
+// From &str
 let cms_body = TrustedHtml::new("<p>Hello from <strong>CMS</strong></p>");
 html! {
     <div>{cms_body}</div>
 }
 // Renders: <div><p>Hello from <strong>CMS</strong></p></div>
+
+// From owned String
+let markdown_html = TrustedHtml::from_string(render_markdown(&input));
+html! {
+    <article>{markdown_html}</article>
+}
 ```
 
 **When to use:**
@@ -531,7 +538,7 @@ azumi/
 │   ├── live_handler_integration_tests.rs # Live handler security tests
 │   └── ... (40+ other test files)
 ├── client/
-│   ├── azumi.js                        # Client runtime (~3KB)
+│   ├── azumi.js                        # Client runtime (~10KB gzipped)
 │   └── idiomorph.js                    # DOM morphing library
 └── AGENTS.md                           # This file — AI agent instructions
 ```

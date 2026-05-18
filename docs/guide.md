@@ -188,6 +188,48 @@ pub fn MyComponent(title: &str, count: i32) -> impl Component {
 }
 ```
 
+### Borrowed Parameters — Zero-Close Props
+
+Use `&str` (or any `&T`) as parameter types to avoid `.clone()` when calling from `render()` methods. The macro automatically injects the required lifetime:
+
+```rust
+// No explicit lifetime needed — the macro handles it
+#[azumi::component]
+pub fn Greeting(name: &str, age: i32) -> impl Component {
+    html! { <div>{name} " is " {age}</div> }
+}
+
+// Builder accepts &str directly — no .to_string() or .clone()
+let comp = Greeting::render(
+    Greeting::Props::builder().name("Alice").age(30).build().unwrap(),
+);
+```
+
+**Why this matters**: When rendering from `&self`, owned parameters force `.clone()`. Borrowed parameters accept references directly:
+
+```rust
+// ❌ Old way: owned params force clone
+fn render(&self, f: &mut Formatter) -> fmt::Result {
+    html! { {MyComponent::render(MyComponent::Props::builder()
+        .title(self.title.clone())  // allocates!
+        .build().unwrap())} }
+}
+
+// ✅ New way: &str params accept references
+fn render(&self, f: &mut Formatter) -> fmt::Result {
+    html! { {MyComponent::render(MyComponent::Props::builder()
+        .title(&self.title)  // borrows — zero alloc
+        .build().unwrap())} }
+}
+```
+
+**Rules**:
+- `&str` / `&T` without explicit lifetime → macro injects `'a` automatically
+- `&'a str` / `&'static str` with explicit lifetime → used as-is (backward compatible)
+- `String`, `i32`, etc. → owned, no lifetime injection
+- `#[prop(default = "...")]` on `&str` → default must be `&'static str` (e.g., `"N/A"`)
+- Mixed borrowed + owned parameters work naturally
+
 ### Component with Children
 
 ```rust
@@ -226,7 +268,7 @@ pub fn RootLayout(children: impl Component) -> impl Component {
 }
 ```
 
-**Why manual?** Static pages stay at 0KB JS. Interactive pages get only what they need (~3KB).
+**Why manual?** Static pages stay at 0KB JS. Interactive pages get only what they need (~10KB gzipped).
 
 ---
 
@@ -658,7 +700,7 @@ Azumi covers the common interactive patterns. These still require custom JavaScr
 - Third-party integrations that require JS SDKs (payments, maps)
 - Real-time collaborative editing
 
-For these, use `<script src="..."></script>` to load external JS. Azumi's 3KB runtime coexists with custom JS when needed.
+For these, use `<script src="...">` to load external JS. Azumi's ~10KB (gzipped) runtime coexists with custom JS when needed.
 
 ---
 

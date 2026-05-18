@@ -34,11 +34,12 @@
 //!
 //! # Key Features
 //!
-//! - **~3KB JS runtime** — no WASM, no hydration, no virtual DOM
+//! - **~10KB JS runtime (gzipped)** — no WASM, no hydration, no virtual DOM
 //! - **Compile-time validation** — CSS typos, broken HTML, XSS vectors → compile errors
 //! - **HMAC-signed state** — users can't tamper with component state
 //! - **Client interactivity** — toggles, reveals, optimistic UI without network roundtrips
 //! - **Zero custom JavaScript** — all interactivity via `az-*` directives on HTML elements
+//! - **Borrow-friendly props** — `&str` parameters in components, zero `.clone()` from render
 //!
 //! See [docs/why-azumi.md](../docs/why-azumi.md) for the full story.
 

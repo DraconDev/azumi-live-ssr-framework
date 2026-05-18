@@ -5,6 +5,36 @@ All notable changes to Azumi will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [47.44.0] - 2026-05-18
+
+### Added
+- **Borrow-friendly component props**: `&str` and `&T` parameters in `#[azumi::component]` now work without explicit lifetime annotations. The macro auto-injects a synthetic lifetime into Props, PropsBuilder, and render().
+- **`TrustedHtml` promoted to public API**: `TrustedHtml::new()` and `TrustedHtml::from_string()` are now documented, in the prelude, and the safe replacement for `Raw()`.
+- **`#[live_state]` explicit attribute**: Components can use `#[live_state]` on any parameter instead of relying on the `state` naming convention.
+- **`#[azumi::page(route)]` route constants**: Auto-generates `<name>_ROUTE` constant for compile-time link safety.
+- **`#[azumi::action]` path constants**: Auto-generates `<name>_PATH` constant.
+- **aria-* value validation**: 15+ ARIA attributes now validate their values at compile time (e.g., `aria-expanded` only accepts `true`/`false`).
+- **Vendored JS integrity checks**: FNV-1a checksums for `idiomorph.js` and `azumi.js` in `build.rs` — build fails if files are tampered.
+- **TypeScript definitions**: `client/azumi.d.ts` with full API type definitions.
+- **`docs/migration/from-axum.md`**: 6-step incremental migration guide from plain Axum.
+
+### Security
+- **Timing attack fix**: `is_dev_token_valid` in `hot_reload.rs` uses constant-time comparison without length leak.
+- **`AZUMI_DEV_TOKEN` cached**: OnceLock avoids env read per request.
+- **`escape_tag_content` no-panic**: Returns content unescaped instead of panicking on empty `tag_name`.
+- **`init_seo` returns `SeoError`**: Proper error type with `Error + Display` impl, replaces `Box<SeoConfig>`.
+- **Devtools headers**: Use `HeaderValue::from_static` (compile-time checked).
+- **Configurable `MAX_STATE_AGE_SECS`**: `AZUMI_STATE_MAX_AGE` env var.
+- **Hot reload production guard**: `devtools::router()` panics in release unless `AZUMI_ALLOW_DEVTOOLS_IN_RELEASE` is set.
+
+### Changed
+- **Live state graceful degradation**: `to_scope()` returns signed empty state `{}` instead of panicking on serde failure.
+- **Demo positioning**: Homepage updated to "Server-Rendered HTML with Client Interactivity" / "All Rust. Zero custom JavaScript. No ecosystem churn."
+- **Demo blog actions**: `format!` building HTML replaced with `html!` + `render_to_string()`.
+- **Benchmark data**: Runtime size comparison added (Azumi 10KB gzipped vs HTMX 15KB vs React 46KB).
+- **Doc consolidation**: 12 docs → 3 (README, why-azumi, guide) + archive.
+- **Zero clippy warnings** workspace-wide.
+
 ## [48.0.0] - 2026-05-12
 
 ### Stability Promise
