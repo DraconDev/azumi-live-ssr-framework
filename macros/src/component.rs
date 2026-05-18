@@ -1,6 +1,64 @@
 use quote::quote;
 use syn::{parse_macro_input, FnArg, ItemFn, Pat, PatType, Type};
 
+/// Returns true if the type is a `&T` or `&mut T` reference without an explicit lifetime annotation.
+fn is_reference_without_lifetime(ty: &Type) -> bool {
+    matches!(ty, Type::Reference(r) if r.lifetime.is_none())
+}
+
+/// If the type is a `&T` without an explicit lifetime, returns a clone with the given lifetime injected.
+/// Otherwise, returns the type unchanged.
+fn inject_lifetime(ty: &Type, lifetime: &syn::Lifetime) -> Type {
+    if let Type::Reference(ref_type) = ty {
+        if ref_type.lifetime.is_none() {
+            let mut modified = ref_type.clone();
+            modified.lifetime = Some(lifetime.clone());
+            return Type::Reference(modified);
+        }
+    }
+    ty.clone()
+}
+
+/// Choose a synthetic lifetime name that doesn't conflict with existing generics.
+fn choose_lifetime_name(generics: &syn::Generics) -> syn::Lifetime {
+    let existing: Vec<String> = generics.lifetimes().map(|lt| lt.lifetime.ident.to_string()).collect();
+
+    for candidate in ["a", "b", "c"] {
+        if !existing.iter().any(|e| e == candidate) {
+            return syn::Lifetime::new(
+                &format!("'{}", candidate),
+                proc_macro2::Span::call_site(),
+            );
+        }
+    }
+
+    syn::Lifetime::new("'azumi_lt", proc_macro2::Span::call_site())
+}
+
+/// Add a lifetime bound to the return type of the render function.
+/// Only modifies `impl Trait` and `dyn Trait` return types.
+fn add_lifetime_to_return_type(
+    ret: &syn::ReturnType,
+    lt: &syn::Lifetime,
+) -> syn::ReturnType {
+    match ret {
+        syn::ReturnType::Default => ret.clone(),
+        syn::ReturnType::Type(arrow, ty) => {
+            let mut ty = ty.clone();
+            match &mut *ty {
+                Type::ImplTrait(impl_trait) => {
+                    impl_trait.bounds.push(syn::TypeParamBound::Lifetime(lt.clone()));
+                }
+                Type::TraitObject(trait_obj) => {
+                    trait_obj.bounds.push(syn::TypeParamBound::Lifetime(lt.clone()));
+                }
+                _ => {}
+            }
+            syn::ReturnType::Type(*arrow, ty)
+        }
+    }
+}
+
 pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(item as ItemFn);
 
@@ -8,6 +66,43 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
     let fn_vis = &input.vis;
     let fn_block = input.block;
     let fn_output = &input.sig.output;
+
+    // --- Phase 1: Detect if any parameter has a reference type without explicit lifetime ---
+    let mut needs_synthetic_lifetime = false;
+    for arg in &input.sig.inputs {
+        if let FnArg::Typed(PatType { pat, ty, .. }) = arg {
+            if let Pat::Ident(pat_ident) = &**pat {
+                if pat_ident.ident != "children" && is_reference_without_lifetime(ty) {
+                    needs_synthetic_lifetime = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Choose synthetic lifetime and build modified generics
+    let synthetic_lifetime: Option<syn::Lifetime> = if needs_synthetic_lifetime {
+        Some(choose_lifetime_name(&input.sig.generics))
+    } else {
+        None
+    };
+
+    let modified_generics = if let Some(ref lt) = synthetic_lifetime {
+        let mut generics = input.sig.generics.clone();
+        generics.params.push(syn::GenericParam::Lifetime(
+            syn::LifetimeParam::new(lt.clone()),
+        ));
+        generics
+    } else {
+        input.sig.generics.clone()
+    };
+
+    // Modified return type (with synthetic lifetime bound if needed)
+    let render_output = if let Some(ref lt) = synthetic_lifetime {
+        add_lifetime_to_return_type(fn_output, lt)
+    } else {
+        fn_output.clone()
+    };
 
     // Parse arguments into props
     let mut props_fields = Vec::new();
@@ -53,8 +148,15 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
                     }
                 }
 
+                // Compute effective type: inject synthetic lifetime if needed
+                let effective_ty: Type = if let Some(ref lt) = synthetic_lifetime {
+                    inject_lifetime(ty, lt)
+                } else {
+                    (**ty).clone()
+                };
+
                 props_fields.push(quote! {
-                    pub #ident: #ty
+                    pub #ident: #effective_ty
                 });
                 props_init.push(quote! {
                     let #ident = props.#ident;
@@ -63,7 +165,7 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
                 // Builder logic
                 if let Some(default) = default_value {
                     builder_fields.push(quote! {
-                        #ident: Option<#ty>
+                        #ident: Option<#effective_ty>
                     });
                     builder_init.push(quote! {
                         #ident: None
@@ -73,7 +175,7 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
                     });
                 } else {
                     builder_fields.push(quote! {
-                        #ident: Option<#ty>
+                        #ident: Option<#effective_ty>
                     });
                     builder_init.push(quote! {
                         #ident: None
@@ -84,7 +186,7 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
                 }
 
                 builder_setters.push(quote! {
-                    pub fn #ident(mut self, value: #ty) -> Self {
+                    pub fn #ident(mut self, value: #effective_ty) -> Self {
                         self.#ident = Some(value);
                         self
                     }
@@ -95,8 +197,7 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
         }
     }
 
-    let fn_generics = &input.sig.generics;
-    let (impl_generics, ty_generics, where_clause) = fn_generics.split_for_impl();
+    let (impl_generics, ty_generics, where_clause) = modified_generics.split_for_impl();
 
     // Check for live state parameter
     // Priority 1: explicit #[live_state] attribute on any parameter
@@ -201,14 +302,14 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
         let children_ty = children_type.as_ref().unwrap();
 
         quote! {
-            pub fn render #impl_generics (props: Props #ty_generics, children: #children_ty) #fn_output #where_clause {
+            pub fn render #impl_generics (props: Props #ty_generics, children: #children_ty) #render_output #where_clause {
                 #(#props_init)*
                 #scope_body
             }
         }
     } else {
         quote! {
-            pub fn render #impl_generics (props: Props #ty_generics) #fn_output #where_clause {
+            pub fn render #impl_generics (props: Props #ty_generics) #render_output #where_clause {
                 #(#props_init)*
                 #scope_body
             }
@@ -229,7 +330,7 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
             quote! {}
         } else {
             quote! {
-                #fn_vis fn #fn_name #fn_generics () -> impl azumi::Component #where_clause {
+                #fn_vis fn #fn_name () -> impl azumi::Component {
                     #mod_ident::render(#mod_ident::Props::builder().build().expect("Missing required props in wrapper call"))
                 }
             }
@@ -246,11 +347,11 @@ pub fn expand_component(item: proc_macro::TokenStream) -> proc_macro::TokenStrea
             use super::*;
             use azumi::Component;
 
-            pub struct Props #fn_generics #where_clause {
+            pub struct Props #modified_generics #where_clause {
                 #(#props_fields),*
             }
 
-            pub struct PropsBuilder #fn_generics #where_clause {
+            pub struct PropsBuilder #modified_generics #where_clause {
                 #(#builder_fields),*
             }
 

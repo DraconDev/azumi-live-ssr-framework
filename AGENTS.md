@@ -216,6 +216,53 @@ let card = user_card::render(
 );
 ```
 
+### Borrowed Parameters — Zero-Close Props
+
+Use `&str` (or any `&T`) as parameter types to avoid `.clone()` when calling from `render()` methods. The macro automatically injects the required lifetime:
+
+```rust
+// No explicit lifetime needed — the macro handles it
+#[azumi::component]
+fn greeting(name: &str, age: i32) -> impl Component {
+    html! { <div>{name} " is " {age}</div> }
+}
+
+// Builder accepts &str directly — no .to_string() or .clone()
+let comp = greeting::render(
+    greeting::Props::builder().name("Alice").age(30).build().unwrap(),
+);
+```
+
+**Why this matters**: When rendering from `&self`, owned parameters force `.clone()`. Borrowed parameters accept references directly:
+
+```rust
+// ❌ Old way: owned params force clone
+impl Component for MyPage {
+    fn render(&self, f: &mut Formatter) -> fmt::Result {
+        html! { {user_card::render(user_card::Props::builder()
+            .name(self.title.clone())  // allocates!
+            .build().unwrap())} }
+    }
+}
+
+// ✅ New way: &str params accept references
+impl Component for MyPage {
+    fn render(&self, f: &mut Formatter) -> fmt::Result {
+        html! { {greeting::render(greeting::Props::builder()
+            .name(&self.title)  // borrows — zero alloc
+            .build().unwrap())} }
+    }
+}
+```
+
+**Rules**:
+- `&str` / `&T` without explicit lifetime → macro injects `'a` automatically
+- `&'a str` / `&'static str` with explicit lifetime → used as-is (backward compatible)
+- `String`, `i32`, etc. → owned, no lifetime injection
+- `#[prop(default = "...")]` on `&str` → default must be `&'static str` (e.g., `"N/A"`)
+- Mixed borrowed + owned parameters work naturally
+```
+
 ### Props with Defaults
 
 ```rust
@@ -229,6 +276,15 @@ alert::Props::builder()
     .message("Saved!".to_string())
     .build()
     .expect("missing message");
+```
+
+For borrowed `&str` defaults, use a string literal (which is `&'static str` and coerces to `&'a str`):
+
+```rust
+#[azumi::component]
+fn labeled(#[prop(default = "\"N/A\"")] label: &str, value: i32) -> impl Component {
+    html! { <div>{label} ": " {value}</div> }
+}
 ```
 
 ### Props with Children
