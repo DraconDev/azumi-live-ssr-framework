@@ -35,7 +35,7 @@ Azumi is **not HTMX**. It's a full client framework with:
 |---------|-------|-------------|
 | Hot reload | ~80 | WebSocket connection, style updates, polling fallback |
 | Event delegation | ~100 | Parses `az-on` attributes, routes clicks/submits/changes |
-| Action routing | ~60 | `call` actions → POST to `/_azumi/action/{namespace}/{action}` |
+| Action routing | ~60 | `call` actions → POST to `/azumi/action/{namespace}/{action}` |
 | Local state (`set`) | ~40 | Client-side state mutations without server round-trip |
 | State management | ~120 | `az-scope` (server-signed), `az-ui` (client), WeakMap cache |
 | Predictions | ~50 | Optimistic UI: apply prediction → server → rollback if wrong |
