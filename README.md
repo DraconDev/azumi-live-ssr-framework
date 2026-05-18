@@ -21,7 +21,7 @@ Web development has two real problems:
 
 **2. Pure server-side has no interactivity.** HTMX and Rails prove that server-rendered HTML works — but every toggle, expand, and confirm requires a network roundtrip. Your app feels slow even when the server is fast.
 
-Azumi started as HTMX and improved upon it. Same server-rendered approach. Same HTML-first philosophy. But the toggle works instantly. The reveal animates on scroll. The optimistic counter updates before the server responds. **3KB of JavaScript handles what HTMX needs the network for.**
+Azumi started as HTMX and improved upon it. Same server-rendered approach. Same HTML-first philosophy. But the toggle works instantly. The reveal animates on scroll. The optimistic counter updates before the server responds. **~10KB of JavaScript (gzipped) handles what HTMX needs the network for.**
 
 And because it's Rust — not JavaScript — **you never have to rewrite your frontend framework.** Azumi is complete. No ecosystem to maintain. No migration guides to follow. Build your product, not your toolchain.
 
@@ -34,7 +34,7 @@ Every other framework forces you to pick two of three:
 | Need | HTMX / Rails | React / Next.js | Leptos / Dioxus | **Azumi** |
 |------|:---:|:---:|:---:|:---:|
 | Server-rendered, simple | ✅ | ❌ hydration | ❌ WASM | ✅ |
-| Client interactivity | ❌ network roundtrip | ✅ | ✅ | ✅ 3KB runtime |
+| Client interactivity | ❌ network roundtrip | ✅ | ✅ | ✅ ~10KB runtime |
 | No JS ecosystem churn | ✅ | ❌ npm/TS hell | ✅ but WASM tax | ✅ |
 
 **Azumi is the only option that gives you all three.**
@@ -151,7 +151,7 @@ Click → instant optimistic update → server confirms. No network roundtrip fo
 
 | Metric | Azumi | React | HTMX | Leptos |
 |---|---|---|---|---|
-| **JS shipped** | ~3KB | 100KB+ | 14KB | 150KB+ WASM |
+| **JS shipped (gzipped)** | **10KB** | 46KB | 15KB | 150KB+ WASM |
 | **Hydration** | None | Required | None | Required |
 | **CSS validation** | Compile-time | Runtime | None | None |
 | **Type safety** | Full Rust | TypeScript | None | Full Rust |

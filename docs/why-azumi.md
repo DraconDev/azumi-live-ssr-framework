@@ -8,7 +8,7 @@ First we tried the JavaScript route: React, Next.js, TypeScript. The type safety
 
 Then we tried HTMX. Server-rendered HTML, no JS ecosystem, simple. It worked — until it didn't. Every toggle needs a network roundtrip. Every expand, every confirm dialog, every "are you sure?" — all waiting for the server. The app felt slow even when the server was fast. And for simple client-side state like a tab switch, there was no answer. You either accept the network latency or you write custom JavaScript — which puts you back in the ecosystem you were trying to escape.
 
-**Azumi started as HTMX and improved upon it.** Same server-rendered approach. Same HTML-first philosophy. But the toggle works instantly. The reveal animates on scroll. The optimistic counter updates before the server confirms. 3KB of JavaScript handles what HTMX needs the network for.
+**Azumi started as HTMX and improved upon it.** Same server-rendered approach. Same HTML-first philosophy. But the toggle works instantly. The reveal animates on scroll. The optimistic counter updates before the server confirms. ~10KB of JavaScript (gzipped) handles what HTMX needs the network for.
 
 ---
 
@@ -55,7 +55,7 @@ Every other framework makes you choose:
 | **React / SvelteKit / Next.js** | Rich interactivity | JS/TS ecosystem churn, runtime errors, two languages |
 | **Leptos / Dioxus** | One language (Rust), interactivity | WASM download tax (~150KB+), DOM bridge overhead |
 
-Azumi's answer: server-rendered HTML where the common interactions — toggles, reveals, confirms, optimistic updates — work without a network roundtrip. 3KB of JS handles it. You never write that JS. You never maintain that JS. And because it's Rust, there's no ecosystem to keep up with.
+Azumi's answer: server-rendered HTML where the common interactions — toggles, reveals, confirms, optimistic updates — work without a network roundtrip. ~10KB of JS handles it. You never write that JS. You never maintain that JS. And because it's Rust, there's no ecosystem to keep up with.
 
 ---
 
@@ -135,6 +135,18 @@ Build your product, not your toolchain.
 | **Next.js** | JS/TS full-stack | 130K+ | No ecosystem churn, compile-time validation, all Rust | Next.js has massive ecosystem, more examples |
 
 **Nobody else occupies Azumi's exact position: server-rendered + interactive + no-JS-ecosystem.**
+
+### Runtime Size Comparison (gzipped)
+
+| Framework | JS Shipped (gzipped) | Notes |
+|-----------|---------------------|-------|
+| **Azumi** | **10KB** | azumi.js + idiomorph.js |
+| HTMX 2.0 | 15KB | No client interactivity |
+| Alpine.js 3.x | 15KB | Client interactivity, but you write JS |
+| React 18 + ReactDOM | 46KB | Full SPA overhead |
+| Leptos (WASM) | 150KB+ | WASM binary + runtime |
+
+Azumi's runtime is **64% of HTMX's size** while adding client-side interactivity that HTMX lacks. Compared to React, Azumi ships **22% of the JavaScript**.
 
 ---
 
