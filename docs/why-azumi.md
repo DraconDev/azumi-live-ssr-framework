@@ -159,8 +159,26 @@ Azumi isn't trying to have the most features. It's trying to be the most reliabl
 - **XSS prevention by default** — `Raw()` is blocked inside `html!`, auto-escaping everywhere
 - **ARIA validation** — `aria-expanded="yes"` is a compile error (valid: `true`/`false`)
 - **Route constants** — `href={about_page_ROUTE}` prevents typos at compile time
+- **Borrow-friendly props** — `&str` parameters in components, zero `.clone()` from render methods
 - **Zero custom JS** — the attack surface for XSS through your own JavaScript is literally zero
 
 These aren't features you check off on a comparison matrix. They're the absence of entire categories of bugs. The bugs you don't write because the compiler won't let you.
 
 That's the real value of "if it compiles, it works." Not as a marketing slogan, but as an engineering practice.
+
+---
+
+## What Only Azumi Has
+
+These features exist in no other framework — Rust or otherwise:
+
+| Feature | Azumi | HTMX | React | Leptos | Maud |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| Compile-time CSS validation | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Compile-time HTML validation | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Unconditional `Raw()` ban | ✅ | ❌ | ❌ | ❌ | ❌ |
+| ARIA value validation | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Route constant safety | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Optimistic UI predictions | ✅ | ❌ | manual | ❌ | ❌ |
+| HMAC-signed component state | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Client interactivity (no JS/WASM) | ✅ | ❌ | ✅ (JS) | ✅ (WASM) | ❌ |

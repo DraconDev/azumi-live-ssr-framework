@@ -174,6 +174,23 @@ Click → instant optimistic update → server confirms. No network roundtrip fo
 
 ---
 
+## What Only Azumi Has
+
+These features exist in no other framework — Rust or otherwise:
+
+| Feature | Azumi | HTMX | React | Leptos | Maud |
+|---------|:---:|:---:|:---:|:---:|:---:|
+| Compile-time CSS validation | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Compile-time HTML validation | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Unconditional `Raw()` ban | ✅ | ❌ | ❌ | ❌ | ❌ |
+| ARIA value validation | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Route constant safety | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Optimistic UI predictions | ✅ | ❌ | manual | ❌ | ❌ |
+| HMAC-signed component state | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Client interactivity (no JS/WASM) | ✅ | ❌ | ✅ (JS) | ✅ (WASM) | ❌ |
+
+---
+
 ## Documentation
 
 | Document | What You'll Find |
