@@ -12,7 +12,7 @@ Azumi — Server-rendered HTML framework for Rust. Client interactivity without 
 
 ## Homepage URL
 ```
-https://azumi.dev
+https://github.com/DraconDev/azumi-live-ssr-framework
 ```
 
 ## Topics (GitHub tags — max 20)
