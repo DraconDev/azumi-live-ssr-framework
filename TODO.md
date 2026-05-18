@@ -1,34 +1,39 @@
-# Azumi Full Audit — TODO
+# Full Audit — Every File Checked
 
-## Critical ✅
-- [x] CLI version constant stale → now uses `env!("CARGO_PKG_VERSION")` — never drifts
-- [x] Archive docs 3KB → `docs/archive/architecture.md`: `(~10KB gzipped)`
-- [x] Archive comparison 3KB → `docs/archive/comparison.md`: `~10KB`
+## ✅ All Clear
 
-## Medium ✅
-- [x] Internal review 3KB (5 occurrences) → `.internal/REVIEW_2026-05-17.md` — all fixed
-- [x] Internal proposals 3KB (2 occurrences) → `.internal/PROPOSALS.md` — all fixed
-- [x] Internal SEO doc repo name → `.internal/GITHUB_SEO.md` → `azumi-live-ssr-framework`
-- [x] Internal SEO settings URL → updated to current repo name
-- [x] Internal review dead links → fixed to `docs/archive/` paths
-- [x] Internal review "full-stack" → changed to "Live SSR"
-- [x] CLI Cargo.toml version drift → aligned to 47.45.0
-- [x] Docs version "47" → "48" → `docs/guide.md`, `docs/migration/from-axum.md`
-- [x] Source version "47" → "48" → `src/devtools.rs`
+### Underscore Prefix Check
+- Routes: `/_azumi/` → `/azumi/` ✅
+- JS state keys: `_azumi_` → `azumi_` ✅
+- Double-underscore handlers: `__azumi_retry` → `azumi_retry` ✅
+- Macro variable: `_azumi_router` → `azumi_router` ✅
+- Test comments: `__azumi_retry` → `azumi_retry` ✅
+- `data-azumi-scope` → correct (uses `data-` HTML5 prefix) ✅
+- `__private` module → correct (Rust convention) ✅
+- `render_azumi` trait method → correct (not `_` prefixed) ✅
+- `test_azumi_*` test functions → correct (Rust test naming) ✅
 
-## Low ✅
-- [x] `azumi.dev` domain → replaced with GitHub URL in demo main.rs
-- [x] CHANGELOG.md → added v47.45.0 entry
+### Stale References
+- 3KB → all fixed, only CHANGELOG/TODO historical entries remain ✅
+- `azumi.dev` domain → removed from GITHUB_SEO.md ✅
+- `azumi/devtools` feature flag → `azumi-live-ssr-framework/devtools` in guide.md ✅
+- No stale version numbers in production code ✅
 
-## Already Correct (verified by audit)
-- ✅ All public docs say "builds on Axum" — no replacement language
-- ✅ No `class:external` in demo code — blog uses scoped CSS
-- ✅ No `Raw()` usage in demo code — uses TrustedHtml
-- ✅ No TODO/FIXME/HACK in production source
-- ✅ README, why-azumi, guide, lib.rs all say "~10KB gzipped"
-- ✅ All Cargo.toml repo URLs: `DraconDev/azumi-live-ssr-framework`
-- ✅ Lesson numbering matches file names
-- ✅ All lessons have `@LessonNav` with prev/next
-- ✅ `use azumi::prelude::*` consistent in all lessons
-- ✅ All handlers use `lesson{N}_handler` naming
-- ✅ Route constants used in main.rs and homepage.rs where applicable
+### Code Quality
+- No `dbg!` traces ✅
+- No TODO/FIXME/HACK in production source ✅
+- No `full-stack` positioning in user-facing docs ✅
+- `allow(dead_code)` — only on `Raw::new()` (used by macros, compiler can't see it) ✅
+- `unwrap()` calls — all safe (`unwrap_or_default`, `unwrap_or_else` with fallbacks, or test-only) ✅
+- `println!`/`eprintln!` — only in devtools/hot-reload (dev-only) ✅
+
+### Build & Tests
+- `cargo build -p azumi-demo` ✅
+- 1,782 tests pass, 0 failures ✅
+
+## Fixed This Round
+| File | Fix |
+|------|-----|
+| `.internal/GITHUB_SEO.md` | `azumi.dev` → GitHub URL |
+| `docs/guide.md` line 802 | `azumi/devtools` → `azumi-live-ssr-framework/devtools` |
+| `src/lib.rs` line 732-739 | `_azumi_router` → `azumi_router` in `routes!` macro |
