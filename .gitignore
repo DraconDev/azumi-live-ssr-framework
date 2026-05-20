@@ -8,6 +8,9 @@
 
 **/.freeze
 **/dracon-sync-incidents.jsonl
+*.jsonl
+*.kra
+*.kra~
 *.log
 .DS_Store
 .direnv/
@@ -16,16 +19,28 @@
 .venv/
 REVIEW_SESSION_SUMMARY.md
 __pycache__/
+background_results.jsonl
 bin/
+booking.json
 build/
+chat_history.json
 coverage/
+decision_ledger.json
 demo/assets_manifest.json
 dist/
+fleet.db
+global_recipes.json
 lcov.info
+locks/
 node_modules/
+rag_index.json
+repo-runtime/
+repo-scanner/
 repro
+state/
 target/
 tarpaulin-report.html
+tasks*.json
 tasks.md
 test_namespace
 test_results.txt
@@ -51,6 +66,7 @@ thoughts.md
 !.dracon/data/
 !.dracon/data/keys/
 !.dracon/data/keys/*.pub
+!.dracon/keys/*.pub
 !Cargo.lock
 !Cargo.toml
 !clippy.toml
