@@ -1150,6 +1150,9 @@ class Azumi {
                 const savedLocalState = localStateElement ? localStateElement.getAttribute("az-local-state") : null;
                 const savedUiState = target.getAttribute("az-ui") || null;
 
+                // Capture elements that are about to be removed (for exit transitions)
+                const exiting = this.captureExiting(target);
+
                 // Check if target has keyed children — if so, use keyed morphing
                 const hasKeys = target.querySelector('[data-key]') !== null;
                 let morphed;
@@ -1184,6 +1187,9 @@ class Azumi {
 
                 // Re-observe any new az-reveal elements added by morphing
                 this.observeRevealElements();
+
+                // Run transitions on new/removed elements
+                this.runTransitions(target, exiting);
             } else if (target) {
                 this.warn("Idiomorph not loaded, falling back to outerHTML replacement");
                 target.outerHTML = html;
