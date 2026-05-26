@@ -653,8 +653,7 @@ class Azumi {
 
     /**
      * Safely evaluate a predicate expression against state (returns boolean)
-     * Supports: !field, field == 'val', field != 'val', field < N, field > N,
-     *           field <= N, field >= N, A && B, A || B, field ? 'a' : 'b'
+     * Supports: !field, field == 'val', field != 'val', field (truthy)
      */
     evaluatePredicate(expr, state) {
         if (!expr || !state) return false;
@@ -664,56 +663,15 @@ class Azumi {
             return this.evaluatePredicate(expr.slice(1, -1), state);
         }
 
+        // Negation: !field
         if (expr.startsWith("!")) {
             const field = expr.slice(1).trim();
             return !this.evaluatePredicate(field, state);
         }
 
-        // Compound AND: A && B
-        const andIdx = this.findOperatorIndex(expr, "&&");
-        if (andIdx !== -1) {
-            const left = expr.slice(0, andIdx).trim();
-            const right = expr.slice(andIdx + 2).trim();
-            return this.evaluatePredicate(left, state) && this.evaluatePredicate(right, state);
-        }
-
-        // Compound OR: A || B
-        const orIdx = this.findOperatorIndex(expr, "||");
-        if (orIdx !== -1) {
-            const left = expr.slice(0, orIdx).trim();
-            const right = expr.slice(orIdx + 2).trim();
-            return this.evaluatePredicate(left, state) || this.evaluatePredicate(right, state);
-        }
-
-        // Ternary: field ? 'a' : 'b'
-        const ternaryIdx = this.findTernaryIndex(expr);
-        if (ternaryIdx !== -1) {
-            const ternary = this.parseTernary(expr);
-            if (ternary) {
-                const cond = this.evaluatePredicate(ternary.cond, state);
-                const result = cond ? ternary.truthy : ternary.falsy;
-                return !!this.evaluateExpression(result, state);
-            }
-        }
-
-// Helper: get nested property value
+        // Helper: get nested property value
         const getNestedValue = (obj, path) =>
             path.reduce((o, k) => (o != null ? o[k] : undefined), obj);
-
-        // Numeric comparisons: field < N, field > N, field <= N, field >= N
-        const numMatch = expr.match(/^([\w.]+)\s*(<|>|<=|>=)\s*(\d+(?:\.\d+)?)$/);
-        if (numMatch) {
-            const fieldPath = numMatch[1];
-            const op = numMatch[2];
-            const limit = parseFloat(numMatch[3]);
-            const val = parseFloat(getNestedValue(state, fieldPath.split('.')) || 0);
-            switch (op) {
-                case '<': return val < limit;
-                case '>': return val > limit;
-                case '<=': return val <= limit;
-                case '>=': return val >= limit;
-            }
-        }
 
         // Equality: field == 'value' or field == "value"
         const eqMatch = expr.match(/^([\w.]+)\s*==\s*['"]([^'"]*)['"]$/);
@@ -730,6 +688,9 @@ class Azumi {
         // Simple field name: truthy check
         return !!getNestedValue(state, [expr]);
     }
+
+    // Ternary (? :), compound logic (&&, ||), and numeric comparisons (<, >, <=, >=)
+    // are intentionally removed. Complex expressions belong in Rust code, not HTML attributes.
 
     /**
      * Find the outermost ternary ? at depth 0, respecting nested ternaries
