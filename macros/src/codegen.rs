@@ -301,6 +301,31 @@ pub(crate) fn generate_body_with_context(
                         continue;
                     }
 
+                    // Handle bind:value and bind:checked — two-way form binding
+                    // Generates data-bind-value="field.path" in the HTML
+                    if attr_name == "bind:value" || attr_name == "bind:checked" {
+                        match &attr.value {
+                            token_parser::AttributeValue::Dynamic(tokens) => {
+                                let field_str = tokens.to_string().replace(" ", "");
+                                // Strip leading state. or self. if present
+                                let field_path = field_str
+                                    .trim_start_matches("state.")
+                                    .trim_start_matches("self.")
+                                    .to_string();
+                                instructions.push(quote! {
+                                    write!(#f_ident, " data-bind-value=\"{}\"", azumi::Escaped(&#field_path))?;
+                                });
+                            }
+                            token_parser::AttributeValue::Static(val) => {
+                                instructions.push(quote! {
+                                    write!(#f_ident, " data-bind-value=\"{}\"", azumi::Escaped(&#val))?;
+                                });
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
                     if attr_name == "class:external" {
                         // Render as class="..." in output HTML (not class:external="...")
                         match &attr.value {
