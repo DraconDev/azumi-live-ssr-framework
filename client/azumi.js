@@ -727,47 +727,10 @@ class Azumi {
         // String literal: '...' or "..."
         if ((expr.startsWith("'") && expr.endsWith("'")) ||
             (expr.startsWith('"') && expr.endsWith('"'))) {
-            return expr.slice(1, -1).replace(/\\(['"\\])/g, '$1');
+            return expr.slice(1, -1);
         }
 
-        // Ternary: field ? 'a' : 'b'
-        const ternaryIdx = this.findTernaryIndex(expr);
-        if (ternaryIdx !== -1) {
-            const ternary = this.parseTernary(expr);
-            if (ternary) {
-                const condVal = this.evaluatePredicate(ternary.cond, state);
-                return condVal
-                    ? this.evaluateExpression(ternary.truthy, state)
-                    : this.evaluateExpression(ternary.falsy, state);
-            }
-        }
-
-        // OR: field || 'default'
-        const orIdx = this.findOperatorIndex(expr, "||");
-        if (orIdx !== -1) {
-            const field = expr.slice(0, orIdx).trim();
-            const defaultVal = expr.slice(orIdx + 2).trim();
-            const fieldVal = this.evaluateExpression(field, state);
-            return fieldVal !== null && fieldVal !== undefined && fieldVal !== ''
-                ? fieldVal
-                : this.evaluateExpression(defaultVal, state);
-        }
-
-        // Increment: field + N
-        const incMatch = expr.match(/^([\w.]+)\s*\+\s*(\d+(?:\.\d+)?)$/);
-        if (incMatch) {
-            const fieldPath = incMatch[1].split('.');
-            return (parseFloat(getNestedValue(state, fieldPath)) || 0) + parseFloat(incMatch[2]);
-        }
-
-        // Decrement: field - N
-        const decMatch = expr.match(/^([\w.]+)\s*-\s*(\d+(?:\.\d+)?)$/);
-        if (decMatch) {
-            const fieldPath = decMatch[1].split('.');
-            return (parseFloat(getNestedValue(state, fieldPath)) || 0) - parseFloat(decMatch[2]);
-        }
-
-        // Field lookup (supports nested paths)
+        // Field lookup (supports nested paths like user.name)
         const val = getNestedValue(state, expr.split('.'));
         if (val !== undefined || hasNestedPath(state, expr.split('.'))) {
             return val;
@@ -789,6 +752,8 @@ class Azumi {
         return expr; // Fallback: return as-is
     }
 
+    // Removed: ternary (? :), compound logic (||), and arithmetic (+ N, - N).
+    // These expressions belong in Rust, not in HTML attributes.
     /**
      * Update DOM elements that display state values
      * Handles: data-bind, az-bind:text, az-bind:class:*, az-bind:class.*
