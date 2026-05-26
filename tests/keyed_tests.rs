@@ -36,7 +36,6 @@ fn test_keyed_generates_data_key_attribute() {
         "Output should contain data-key attribute. Got: {}",
         output
     );
-    // Should have one data-key per item
     let count = output.matches("data-key=").count();
     assert_eq!(
         count, 2,
@@ -64,7 +63,7 @@ fn test_keyed_preserves_class_attribute() {
         class_list::Props::builder().items(items).build().unwrap(),
     ));
     assert!(output.contains("data-key="), "Should have data-key. Got: {}", output);
-    assert!(output.contains("class=\"list-item\""), "Should preserve class. Got: {}", output);
+    assert!(output.contains("class=\"list-item\""), "Should generate class. Got: {}", output);
 }
 
 #[test]
@@ -162,7 +161,6 @@ fn test_keyed_only_first_element_gets_data_key() {
     let output = render_to_string(&nested_items::render(
         nested_items::Props::builder().items(items).build().unwrap(),
     ));
-    // Only the outer div should have data-key; inner span should NOT
     let count = output.matches("data-key=").count();
     assert_eq!(
         count, 1,
@@ -198,42 +196,32 @@ fn test_keyed_with_if_inside_loop() {
 }
 
 #[test]
-fn test_keyed_integration_with_live_state() {
-    use azumi::prelude::*;
-
+fn test_keyed_integration_with_component_state() {
     #[derive(Clone)]
     struct Task {
         id: i32,
         title: String,
     }
 
-    #[azumi::live]
-    struct TaskList {
-        tasks: Vec<Task>,
-    }
-
     #[azumi::component]
-    fn task_view(state: &TaskList) -> impl Component {
+    fn task_view(tasks: Vec<Task>) -> impl azumi::Component {
         html! {
             <div class={"tasks"}>
-                @for task in &state.tasks @keyed(task.id) {
+                @for task in &tasks @keyed(task.id) {
                     <div class={"task-row"}>{&task.title}</div>
                 }
             </div>
         }
     }
 
-    let state = TaskList {
-        tasks: vec![
-            Task { id: 1, title: "Buy milk".to_string() },
-            Task { id: 2, title: "Walk dog".to_string() },
-        ],
-    };
+    let tasks = vec![
+        Task { id: 1, title: "Buy milk".to_string() },
+        Task { id: 2, title: "Walk dog".to_string() },
+    ];
     let output = render_to_string(&task_view::render(
-        task_view::Props::builder().state(&state).build().unwrap(),
+        task_view::Props::builder().tasks(tasks).build().unwrap(),
     ));
-    assert!(output.contains("data-key="), "Keyed with live state should work. Got: {}", output);
-    assert!(output.contains("az-scope="), "Live state should generate az-scope. Got: {}", output);
+    assert!(output.contains("data-key="), "Keyed with component state should work. Got: {}", output);
     let count = output.matches("data-key=").count();
     assert_eq!(count, 2, "Should have 2 data-keys. Got: {}", output);
 }

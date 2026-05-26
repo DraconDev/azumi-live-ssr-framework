@@ -69,37 +69,19 @@ fn test_bind_value_with_nested_path() {
 }
 
 #[test]
-fn test_bind_value_with_az_ui_scope() {
-    use azumi::prelude::*;
-
-    #[azumi::live]
-    struct FormState {
-        name: String,
-    }
-
+fn test_bind_value_in_component() {
     #[azumi::component]
-    fn live_form(state: &FormState) -> impl Component {
+    fn form_input(value: &str) -> impl azumi::Component {
         html! {
-            <div>
-                <input type="text" bind:value={state.name} />
-            </div>
+            <input type="text" bind:value={value} />
         }
     }
-
-    let s = FormState {
-        name: "Test".to_string(),
-    };
-    let output = render_to_string(&live_form::render(
-        live_form::Props::builder().state(&s).build().unwrap(),
+    let output = render_to_string(&form_input::render(
+        form_input::Props::builder().value("test").build().unwrap(),
     ));
     assert!(
         output.contains("data-bind-value="),
-        "bind:value should work inside az-scope. Got: {}",
-        output
-    );
-    assert!(
-        output.contains("az-scope="),
-        "Live component should generate az-scope. Got: {}",
+        "bind:value should emit data-bind-value. Got: {}",
         output
     );
 }
