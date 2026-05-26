@@ -261,6 +261,34 @@ html! {
 ```
 
 **Supported rules:**
+
+## Transitions (`az-transition:`)
+
+Smooth enter/exit animations for elements during DOM updates. Works automatically after `az-action` morphs or `@keyed` reorders.
+
+```rust
+html! {
+    // Fade in/out: element fades from opacity 0→1 on enter, 1→0 on exit
+    <div az-transition:fade>"I appear smoothly"</div>
+
+    // Slide: element slides open/closed (max-height + opacity)
+    <div az-transition:slide>"I slide in"</div>
+
+    // Scale: element scales 0.95→1.0 with opacity on enter
+    <div az-transition:scale>"I scale up"</div>
+
+    // With custom duration (default: 200ms)
+    <div az-transition:fade duration=500>"Slow fade"</div>
+}
+```
+
+**Rules:**
+- Enter: animation runs immediately after DOM morph completes
+- Exit: original element cloned, original removed, clone animates out, then self-destructs
+- Works with `@keyed` — reordered items reposition without exit/enter
+- Combine with `az-reveal` for scroll-triggered reveals
+
+**Supported rules:**
 | Rule | Example | Description |
 |------|---------|-------------|
 | `required` | `required` | Field must not be empty |
