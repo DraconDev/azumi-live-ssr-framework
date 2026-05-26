@@ -523,7 +523,12 @@ pub(crate) fn generate_body_with_context(
                 token_parser::Block::For(for_block) => {
                     let pat = &for_block.pattern;
                     let iter = &for_block.iterator;
-                    let body = generate_body_with_context(&for_block.body, ctx, f_ident);
+                    let body_ctx = if let Some(ref key) = for_block.key_expr {
+                        ctx.with_key_expr(key.clone())
+                    } else {
+                        ctx.clone()
+                    };
+                    let body = generate_body_with_context(&for_block.body, &body_ctx, f_ident);
 
                     instructions.push(quote! {
                         for #pat in #iter {
