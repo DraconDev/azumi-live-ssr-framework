@@ -910,6 +910,60 @@ class Azumi {
     }
 
     // Server action with optimistic prediction
+    /**
+     * Keyed DOM morphing: matches old↔new children by data-key attribute.
+     * Morphs matched pairs, inserts new items, and removes deleted ones.
+     */
+    morphKeyed(container, newHTML) {
+        // Parse new HTML into a document fragment
+        const template = document.createElement('template');
+        template.innerHTML = newHTML.trim();
+        const newChildren = Array.from(template.content.children);
+
+        // Build key→element maps for old and new children
+        const oldChildren = Array.from(container.children);
+        const oldByKey = new Map();
+        oldChildren.forEach((el) => {
+            const key = el.getAttribute('data-key');
+            if (key) oldByKey.set(key, el);
+        });
+
+        // Track which old children were matched (unmatched = removed)
+        const matched = new Set();
+        const oldKeys = new Set(oldByKey.keys());
+
+        // Process new children: morph matches, insert adds
+        newChildren.forEach((newChild) => {
+            const key = newChild.getAttribute('data-key');
+            if (key && oldByKey.has(key)) {
+                // Match: morph the old element to the new one
+                const oldChild = oldByKey.get(key);
+                window.Idiomorph.morph(oldChild, newChild.outerHTML, {
+                    morphStyle: 'outerHTML',
+                });
+                matched.add(key);
+            } else if (key && !oldByKey.has(key)) {
+                // New item: insert before next matched sibling or at end
+                container.appendChild(newChild.cloneNode(true));
+            } else {
+                // No key: just append (non-keyed child)
+                container.appendChild(newChild.cloneNode(true));
+            }
+        });
+
+        // Remove old children that were not matched
+        oldChildren.forEach((el) => {
+            const key = el.getAttribute('data-key');
+            if (key && !matched.has(key)) {
+                el.remove();
+            }
+        });
+
+        // If container is the root (outerHTML morph), return array-like result
+        return Array.from(container.children);
+    }
+
+    // Server action with optimistic prediction
     async callAction(action, element) {
         // Built-in: azumi_retry (error_fragment "Try Again" button)
         // Note: unhides form by clearing inline display:none only;
@@ -1076,11 +1130,16 @@ class Azumi {
                 const savedLocalState = localStateElement ? localStateElement.getAttribute("az-local-state") : null;
                 const savedUiState = target.getAttribute("az-ui") || null;
 
-                // Morph will reconcile prediction with server truth
-                // Use outerHTML to replace component wrapper
-                const morphed = window.Idiomorph.morph(target, html, {
-                    morphStyle: "outerHTML",
-                });
+                // Check if target has keyed children — if so, use keyed morphing
+                const hasKeys = target.querySelector('[data-key]') !== null;
+                let morphed;
+                if (hasKeys) {
+                    morphed = this.morphKeyed(target, html);
+                } else {
+                    morphed = window.Idiomorph.morph(target, html, {
+                        morphStyle: "outerHTML",
+                    });
+                }
 
                 // Update target to the morphed element (original may have been replaced)
                 if (morphed && morphed.length > 0) {
