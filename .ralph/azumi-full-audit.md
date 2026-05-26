@@ -1,49 +1,77 @@
-
-# Azumi Full Audit — Demos, Scripts, Docs
-
 ## Goal
-Audit every user-facing file in the repo. Create a comprehensive checklist in TODO.md, then systematically verify and fix each item.
+Complete systematic audit of every Azumi feature, macro, client-side capability, and Rust API. Nothing skipped. Every claim verified against source.
 
-## Scope
-Every file a new user would encounter:
-- README.md
-- docs/why-azumi.md
-- docs/guide.md
-- docs/migration/from-axum.md
-- AGENTS.md
-- src/lib.rs (crate-level doc)
-- Cargo.toml descriptions/keywords/repo URLs
-- demo/ (all lesson files, blog, main.rs)
-- benches/
-- client/ (azumi.js, azumi.d.ts)
-- CHANGELOG.md
-- build.rs (integrity checks)
-- Any other .md files at root
+## Checklist
 
-## Audit Checklist (update TODO.md with this)
-For EACH file, verify:
-1. **Axum relationship** — Says "builds on Axum", not "replaces" or "migration from"
-2. **Runtime size** — "~10KB (gzipped)", not "3KB" or stale numbers
-3. **Repo URL** — `DraconDev/azumi-live-ssr-framework`, not old URLs
-4. **Route constants** — Uses `#[azumi::page]` route constants where applicable
-5. **Import consistency** — `use azumi::prelude::*;` in demo files
-6. **Handler naming** — Consistent `*_handler` pattern
-7. **No `class:external`** — Uses Azumi scoped CSS (blog done, but verify)
-8. **No `Raw()`** — Uses `TrustedHtml` instead
-9. **No stale references** — No mentions of removed features, old versions, dead links
-10. **Positioning** — "Live SSR", not "full-stack"; "builds on Axum", not "replaces"
-11. **Lesson numbering** — H1/doc comment matches file name
-12. **Lesson navigation** — Has `@LessonNav` with correct prev/next
+### Phase 1: Macros Surface Area
+- [ ] `html!` macro — full token parser, validators, what it accepts
+- [ ] `#[azumi::component]` — all options, props builder, children, live_state, defaults
+- [ ] `#[azumi::page]` — route constants, what it generates
+- [ ] `#[azumi::action]` — action path generation, error_fragment, success_fragment
+- [ ] `#[azumi::live]` — full analysis pipeline, LiveStateMetadata, predictions
+- [ ] `#[azumi::schema]` — what it does (gated behind feature)
+- [ ] `json_data!` — what it generates
 
-## Process
-1. Scan all files and create TODO.md with the full checklist
-2. Work through checklist items, fixing as found
-3. Build + test after each batch of fixes
-4. Update TODO.md with progress
+### Phase 2: Client JS Surface Area  
+- [ ] Class structure (Azumi constructor, properties, methods)
+- [ ] Event delegation (az-on parsing, handleEvent, handleFormSubmit)
+- [ ] Action execution (callAction, execute, parseAction)
+- [ ] State management (az-scope, az-ui, WeakMap, readState)
+- [ ] Optimistic predictions (executePrediction, applyPrediction, rollbackPrediction)
+- [ ] State bindings (updateBindings, data-bind, az-bind:text, az-bind:class)
+- [ ] Form validation (validateFormField, isValidEmail, isValidUrl)
+- [ ] Scroll reveal (setupReveal, observeRevealElements)
+- [ ] Hot reload (connectHotReload, pollForReload, handleStyleUpdate)
+- [ ] Predicate DSL (evaluatePredicate, evaluateExpression, parseTernary, findTernaryIndex, findOperatorIndex)
+- [ ] Exact line counts per subsystem
 
-## Exit Criteria
-- Every file audited
-- All issues fixed or documented as intentional
-- `cargo build -p azumi-demo` passes
-- `cargo test` passes (1,782+ tests)
-- Zero clippy warnings
+### Phase 3: Rust Public API
+- [ ] `Component` trait
+- [ ] `TrustedHtml` 
+- [ ] `escape_html`, `escape_xml`, `escape_css_string`
+- [ ] `render_to_string`, `render_to_writer`
+- [ ] `FormValidator`, `ValidatedForm`, `ValidationErrors`
+- [ ] `ActionResult`, `error_fragment`, `success_fragment`
+- [ ] `CspNonce`, ContentSecurityPolicy
+- [ ] `SseEvent`, `sse()`
+- [ ] `FnComponent`
+- [ ] `AzumiScript`, `azumi_script()`, `session_cleanup_script()`
+- [ ] `LiveState`, `LiveStateMetadata` traits
+- [ ] Security: HMAC signing, `sign_state()`
+- [ ] Prelude: what `use azumi::prelude::*` brings in
+
+### Phase 4: Attribute Catalog
+- [ ] Every attribute the client JS recognizes (complete list)
+- [ ] Every attribute the macros recognize
+- [ ] What each attribute does
+- [ ] Which are used in production (dracon-platform) vs unused
+
+### Phase 5: Validation Pipeline
+- [ ] CSS validator
+- [ ] HTML structure validator  
+- [ ] Raw usage detector
+- [ ] Format detector
+- [ ] Class/ID validator
+- [ ] Attribute validator
+- [ ] Node ordering
+
+### Phase 6: Documentation & Examples
+- [ ] docs/guide.md
+- [ ] docs/why-azumi.md
+- [ ] docs/archive/ (10 files — what's stale?)
+- [ ] demo/src/ — what examples exist
+- [ ] AGENTS.md — what it covers
+
+### Phase 7: Production Usage
+- [ ] Every azumi attribute/property used in dracon-platform
+- [ ] Every external JS file and what it does
+- [ ] Patterns used (TrustedHtml + format!, az-action, etc.)
+- [ ] What's conspicuously absent
+
+### Phase 8: Client JS Subsystem Line Counts
+- [ ] Exact LOC per function/method group
+- [ ] Calculate removable vs critical code
+- [ ] Identify the hot reload bug precisely
+
+### Deliverable
+Updated audit-tasks.md or audit-report.md with verified facts and strategic recommendations.
