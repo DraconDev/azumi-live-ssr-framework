@@ -1132,10 +1132,25 @@ impl Parse for ForBlock {
         }
 
         let mut iterator = TokenStream::new();
-        while !input.peek(Brace) {
+        while !input.peek(Brace) && !input.peek(Token![@]) {
             let tt: TokenTree = input.parse()?;
             iterator.extend(Some(tt));
         }
+
+        // Optional @keyed(expr) for keyed list updates
+        let key_expr = if input.peek(Token![@]) {
+            input.parse::<Token![@]>()?;
+            let key_ident: syn::Ident = input.parse()?;
+            if key_ident != "keyed" {
+                return Err(Error::new(key_ident.span(), "Expected 'keyed' after @"));
+            }
+            let key_content;
+            syn::parenthesized!(key_content in input);
+            let expr: TokenStream = key_content.parse()?;
+            Some(expr)
+        } else {
+            None
+        };
 
         let content;
         syn::braced!(content in input);
@@ -1145,6 +1160,7 @@ impl Parse for ForBlock {
             pattern: pre_in,
             iterator,
             body,
+            key_expr,
             span,
         })
     }
