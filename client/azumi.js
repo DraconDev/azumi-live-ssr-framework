@@ -931,6 +931,128 @@ class Azumi {
 
     // Server action with optimistic prediction
     /**
+     * Capture elements with az-transition:* that are about to be removed.
+     * Returns a map of cloned elements for exit animations.
+     */
+    captureExiting(container) {
+        const exiting = [];
+        const transitionEls = container.querySelectorAll('[az-transition\\:fade], [az-transition\\:slide], [az-transition\\:scale]');
+        transitionEls.forEach((el) => {
+            const clone = el.cloneNode(true);
+            clone.style.position = 'absolute';
+            clone.style.pointerEvents = 'none';
+            clone._azumiOriginal = el;
+            exiting.push(clone);
+        });
+        return exiting;
+    }
+
+    /**
+     * Run enter/exit transitions after DOM morphing.
+     * Enter: new elements with az-transition:* animate in.
+     * Exit: captured elements animate out, then self-destruct.
+     */
+    runTransitions(target, exiting) {
+        // Enter transitions: find new elements with az-transition:*
+        const enterEls = target.querySelectorAll('[az-transition\\:fade], [az-transition\\:slide], [az-transition\\:scale]');
+        enterEls.forEach((el) => {
+            const type = el.getAttribute('az-transition:fade') !== null ? 'fade' :
+                         el.getAttribute('az-transition:slide') !== null ? 'slide' :
+                         el.getAttribute('az-transition:scale') !== null ? 'scale' : null;
+            if (!type) return;
+            this._animateEnter(el, type);
+        });
+
+        // Exit transitions: animate captured elements, then remove
+        exiting.forEach((clone) => {
+            const type = clone.getAttribute('az-transition:fade') !== null ? 'fade' :
+                         clone.getAttribute('az-transition:slide') !== null ? 'slide' :
+                         clone.getAttribute('az-transition:scale') !== null ? 'scale' : null;
+            if (!type) return;
+            this._animateExit(clone, type);
+        });
+    }
+
+    _animateEnter(el, type) {
+        const duration = this._transitionDuration(el) || 200;
+        switch (type) {
+            case 'fade':
+                el.style.opacity = '0';
+                el.style.transition = `opacity ${duration}ms ease`;
+                requestAnimationFrame(() => { el.style.opacity = '1'; });
+                break;
+            case 'slide':
+                el.style.overflow = 'hidden';
+                el.style.maxHeight = '0';
+                el.style.transition = `max-height ${duration}ms ease, opacity ${duration}ms ease`;
+                el.style.maxHeight = el.scrollHeight + 'px';
+                break;
+            case 'scale':
+                el.style.opacity = '0';
+                el.style.transform = 'scale(0.95)';
+                el.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
+                requestAnimationFrame(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'scale(1)';
+                });
+                break;
+        }
+    }
+
+    _animateExit(clone, type) {
+        const duration = this._transitionDuration(clone) || 200;
+        const original = clone._azumiOriginal;
+        if (!original || !original.parentNode) return;
+
+        // Position the clone over the original
+        const rect = original.getBoundingClientRect();
+        clone.style.position = 'fixed';
+        clone.style.left = rect.left + 'px';
+        clone.style.top = rect.top + 'px';
+        clone.style.width = rect.width + 'px';
+        clone.style.height = rect.height + 'px';
+        clone.style.margin = '0';
+        clone.style.zIndex = '9999';
+        document.body.appendChild(clone);
+
+        // Remove original immediately
+        original.remove();
+
+        switch (type) {
+            case 'fade':
+                clone.style.transition = `opacity ${duration}ms ease`;
+                requestAnimationFrame(() => { clone.style.opacity = '0'; });
+                break;
+            case 'slide':
+                clone.style.overflow = 'hidden';
+                clone.style.transition = `max-height ${duration}ms ease, opacity ${duration}ms ease`;
+                requestAnimationFrame(() => {
+                    clone.style.maxHeight = '0';
+                    clone.style.opacity = '0';
+                });
+                break;
+            case 'scale':
+                clone.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
+                requestAnimationFrame(() => {
+                    clone.style.opacity = '0';
+                    clone.style.transform = 'scale(0.95)';
+                });
+                break;
+        }
+
+        setTimeout(() => clone.remove(), duration + 50);
+    }
+
+    _transitionDuration(el) {
+        const attr = el.getAttribute('az-transition:fade') ||
+                     el.getAttribute('az-transition:slide') ||
+                     el.getAttribute('az-transition:scale') || '';
+        if (!attr) return null;
+        const match = attr.match(/duration=(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+    }
+
+    /**
      * Keyed DOM morphing: matches old↔new children by data-key attribute.
      * Morphs matched pairs, inserts new items, and removes deleted ones.
      */
