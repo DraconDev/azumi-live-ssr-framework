@@ -317,6 +317,24 @@ html! {
 }
 ```
 
+### @for with @keyed — Keyed List Updates
+
+Add `@keyed(expr)` to give each list item a stable identity:
+
+```rust
+html! {
+    // Without @keyed: every list change replaces all DOM nodes
+    // With @keyed: items tracked by identity, smooth reordering
+    @for item in &items @keyed(item.id) {
+        <div class="row">{&item.name}</div>
+    }
+}
+// Renders: <div data-key="1" class="row">...</div>
+```
+
+**Use @keyed for:** lists that reorder, have interactive children, or animate.
+**Skip @keyed for:** static lists or simple text-only lists.
+
 ### @match — Pattern Matching
 
 ```rust
@@ -446,6 +464,43 @@ async fn save_settings(/* ... */) -> impl axum::response::IntoResponse {
     azumi::action::success_fragment("<p>Settings saved!</p>")
 }
 ```
+
+### Two-Way Binding with `bind:value`
+
+Sync input values with state automatically. No manual `on:input` handlers needed. 200ms debounce by default.
+
+```rust
+html! {
+    <form az-action="signup" az-target="#result">
+        <input type="text" name="name"
+               bind:value={state.name}
+               data-validate="name:required,min-length:2" />
+        <p id="name_error" class="form-error"></p>
+
+        <input type="email" name="email"
+               bind:value={state.email}
+               data-validate="email:required,email" />
+        <p id="email_error" class="form-error"></p>
+
+        <input type="checkbox"
+               bind:checked={state.agree} />
+        <label>"I agree"</label>
+
+        <select bind:value={state.plan}>
+            <option value="free">"Free"</option>
+            <option value="pro">"Pro"</option>
+        </select>
+
+        <button type="submit">"Sign Up"</button>
+    </form>
+}
+```
+
+**Supported elements:** `<input>` (text, email, password, number, etc.), `<input type="checkbox">` (use `bind:checked`), `<input type="radio">`, `<select>`, `<textarea>`.
+
+**Nested fields:** `bind:value={state.user.name}` syncs into `state.user.name`.
+
+**Renders as:** `data-bind-value="field.path"` in the HTML.
 
 ### Success/Error Fragments
 
