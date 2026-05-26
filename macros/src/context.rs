@@ -64,7 +64,8 @@ impl GenerationContext {
             scope_id: self.scope_id.clone(),
             valid_classes: self.valid_classes.clone(),
             valid_ids: self.valid_ids.clone(),
-            key_expr: self.key_expr.clone(),
+            key_expr: None, // Only first element in for body gets data-key; children don't inherit
         }
+    }
     }
 }
