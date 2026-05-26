@@ -12,7 +12,10 @@ class Azumi {
         this.debug = false; // Enable with window.azumi.debug = true
         this.revealObserver = null; // IntersectionObserver for az-reveal
         this.delegate();
-        this.connectHotReload();
+        // Only connect hot reload in dev mode (non-standard port or explicit flag)
+        if (window.location.port || document.querySelector('meta[name="azumi-dev"]')) {
+            this.connectHotReload();
+        }
         // Set window.azumi early so it exists for any async setup
         window.azumi = this;
         // Only run DOM-dependent init if document exists
