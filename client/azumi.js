@@ -199,6 +199,83 @@ class Azumi {
             if (e.defaultPrevented) return;
             this.handleFormSubmit(e);
         });
+
+        // Two-way binding: data-bind-value on input elements
+        document.addEventListener('input', (e) => {
+            const el = e.target.closest('[data-bind-value]');
+            if (!el) return;
+            this.syncBinding(el);
+        });
+
+        // Also sync on change (for select, radio, checkbox)
+        document.addEventListener('change', (e) => {
+            const el = e.target.closest('[data-bind-value]');
+            if (!el) return;
+            this.syncBinding(el);
+        });
+    }
+
+    /**
+     * Two-way binding: sync input value into state.
+     * Reads data-bind-value="field.path" attribute, finds nearest az-scope/az-ui state,
+     * updates the field, and refreshes all bindings.
+     * Debounced: fires at most once every 200ms per element.
+     */
+    syncBinding(el) {
+        const fieldPath = el.getAttribute('data-bind-value');
+        if (!fieldPath) return;
+
+        // Debounce: skip if last sync was < 200ms ago
+        const now = Date.now();
+        const lastSync = el._azumiBindDebounce || 0;
+        if (now - lastSync < 200) {
+            // Schedule a trailing sync
+            clearTimeout(el._azumiBindTimer);
+            el._azumiBindTimer = setTimeout(() => this.syncBindingNow(el, fieldPath), 200);
+            return;
+        }
+        el._azumiBindDebounce = now;
+        this.syncBindingNow(el, fieldPath);
+    }
+
+    syncBindingNow(el, fieldPath) {
+        // Find state container
+        const scopeEl = el.closest('[az-ui]') || el.closest('[az-scope]');
+        if (!scopeEl) return;
+
+        const state = this.readState(scopeEl);
+        if (!state) return;
+
+        // Get the value based on element type
+        let value;
+        if (el.type === 'checkbox') {
+            value = el.checked;
+        } else if (el.type === 'radio') {
+            if (el.checked) value = el.value;
+            else return; // Only sync checked radio, not unchecked ones
+        } else {
+            value = el.value;
+        }
+
+        // Set nested field path: "user.name" -> state.user.name = value
+        const parts = fieldPath.split('.');
+        const last = parts.pop();
+        let target = state;
+        for (const p of parts) {
+            if (target[p] == null) target[p] = {};
+            target = target[p];
+        }
+        target[last] = value;
+
+        // Persist to az-ui attribute if client-side state
+        if (scopeEl.hasAttribute('az-ui')) {
+            scopeEl.setAttribute('az-ui', JSON.stringify(state));
+        }
+
+        // Refresh all bindings
+        this.updateBindings(scopeEl);
+
+        this.log('bind:value synced', fieldPath, '=', value);
     }
 
     // Parse az-on attribute
