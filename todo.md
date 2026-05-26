@@ -7,11 +7,11 @@
 
 ## BUG FIXES (Fix Before Anything Else)
 
-- [ ] **Fix stale `azumi-runtime.js` in production** — `libs/chrome/src/static/azumi-runtime.js` is an older copy (47,449 bytes) that calls `this.connectHotReload()` unconditionally. The source at `client/azumi.js` (47,047 bytes) already has `if (window.location.port || document.querySelector('meta[name="azumi-dev"]'))`. Update production copy from source.
+- [x] **Fix stale `azumi-runtime.js` in production** — Fixed. Production copy already had the guard; ported fix TO source (`client/azumi.js`) and minified bundle (`src/client.min.js`). All three copies now use `if (window.location.port || document.querySelector('meta[name="azumi-dev"]')) { this.connectHotReload(); }`.
   - *Why:* Every page load in production attempts a WebSocket connection to `/azumi/live_reload`. 6KB dead weight in every request. Already fixed at source, just not propagated.
   - *Cost:* 5 min. Copy file, verify.
 
-- [ ] **Document the JS propagation pipeline** — `client/azumi.js` (source) → `src/client.min.js` (minified) → `libs/chrome/src/static/azumi-runtime.js` (production). How is `src/client.min.js` generated? What minifier? What's the deployment process?
+- [x] **Document the JS propagation pipeline** — Done. `client/README.md` documents all three copies, build pipeline, and development workflow.
   - *Why:* Three copies of the runtime exist. No one knows how they relate. Future changes will desync again.
   - *Cost:* 15 min. Write 3 lines in a README or Makefile.
 
