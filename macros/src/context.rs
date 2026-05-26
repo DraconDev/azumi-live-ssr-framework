@@ -67,5 +67,4 @@ impl GenerationContext {
             key_expr: None, // Only first element in for body gets data-key; children don't inherit
         }
     }
-    }
 }
