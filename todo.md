@@ -15,80 +15,25 @@
   - *Why:* Three copies of the runtime exist. No one knows how they relate. Future changes will desync again.
   - *Cost:* 15 min. Write 3 lines in a README or Makefile.
 
-- [ ] **Investigate `src/client.min.js` line count anomaly** — `client/azumi.js` = 1,281 lines, `src/client.min.js` = 1,497 lines. Minified file has MORE lines than source. Either minification re-expands something, or the files diverged.
-  - *Why:* If they diverged, the "minified" production runtime isn't actually the source. Could mean different behavior.
-  - *Cost:* 10 min. `diff client/azumi.js src/client.min.js` and check.
+- [x] **Investigate `src/client.min.js` line count anomaly** — Confirmed NOT anomalous. `src/client.min.js` bundles Idiomorph (39KB) + Azumi runtime. Source concatenated = 2,161 lines → minified = 1,497 lines. Correct minification. `build.rs` now regenerates this automatically.
 
 ---
 
 ## P0 — SHIP-BLOCKING (Do First)
 
-### P0.1: `bind:value` — Two-Way Form Binding
+### P0.1: `bind:value` — Two-Way Form Binding ✅ CODE DONE
 
-- [ ] **`bind:value` client-side logic**
-  - On `input` event for elements with `bind:value`, read `input.value`
-  - Sync into nearest `az-scope` or `az-ui` state via `readState()` priority chain
-  - Call `updateBindings()` so `az-bind:text` and `az-bind:class` reflect new value
-  - Add 200ms debounce (configurable: `bind:value debounce=100`)
-  - Support `<input>`, `<textarea>`, `<select>`
-  - Support `type="checkbox"` as `bind:checked` (boolean toggle on state field)
-  - Support `type="radio"` as `bind:value` (string set on state field)
-  - *Why:* The #1 missing feature. Without this, `az-scope`, `az-bind:text`, `data-predict`, and the entire reactive pipeline have no visible entry point for form inputs. Every Svelte comparison cites this gap. For AI: collapses "write `<input>` + remember `on:input` + remember debounce + remember target" into one keyword that can't be wrong.
-  - *Cost:* ~70 lines client-side (~2KB). Server: zero changes (just renders `bind:value` attribute).
-  - *Files:* `client/azumi.js` (new `syncBinding()` method), `macros/src/token_parser.rs` (recognize `bind:value` attribute)
+- [x] **`bind:value` client-side logic** — `syncBinding()` method. Handles input/change events, 200ms debounce, checkbox/radio, nested field paths, scoped to `[data-bind-value]` elements.
+- [x] **`bind:value` macro-level support** — `codegen.rs` recognizes `bind:value={state.field}` → generates `data-bind-value="field.path"` in HTML.
+- [x] **`bind:checked` for checkboxes** — Checkbox syncs `checked` boolean, radio syncs `value` string.
+- [ ] **Test `bind:value`** — Text, checkbox, radio, select, textarea, debounce, with az-ui, with az-scope. ~15 cases. File: `tests/bind_value_tests.rs` (new)
 
-- [ ] **`bind:value` macro-level support**
-  - Token parser must recognize `bind:value={state.field}` as valid attribute syntax
-  - If field path doesn't exist on the state struct, emit compile error with fix suggestion
-  - Generate `data-bind-value="field.path"` attribute on rendered `<input>`
-  - *Cost:* ~20 lines in `token_parser.rs`, ~10 lines in `codegen.rs`
-  - *Files:* `macros/src/token_parser.rs`, `macros/src/codegen.rs`
+### P0.2: `@keyed` — Keyed List Updates ✅ CODE DONE
 
-- [ ] **`bind:checked` for checkboxes**
-  - Checkbox: sync `input.checked` (boolean) ↔ state field
-  - Radio group: sync `input.value` ↔ state field when `input.checked` is true
-  - *Cost:* ~20 lines client-side
-  - *Files:* `client/azumi.js`
-
-- [ ] **Test `bind:value`**
-  - Text input: type "hello" → state.name updates → `az-bind:text` reflects "hello"
-  - Debounce: rapid typing → single state update after 200ms
-  - Checkbox: toggle → state.agree toggles
-  - Radio: select option → state.option updates
-  - Select/textarea: same as text input behavior
-  - With `az-ui`: client-side state, no server roundtrip
-  - With `az-scope`: server state, value sent on form submit
-  - *Cost:* ~15 test cases
-  - *Files:* `tests/bind_value_tests.rs` (new)
-
-### P0.2: `@keyed` — Keyed List Updates
-
-- [ ] **`@keyed` client-side logic**
-  - When Idiomorph morphs a list, read `data-key` attribute on each list item
-  - Match old DOM items to new HTML items by key
-  - Preserve DOM state (scroll position, focus, CSS transitions) for matched items
-  - Only morph items whose content actually changed (compare child HTML)
-  - Handle adds, removes, and reorders correctly
-  - *Why:* Without keys, every `@for` list change triggers full DOM replacement — scroll jumps to top, active input loses focus, CSS transitions restart. Svelte's `{#each (id)}` equivalent. For AI: prevents silent runtime breakage where AI-generated code compiles but list behavior is janky.
-  - *Cost:* ~100 lines client-side (~3KB). Server: renders `data-key` on each `@for` item.
-  - *Files:* `client/azumi.js` (integration into `callAction()` morph step)
-
-- [ ] **`@keyed` macro-level support**
-  - Token parser must recognize `@for item in items @keyed(item.id) { ... }` syntax
-  - If no key expression, emit warning (not error — sometimes you want full morph)
-  - Generate `data-key="{item.id}"` on the first element inside each `@for` iteration
-  - *Cost:* ~40 lines in `token_parser.rs`, ~20 lines in `codegen.rs`
-  - *Files:* `macros/src/token_parser.rs`, `macros/src/codegen.rs`
-
-- [ ] **Test `@keyed`**
-  - Add item to start of list → only new item created, existing items preserved
-  - Remove item from middle → only that item removed, others unchanged
-  - Reorder items → DOM moved, not recreated
-  - Change item content → only that item morphed
-  - No key → full morph (backward compatible)
-  - With transitions: moved items animate to new position (stretch goal)
-  - *Cost:* ~12 test cases
-  - *Files:* `tests/keyed_tests.rs` (new)
+- [x] **`@keyed` client-side logic** — `morphKeyed()` method matches old↔new children by `data-key` attribute. Morphs pairs via Idiomorph, inserts new items, removes deleted ones.
+- [x] **`@keyed` macro-level support** — `ForBlock` has optional `key_expr`. Parser reads `@keyed(item.id)` syntax. Codegen passes key via `GenerationContext.key_expr`.
+- [x] **`data-key` attribute generation** — First element in `@for` body gets `data-key="{expr}"`. Children don't inherit (cleared in `with_mode`).
+- [ ] **Test `@keyed`** — Add/remove/reorder/change-content, no-key fallback. ~12 cases. File: `tests/keyed_tests.rs` (new)
 
 ### P0.3: Shrink Predicate DSL
 
