@@ -403,7 +403,7 @@ The reactive system is **70% built**. The pipeline `#[live]` → `az-scope` → 
 | Reactive declarations (`#[react]`) | P1 | ~3KB | Reduces boilerplate for derived state |
 | Lifecycle hooks (`onMount`/`onUnmount`) | P1 | ~2KB | Needed for side effects |
 | Transitions | P2 | ~5KB | CSS-only is sufficient for most cases |
-| Scoped CSS | P2 | TBD | Different problem entirely |
+| Scoped CSS | ✅ Already built | Done | 422 lines css_scoping.rs, auto-scoped |
 | Fine-grained reactivity | Skip | — | Conflicts with DOM morphing architecture |
 | Store system | Skip | — | `#[live]` + `az-scope` already exists |
 
@@ -439,7 +439,7 @@ The reactive system is **70% built**. The pipeline `#[live]` → `az-scope` → 
 ### P2 — Eventually
 
 - [ ] **Transitions** — Extend `az-reveal` to support `az-transition:slide`, `az-transition:fade`. ~5KB.
-- [ ] **Scoped CSS** — Component-local style isolation.
+- [x] **Scoped CSS** — ✅ Already working. Every `html!` with `<style>` gets auto-scoped selectors + `data-{scope_id}` on element. `css_scoping.rs` (422 lines).
 - [ ] **Media query bindings** — `@media (min-width: ...)` → reactive state.
 
 ### Skip
