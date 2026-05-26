@@ -178,6 +178,101 @@ html! {
 }
 ```
 
+## Two-Way Form Binding
+
+### `bind:value` — Sync Input ↔ State
+
+Automatically syncs an `<input>` value with state. Debounced at 200ms. No manual JS required.
+
+```rust
+html! {
+    <input type="text" bind:value={state.name} />
+    <input type="checkbox" bind:checked={state.agree} />
+    <select bind:value={state.choice}>
+        <option value="rust">"Rust"</option>
+    </select>
+    <textarea bind:value={state.bio}></textarea>
+}
+```
+
+**Renders as:** `data-bind-value="field.path"` in HTML. The client runtime reads this attribute, listens for `input`/`change` events, and syncs the value into the nearest `az-scope` or `az-ui` state.
+
+**Supports:**
+- `<input>` (text, email, password, number, etc.)
+- `<input type="checkbox">` → `bind:checked` (boolean toggle)
+- `<input type="radio">` → `bind:value` (string set on selected radio)
+- `<select>` and `<textarea>`
+- **Nested field paths**: `bind:value={state.user.name}` updates `state.user.name`
+- **Debounce**: 200ms default (configurable via `debounce=N`)
+
+**Why this matters:** The #1 interactivity gap. Without `bind:value`, every form input needs a separate `on:input` handler with manual debounce logic. With `bind:value`, it's one keyword.
+
+## Scoped CSS
+
+Every `<style>` block inside `html!` is **automatically scoped** to its component. CSS selectors are rewritten at compile time to include a unique `data-{scope_id}` attribute.
+
+```rust
+html! {
+    <div class="card">
+        <style>.card { color: red; }</style>
+        <p>"This text is red"</p>
+    </div>
+}
+// Output:
+// <div class="card" data-s1a2b3c4d="s1a2b3c4d">
+//   <style data-azumi-scope="s1a2b3c4d">.card[data-s1a2b3c4d] { color: red; }</style>
+//   <p>This text is red</p>
+// </div>
+```
+
+**Rules:**
+- All `<style>` blocks are scoped by default — no CSS leaks between components
+- `style! global { ... }` creates unscoped global CSS
+- `<style>{var}</style>` with dynamic CSS bypasses scoping (for user-provided themes)
+- `style! { ... }` provides typed, validated CSS with Rust expressions in values
+- The scope ID is deterministic from the source position (same code → same hash across builds)
+
+**Why this matters:** No class name collisions. No CSS reset wars. No `!important` arms race. Each component owns its styles.
+
+## Form Validation
+
+### `data-validate` — Client-Side Validation
+
+Declarative form validation with zero custom JS.
+
+```rust
+html! {
+    <form az-action="signup" az-target="#result">
+        <input type="text" name="name"
+               data-validate="name:required" />
+        <p id="name_error" class="form-error" style="display:none"></p>
+
+        <input type="email" name="email"
+               data-validate="email:required,email" />
+        <p id="email_error" class="form-error" style="display:none"></p>
+
+        <input type="password" name="password"
+               data-validate="password:required,min-length:8" />
+        <p id="password_error" class="form-error" style="display:none"></p>
+
+        <button type="submit">"Sign Up"</button>
+    </form>
+}
+```
+
+**Supported rules:**
+| Rule | Example | Description |
+|------|---------|-------------|
+| `required` | `required` | Field must not be empty |
+| `email` | `required,email` | Must be valid email format |
+| `min-length:N` | `required,min-length:8` | Minimum character length |
+| `max-length:N` | `max-length:254` | Maximum character length |
+| `url` | `required,url` | Must be valid URL |
+
+**Error display:** Validation errors appear in `id="{field}_error"` elements. Use `aria-invalid` and `aria-describedby` for accessibility.
+
+**Why this matters:** Every form needs validation. Without `data-validate`, you write a separate JS file per form. With it, validation is part of the template.
+
 ## Interpolation Patterns
 
 ### `{&field}` — Borrow, Don't Clone
