@@ -195,13 +195,18 @@ fn test_keyed_with_if_inside_loop() {
     assert!(output.contains("data-key="), "Keyed with @if should work. Got: {}", output);
 }
 
+#[derive(Clone)]
+struct Task {
+    id: i32,
+    title: String,
+}
+
 #[test]
 fn test_keyed_integration_with_component_state() {
-    #[derive(Clone)]
-    struct Task {
-        id: i32,
-        title: String,
-    }
+    let tasks = vec![
+        Task { id: 1, title: "Buy milk".to_string() },
+        Task { id: 2, title: "Walk dog".to_string() },
+    ];
 
     #[azumi::component]
     fn task_view(tasks: Vec<Task>) -> impl azumi::Component {
@@ -214,10 +219,6 @@ fn test_keyed_integration_with_component_state() {
         }
     }
 
-    let tasks = vec![
-        Task { id: 1, title: "Buy milk".to_string() },
-        Task { id: 2, title: "Walk dog".to_string() },
-    ];
     let output = render_to_string(&task_view::render(
         task_view::Props::builder().tasks(tasks).build().unwrap(),
     ));

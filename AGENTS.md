@@ -140,7 +140,27 @@ html! {
 }
 ```
 
-**Why this matters**: `@for` replaces `format!` + `Raw()` patterns. If you find yourself building HTML strings with `format!` and injecting with `Raw()`, use `@for` inside `html!` instead — it's compile-time validated and auto-escaped.
+### `@for` with `@keyed(id)` — Keyed List Updates
+
+Use `@keyed(expr)` to give each list item a stable identity. The DOM morpher uses the key to move/reuse items instead of destroying and recreating them. Preserves scroll position, input focus, and CSS transitions.
+
+```rust
+html! {
+    @for item in &items @keyed(item.id) {
+        <div class="row">{&item.name}</div>
+    }
+}
+// Renders: <div data-key="1" class="row">Alice</div>
+//          <div data-key="2" class="row">Bob</div>
+```
+
+**Rules:**
+- Key expression must evaluate to a stable, unique identifier per item
+- Without `@keyed`, every list change triggers full DOM replacement
+- The first HTML element inside each `@for` body gets the `data-key` attribute
+- Works with both owned (`Vec<T>`) and borrowed (`&[T]`) iterators
+
+**Why this matters**: `@keyed` prevents list jank — no scroll jumps, no lost focus, smooth DOM updates when items are added, removed, or reordered.
 
 ### `@if` / `@match`
 
