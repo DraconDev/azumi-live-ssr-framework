@@ -388,12 +388,13 @@
 
 ## SUMMARY: Bundle Trajectory
 
-| Milestone | Features Added | Features Removed | Uncompressed | Gzipped |
-|-----------|----------------|-----------------|-------------|---------|
-| **Today** | — | — | 42KB | 10KB |
-| **After P0** | `bind:value` (+2KB), `@keyed` (+3KB) | Hot reload (-6KB), ternary DSL (-8KB), numeric ops (-1KB) | **~28KB** | **~7KB** |
-| **After P1** | Transitions (+3KB), loading/error (+1KB), debounce (+1KB), `#[react]` (+3KB), lifecycle (+2KB), confirms (+1.5KB) | — | **~38KB** | **~9KB** |
-| **After P2** | Optimistic lists (+3KB), intersect (+1KB), undo anim (+1KB), transition presets (+1KB) | — | **~44KB** | **~10KB** |
+| Milestone | What Changed | Uncompressed | Gzipped |
+|-----------|-------------|-------------|---------|
+| **Before session** | — | 42KB | 10.5KB |
+| **After P0 (now)** | `bind:value` + `@keyed` + shrunk DSL + hot reload guarded | **40KB** | **10.4KB** |
+| **After P0 tests + docs** | Test coverage, updated AGENTS.md, demo form | 40KB | 10.4KB |
+| **After P1** | Transitions (+3KB), loading/error (+1KB), debounce (+1KB), `#[react]` (+3KB), lifecycle (+2KB), confirms (+1.5KB) | ~52KB | ~13KB |
+| **After P2** | Optimistic lists (+3KB), intersect (+1KB), undo anim (+1KB), transition presets (+1KB) | ~58KB | ~15KB |
 
 **Net at P1: 50% more features, same bundle size as today.** Premium interactive experience at no byte cost increase.
 
