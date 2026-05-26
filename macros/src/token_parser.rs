@@ -114,6 +114,7 @@ pub struct ForBlock {
     pub pattern: TokenStream,
     pub iterator: TokenStream,
     pub body: Vec<Node>,
+    pub key_expr: Option<TokenStream>, // @keyed(expr) for efficient DOM morphing
     #[allow(dead_code)]
     pub span: Span,
 }
