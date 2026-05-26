@@ -1,7 +1,7 @@
 {
   "name": "azumi-p0-implementation",
   "taskFile": ".ralph/azumi-p0-implementation.md",
-  "iteration": 1,
+  "iteration": 2,
   "maxIterations": 30,
   "itemsPerIteration": 2,
   "reflectEvery": 5,
