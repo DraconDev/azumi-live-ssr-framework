@@ -268,7 +268,7 @@ pub fn RootLayout(children: impl Component) -> impl Component {
 }
 ```
 
-**Why manual?** Static pages stay at 0KB JS. Interactive pages get only what they need (~10KB gzipped).
+**Why manual?** Static pages stay at 0KB JS. Interactive pages get only what they need (~11KB gzipped).
 
 ---
 
@@ -782,7 +782,7 @@ Azumi covers the common interactive patterns. These still require custom JavaScr
 - Third-party integrations that require JS SDKs (payments, maps)
 - Real-time collaborative editing
 
-For these, use `<script src="...">` to load external JS. Azumi's ~10KB (gzipped) runtime coexists with custom JS when needed.
+For these, use `<script src="...">` to load external JS. Azumi's ~11KB (gzipped) runtime coexists with custom JS when needed.
 
 ---
 

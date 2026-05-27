@@ -8,7 +8,7 @@ First we tried the JavaScript route: React, Next.js, TypeScript. The type safety
 
 Then we tried HTMX. Server-rendered HTML, no JS ecosystem, simple. It worked — until it didn't. Every toggle needs a network roundtrip. Every expand, every confirm dialog, every "are you sure?" — all waiting for the server. The app felt slow even when the server was fast. And for simple client-side state like a tab switch, there was no answer. You either accept the network latency or you write custom JavaScript — which puts you back in the ecosystem you were trying to escape.
 
-**Azumi started as HTMX and improved upon it.** Same server-rendered approach. Same HTML-first philosophy. But the toggle works instantly. The reveal animates on scroll. The optimistic counter updates before the server confirms. ~10KB of JavaScript (gzipped) handles what HTMX needs the network for.
+**Azumi started as HTMX and improved upon it.** Same server-rendered approach. Same HTML-first philosophy. But the toggle works instantly. The reveal animates on scroll. The optimistic counter updates before the server confirms. ~11KB of JavaScript (gzipped) handles what HTMX needs the network for.
 
 ---
 
@@ -55,7 +55,7 @@ Every other framework makes you choose:
 | **React / SvelteKit / Next.js** | Rich interactivity | JS/TS ecosystem churn, runtime errors, two languages |
 | **Leptos / Dioxus** | One language (Rust), interactivity | WASM download tax (~150KB+), DOM bridge overhead |
 
-Azumi's answer: server-rendered HTML where the common interactions — toggles, reveals, confirms, optimistic updates — work without a network roundtrip. ~10KB of JS handles it. You never write that JS. You never maintain that JS. And because it's Rust, there's no ecosystem to keep up with.
+Azumi's answer: server-rendered HTML where the common interactions — toggles, reveals, confirms, optimistic updates — work without a network roundtrip. ~11KB of JS handles it. You never write that JS. You never maintain that JS. And because it's Rust, there's no ecosystem to keep up with.
 
 ---
 

@@ -681,7 +681,7 @@ azumi/
 │   ├── live_handler_integration_tests.rs # Live handler security tests
 │   └── ... (40+ other test files)
 ├── client/
-│   ├── azumi.js                        # Client runtime (~10KB gzipped)
+│   ├── azumi.js                        # Client runtime (~11KB gzipped)
 │   └── idiomorph.js                    # DOM morphing library
 └── AGENTS.md                           # This file — AI agent instructions
 ```

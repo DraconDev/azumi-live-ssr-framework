@@ -10,7 +10,7 @@ You picked HTMX because server-rendered HTML is simple. But every toggle needs a
 
 Or you picked React and got the interactivity — but also 1,200 packages in `node_modules`, a rewrite every two years, and two languages to maintain.
 
-**Azumi gives you both.** Server-rendered HTML where the toggle works *instantly*. The reveal animates on scroll. The optimistic counter updates before the server confirms. ~10KB of runtime (gzipped). Zero custom JavaScript written by you.
+**Azumi gives you both.** Server-rendered HTML where the toggle works *instantly*. The reveal animates on scroll. The optimistic counter updates before the server confirms. ~11KB of runtime (gzipped). Zero custom JavaScript written by you.
 
 ---
 
@@ -112,39 +112,44 @@ Every other framework forces you to pick two of three. **Azumi gives you all thr
 | **HTMX** | ✅ | ❌ roundtrip | ✅ |
 | **React** | ❌ hydration | ✅ | ❌ npm hell |
 | **Leptos** | ❌ WASM | ✅ | ✅ WASM tax |
-| **Azumi** | ✅ | ✅ ~10KB | ✅ |
+| **Azumi** | ✅ | ✅ ~11KB | ✅ |
 
 ---
 
 ## What Only Azumi Has
 
-7 features that exist in no other framework:
-
-| | Azumi | HTMX | React | Leptos | Maud |
-|---|:---:|:---:|:---:|:---:|:---:|
-| Compile-time CSS validation | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Compile-time HTML validation | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Unconditional `Raw()` ban (XSS) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| ARIA value validation | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Route constant safety | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Optimistic UI predictions | ✅ | ❌ | manual | ❌ | ❌ |
-| HMAC-signed component state | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Feature | Azumi | HTMX | Svelte | Leptos |
+|---------|:---:|:---:|:---:|:---:|
+| Compile-time CSS validation | ✅ | ❌ | ❌ | ❌ |
+| Compile-time HTML validation | ✅ | ❌ | ❌ | ❌ |
+| Compile-time route validation | ✅ | ❌ | ❌ | ❌ |
+| Unconditional `Raw()` ban (XSS) | ✅ | ❌ | ❌ | ❌ |
+| ARIA value validation | ✅ | ❌ | ❌ | ❌ |
+| Auto-scoped CSS per component | ✅ | ❌ | ✅ | ❌ |
+| Two-way binding without JS/WASM | ✅ | ❌ | ✅ (JS) | ✅ (WASM) |
+| Keyed lists without JS/WASM | ✅ | ❌ | ✅ (JS) | ✅ (WASM) |
+| Transitions without JS/WASM | ✅ | ❌ | ✅ (JS) | ❌ |
+| Optimistic UI predictions | ✅ | ❌ | manual | ❌ |
+| HMAC-signed component state | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
-## No Custom JavaScript — Production Proof
+## No Custom JavaScript
 
 All interactive behavior is a directive on your HTML:
 
-| Want this | Write this | No JS? |
-|---|---|---|
-| Toggle a section | `<button az-on:click="toggle:details">` | ✅ |
-| Confirm before delete | `<button az-confirm="Delete this?">` | ✅ |
-| Animate on scroll | `<section az-reveal={true}>` | ✅ |
-| Submit a form | `<form az-action={path} az-target={"#result"}>` | ✅ |
-| Tabs / counters / reveals | `az-ui` + `az-on` | ✅ |
+| Want this | Write this |
+|---|---|
+| Two-way binding | `<input bind:value={state.name} />` |
+| Keyed list | `@for item in items @keyed(item.id)` |
+| Smooth transitions | `<div az-transition:fade={"true"}>` |
+| Form validation | `<input data-validate="email:required,email" />` |
+| Confirm before delete | `<button az-confirm="Delete this?">` |
+| Animate on scroll | `<section az-reveal={true}>` |
+| Submit a form | `<form az-action={path} az-target={"#result"}>` |
+| Tabs / counters / toggles | `az-ui` + `az-on` |
 
-[dracon.dev](https://dracon.dev) runs 3 production sites on Azumi — **98 `html!` calls, zero lines of custom JavaScript.** The only JS is third-party integrations (Paddle, analytics).
+[dracon.dev](https://dracon.dev) runs 3 production sites on Azumi.
 
 ---
 
@@ -152,9 +157,9 @@ All interactive behavior is a directive on your HTML:
 
 | Framework | JS Shipped (gzipped) |
 |---|---|
-| **Azumi** | **10KB** |
+| **Azumi** | **11KB** |
 | HTMX 2.0 | 15KB |
-| Alpine.js 3.x | 15KB |
+| HTMX + Alpine | ~24KB |
 | React 18 + ReactDOM | 46KB |
 | Leptos (WASM) | 150KB+ |
 
