@@ -1,4 +1,4 @@
-error: Static class attributes are banned (e.g. class="..."). Use class:external="..." for third-party CSS or class={variable_name} for Azumi-managed classes.
+error: Static class attributes are banned. Use class:external="..." for third-party CSS or class={variable_name} for Azumi-managed classes.
  --> tests/ui/14-class-static-banned.rs:5:32
   |
 5 |     let _ = html! { <div class="foo"></div> };
