@@ -1,6 +1,7 @@
 # Azumi — AI Agent Guide
 
 > **Active reference** — this file is the primary AI-facing guide for code generation rules.
+> **For step-by-step recipes, see [AI_COOKBOOK.md](AI_COOKBOOK.md).**
 > Detailed usage docs live in [docs/guide.md](docs/guide.md), but the rules below are authoritative for AI-generated code.
 
 ## Philosophy
