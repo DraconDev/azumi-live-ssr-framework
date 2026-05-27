@@ -1344,6 +1344,12 @@ class Azumi {
                     const action = this.parseAction(el.getAttribute('az-on:mount'), el);
                     if (action) this.execute(action, el);
                 });
+
+                // Fire update hooks on changed elements
+                target.querySelectorAll('[az-on\\:update]').forEach((el) => {
+                    const action = this.parseAction(el.getAttribute('az-on:update'), el);
+                    if (action) this.execute(action, el);
+                });
             } else if (target) {
                 this.warn("Idiomorph not loaded, falling back to outerHTML replacement");
                 target.outerHTML = html;
