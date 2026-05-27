@@ -1,4 +1,4 @@
-use azumi::{component, render_to_string};
+use azumi::{component, html, render_to_string};
 
 #[derive(Clone)]
 struct TransitionItem {
