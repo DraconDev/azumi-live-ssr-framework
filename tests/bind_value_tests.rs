@@ -91,7 +91,7 @@ fn test_bind_value_preserves_other_attributes() {
     #[azumi::component]
     fn styled_input(value: &str) -> impl azumi::Component {
         html! {
-            <input type="email" class={"form-input"} placeholder="you@example.com" required bind:value={value} />
+            <input type="email" class:external={"form-input"} placeholder="you@example.com" required bind:value={value} />
         }
     }
     let output = render_to_string(&styled_input::render(

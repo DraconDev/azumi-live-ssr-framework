@@ -64,6 +64,19 @@ pub(crate) fn validate_nodes(
                                     });
                                 }
                                 token_parser::AttributeValue::Dynamic(tokens) => {
+                                    // Ban string literals: class={"button"} bypasses validation
+                                    if let Ok(lit) = syn::parse2::<syn::LitStr>(tokens.clone()) {
+                                        let msg = format!(
+                                            "String literal in class attribute bypasses compile-time validation. \
+                                            Use class:external=\"{}\" for third-party CSS, \
+                                            or class={{variable_name}} for Azumi-managed classes defined in a <style> block.",
+                                            lit.value()
+                                        );
+                                        errors.push(quote_spanned! { lit.span() =>
+                                            compile_error!(#msg);
+                                        });
+                                    }
+
                                     if let Ok(ident) = syn::parse2::<syn::Ident>(tokens.clone()) {
                                         let var_name = ident.to_string();
                                         if valid_ids.contains(&var_name)
