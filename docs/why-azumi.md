@@ -65,8 +65,20 @@ In practice, Azumi apps ship **zero lines of custom JavaScript.** Every interact
 
 ```rust
 html! {
-    // Toggle a section — no JS, no network
-    <button az-on:click="toggle:details">"Show details"</button>
+    // Two-way input binding — no JS, no manual on:input
+    <input type="text" bind:value={state.name} />
+    <input type="checkbox" bind:checked={state.agree} />
+
+    // Keyed list — items tracked by identity, smooth reordering
+    @for item in &items @keyed(item.id) {
+        <div az-transition:fade={"true"}>{&item.name}</div>
+    }
+
+    // Smooth transitions — fade, slide, scale on DOM enter/exit
+    <div az-transition:slide={"true"}>"I slide in smoothly"</div>
+
+    // Client-side form validation — 8 rules, zero custom JS
+    <input data-validate="email:required,email" />
 
     // Confirm before action — no JS, no network
     <button az-confirm="Delete this item?">"Delete"</button>
@@ -125,16 +137,33 @@ Build your product, not your toolchain.
 
 ## Competitive Landscape
 
-| Framework | Approach | Stars | Azumi's Advantage | Azumi's Gap |
-|-----------|----------|-------|-------------------|-------------|
-| **HTMX** | HTML-over-the-wire | 40K+ | Client interactivity, compile-time validation, optimistic UI | Smaller community, fewer examples |
-| **Leptos 0.8** | WASM + signals | 20K+ | No WASM download, no hydration, simpler mental model | Leptos has client-side routing, reactive state |
-| **Dioxus 0.6** | WASM + virtual DOM | 35K+ | No WASM download, simpler, server-rendered by default | Dioxus has desktop/mobile, cross-platform |
-| **SvelteKit 2** | Compiled JS + SSR | 80K+ | Rust type safety, zero JS by default, no npm | SvelteKit has richer ecosystem, Vite tooling |
-| **Maud** | Rust HTML macros | 1.5K | Interactive components, CSS validation, ARIA, live state | Maud is simpler but dead-end for interactivity |
-| **Next.js** | JS/TS full-stack | 130K+ | No ecosystem churn, compile-time validation, all Rust | Next.js has massive ecosystem, more examples |
+### The Alternatives
 
-**Nobody else occupies Azumi's exact position: server-rendered + interactive + no-JS-ecosystem.**
+| Approach | Gets | Sacrifices |
+|----------|------|-----------|
+| **HTMX + Alpine** | Server simplicity, some client state | No components, no scoped CSS, no compile safety, two libraries |
+| **SvelteKit** | Premium DX, transitions, ecosystem | Separate frontend repo, npm, JS/TS, two languages |
+| **Leptos** | One language (Rust), signals | WASM download (~150KB+), slow compiles, no ecosystem |
+| **Azumi** | Components, scoped CSS, transitions, two-way binding, compile safety, no npm | Smaller community, fewer examples |
+
+### Feature Comparison
+
+| Feature | Azumi | HTMX+Alpine | Svelte | Leptos |
+|---------|:---:|:---:|:---:|:---:|
+| Components + typed props | ✅ | ❌ | ✅ | ✅ |
+| Two-way binding | ✅ `bind:value` | ⚠️ `x-model` | ✅ `bind:` | ✅ `bind:` |
+| Keyed list updates | ✅ `@keyed` | ❌ | ✅ `{#each (id)}` | ✅ `<For>` |
+| Scoped CSS (auto) | ✅ | ❌ | ✅ | ❌ |
+| Transitions (fade/slide/scale) | ✅ | ❌ | ✅ | ❌ |
+| Optimistic UI | ✅ `data-predict` | ❌ | ✅ manual | ❌ |
+| Form validation (built-in) | ✅ 8 rules | ❌ | ✅ | ❌ |
+| Compile-time CSS validation | ✅ | ❌ | ❌ | ❌ |
+| Compile-time route validation | ✅ | ❌ | ❌ | ❌ |
+| Compile-time ARIA validation | ✅ | ❌ | ❌ | ❌ |
+| Single `cargo build`, no npm | ✅ | ⚠️ need HTMX CDN | ❌ | ✅ |
+| Ecosystem | 🔴 Tiny | 🟢 Large | 🟢 Massive | 🔴 Tiny |
+
+**Nobody else offers: components + scoped CSS + transitions + two-way binding + keyed lists + compile-time validation — all from `cargo build` with zero npm.**
 
 ### Runtime Size Comparison (gzipped)
 
