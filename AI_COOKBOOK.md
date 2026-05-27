@@ -115,7 +115,7 @@ fn contact_form() -> impl Component {
                 <input type={"text"} id={"name"} name={"name"}
                        bind:value={""}
                        data-validate={"name:required,min-length:2"} />
-                <p id={"name_error"} class={"form-error"} style={"display:none"}></p>
+                <p id={"name_error"} class:external={"form-error"} style={"display:none"}></p>
             </div>
             
             <div>

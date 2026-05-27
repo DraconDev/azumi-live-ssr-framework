@@ -148,7 +148,7 @@ Use `@keyed(expr)` to give each list item a stable identity. The DOM morpher use
 ```rust
 html! {
     @for item in &items @keyed(item.id) {
-        <div class="row">{&item.name}</div>
+        <div class={row_class}>{&item.name}</div>
     }
 }
 // Renders: <div data-key="1" class="row">Alice</div>
@@ -214,7 +214,7 @@ Every `<style>` block inside `html!` is **automatically scoped** to its componen
 
 ```rust
 html! {
-    <div class="card">
+    <div class={card_class}>
         <style>.card { color: red; }</style>
         <p>"This text is red"</p>
     </div>
@@ -246,15 +246,15 @@ html! {
     <form az-action="signup" az-target="#result">
         <input type="text" name="name"
                data-validate="name:required" />
-        <p id="name_error" class="form-error" style="display:none"></p>
+        <p id="name_error" class:external={"form-error"} style={"display:none"}></p>
 
         <input type="email" name="email"
                data-validate="email:required,email" />
-        <p id="email_error" class="form-error" style="display:none"></p>
+        <p id="email_error" class:external={"form-error"} style={"display:none"}></p>
 
         <input type="password" name="password"
                data-validate="password:required,min-length:8" />
-        <p id="password_error" class="form-error" style="display:none"></p>
+        <p id="password_error" class:external={"form-error"} style={"display:none"}></p>
 
         <button type="submit">"Sign Up"</button>
     </form>
