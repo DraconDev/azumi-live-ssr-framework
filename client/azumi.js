@@ -1291,10 +1291,17 @@ class Azumi {
                 const savedLocalState = localStateElement ? localStateElement.getAttribute("az-local-state") : null;
                 const savedUiState = target.getAttribute("az-ui") || null;
 
-                // Capture elements that are about to be removed (for exit transitions)
+                // Capture elements about to be removed (for exit transitions + unmount hooks)
                 const exiting = this.captureExiting(target);
 
-                // Check if target has keyed children — if so, use keyed morphing
+                // Fire unmount hooks before morph
+                target.querySelectorAll('[az-on\\:unmount]').forEach((el) => {
+                    const parts = el.getAttribute('az-on:unmount').split(' ');
+                    const action = this.parseAction(parts.join(' '), el);
+                    if (action) this.execute(action, el);
+                });
+
+                // Check if target has keyed children
                 const hasKeys = target.querySelector('[data-key]') !== null;
                 let morphed;
                 if (hasKeys) {

@@ -39,7 +39,7 @@ fn verify_idiomorph_integrity(content: &str) {
 /// Catches accidental modifications or corruption.
 /// When updating azumi.js, update AZUMI_JS_HASH below.
 fn verify_azumi_js_integrity(content: &str) {
-    const AZUMI_JS_HASH: u64 = 0x2eee1b8262a27f41; // FNV-1a of known-good azumi.js
+    const AZUMI_JS_HASH: u64 = 0x111ab529fb3a5018; // FNV-1a of known-good azumi.js
     let computed = fnv_hash(content);
     if computed != AZUMI_JS_HASH {
         panic!(
