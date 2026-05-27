@@ -563,7 +563,7 @@ impl Parse for Attribute {
             if !input.peek(Token![=]) {
                 return Err(Error::new(
                     name_span,
-                    "class:external requires a value. Example: class:external=\"bg-blue-500 px-4\"",
+                    "class:external requires a value. Example: class:external=\"payment-form-widget\"",
                 ));
             }
             input.parse::<Token![=]>()?;
@@ -581,7 +581,7 @@ impl Parse for Attribute {
             }
             return Err(Error::new(
                 name_span,
-                "class:external requires a double-quoted string literal. Example: class:external=\"bg-blue-500\"",
+                "class:external requires a double-quoted string literal. Example: class:external=\"payment-widget\"",
             ));
         }
 

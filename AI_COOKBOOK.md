@@ -398,7 +398,7 @@ let csp = ContentSecurityPolicy::new()
 |----------|---------|-----|
 | `class="button"` | `class={btn_class}` | ❌ Compile error. Static HTML attribute banned. |
 | `class={"button"}` | `class={btn_class}` | ❌ Compile error. String literal bypasses validation. |
-| — | `class:external="button"` | ✅ For third-party CSS classes (Tailwind, Bootstrap, etc.) |
+| — | `class:external="payment-widget"` | ✅ For third-party component CSS (embedded widgets, CMS classes, payment forms) |
 | `style="color: red"` | Use `<style>` block | Inline styles banned. Scoped CSS only. |
 | `<img src="...">` | `<img src={"..."} alt={"desc"} />` | `alt` required. Use braces. |
 | `format!("<div>{}</div>", x)` in `html!` | Build outside, inject safely | `format!` + HTML blocked. |

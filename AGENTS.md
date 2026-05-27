@@ -715,8 +715,8 @@ html! { <div class="button"></div> }
 html! { <div class={"button"}></div> }
 // ✅ Variable — validated against <style> blocks
 html! { <div class={btn_class}></div> }
-// ✅ class:external — third-party CSS (Tailwind, Bootstrap, etc.)
-html! { <div class:external="bg-blue-500 px-4"></div> }
+// ✅ class:external — third-party component classes (CMS, widgets, embedded content)
+html! { <div class:external="payment-widget"></div> }
 
 // ❌ Raw() is always wrong in html!
 html! { @{Raw(format!("<div>{}</div>", x))} }

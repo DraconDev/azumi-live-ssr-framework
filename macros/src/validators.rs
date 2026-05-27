@@ -68,7 +68,7 @@ pub(crate) fn validate_nodes(
                                     if let Ok(lit) = syn::parse2::<syn::LitStr>(tokens.clone()) {
                                         let msg = format!(
                                             "String literal in class attribute bypasses compile-time validation. \
-                                            Use class:external=\"{}\" for third-party CSS, \
+                                            Use class:external=\"{}\" for third-party component classes (CMS, payment widgets, embedded content), \
                                             or class={{variable_name}} for Azumi-managed classes defined in a <style> block.",
                                             lit.value()
                                         );
