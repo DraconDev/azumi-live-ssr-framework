@@ -64,6 +64,29 @@ html! {
 
 ---
 
+## What's in the box
+
+| Feature | How you do it |
+|---------|--------------|
+| Components + typed props | `#[azumi::component]` |
+| Two-way binding | `bind:value={state.field}` |
+| Keyed list updates | `@for item in items @keyed(item.id)` |
+| Scoped CSS (per component) | `<style>` block — auto-scoped |
+| Transitions | `az-transition:fade` / `:slide` / `:scale` |
+| Form validation (8 rules) | `data-validate="field:required,email"` |
+| Optimistic UI | `data-predict` + auto-detected predictions |
+| Scroll reveal | `az-reveal={true}` |
+| Confirm dialogs | `az-confirm="Are you sure?"` |
+| Live state (signed) | `#[azumi::live]` + `az-scope` |
+| Route constants | `#[azumi::page(route = "/")]` → `_ROUTE` |
+| CSP builder | `ContentSecurityPolicy::new()` |
+| SSE streaming | `SseEvent::fragment(html!)` |
+| Hot reload | Automatic in dev mode |
+
+**Runtime: 44KB uncompressed / 11KB gzipped.** One `<script>` tag. No npm.
+
+---
+
 ## Add to your project
 
 ```bash

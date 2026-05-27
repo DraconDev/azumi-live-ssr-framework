@@ -169,13 +169,13 @@ Build your product, not your toolchain.
 
 | Framework | JS Shipped (gzipped) | Notes |
 |-----------|---------------------|-------|
-| **Azumi** | **10KB** | azumi.js + idiomorph.js |
-| HTMX 2.0 | 15KB | No client interactivity |
-| Alpine.js 3.x | 15KB | Client interactivity, but you write JS |
+| **Azumi** | **11KB** | idiomorph + runtime (transitions, validation, bindings, predictions) |
+| HTMX 2.0 | 15KB | No client interactivity, no transitions, no validation |
+| HTMX + Alpine | ~24KB | Two libraries, no components, no scoped CSS |
+| Alpine.js 3.x | 10KB | Client interactivity only |
+| Svelte | ~2KB | Compiled JS, no runtime |
 | React 18 + ReactDOM | 46KB | Full SPA overhead |
 | Leptos (WASM) | 150KB+ | WASM binary + runtime |
-
-Azumi's runtime is **64% of HTMX's size** while adding client-side interactivity that HTMX lacks. Compared to React, Azumi ships **22% of the JavaScript**.
 
 ---
 
@@ -201,13 +201,18 @@ That's the real value of "if it compiles, it works." Not as a marketing slogan, 
 
 These features exist in no other framework — Rust or otherwise:
 
-| Feature | Azumi | HTMX | React | Leptos | Maud |
-|---------|:---:|:---:|:---:|:---:|:---:|
-| Compile-time CSS validation | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Compile-time HTML validation | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Unconditional `Raw()` ban | ✅ | ❌ | ❌ | ❌ | ❌ |
-| ARIA value validation | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Route constant safety | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Optimistic UI predictions | ✅ | ❌ | manual | ❌ | ❌ |
-| HMAC-signed component state | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Client interactivity (no JS/WASM) | ✅ | ❌ | ✅ (JS) | ✅ (WASM) | ❌ |
+| Feature | Azumi | HTMX | Svelte | Leptos |
+|---------|:---:|:---:|:---:|:---:|
+| Compile-time CSS validation | ✅ | ❌ | ❌ | ❌ |
+| Compile-time HTML validation | ✅ | ❌ | ❌ | ❌ |
+| Compile-time route validation | ✅ | ❌ | ❌ | ❌ |
+| Unconditional `Raw()` ban | ✅ | ❌ | ❌ | ❌ |
+| ARIA value validation | ✅ | ❌ | ❌ | ❌ |
+| Auto-scoped CSS per component | ✅ | ❌ | ✅ | ❌ |
+| Two-way binding without JS/WASM | ✅ | ❌ | ✅ (JS) | ✅ (WASM) |
+| Keyed list updates without JS/WASM | ✅ | ❌ | ✅ (JS) | ✅ (WASM) |
+| Transitions without JS/WASM | ✅ | ❌ | ✅ (JS) | ❌ |
+| Optimistic UI predictions | ✅ | ❌ | manual | ❌ |
+| HMAC-signed component state | ✅ | ❌ | ❌ | ❌ |
+| Client interactivity (no JS/WASM) | ✅ | ❌ | ✅ (JS) | ✅ (WASM) |
+| Zero npm, single `cargo build` | ✅ | ✅ | ❌ | ✅ |
