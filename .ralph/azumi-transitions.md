@@ -6,6 +6,6 @@ Implement P0 transitions: az-transition:fade, :slide, :scale. Client-side + docs
 - [x] az-transition:slide — slide open/closed (max-height + opacity)
 - [x] az-transition:scale — scale 0.95↔1.0 with opacity
 - [x] Config: duration=N via attribute parsing
-- [ ] Tests for transitions
-- [x] Update AGENTS.md with transitions section
-- [ ] Update docs/guide.md with transitions section
+- [x] Tests for transitions — 8 tests pass (fade, slide, scale, duration, multi, keyed, nested, preserve attrs)
+- [x] Update AGENTS.md — transitions section added
+- [x] Update docs/guide.md — transitions added to Feature Catalog + dedicated section

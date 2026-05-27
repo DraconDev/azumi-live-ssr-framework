@@ -696,10 +696,37 @@ All interactivity is handled by `az-*` directives on HTML elements. No custom Ja
 | Conditional classes | `az-bind:class` | Dynamic styling based on state |
 | Confirmation | `az-confirm` | "Are you sure?" before action |
 | Auto-init | `az-init` | Run action on page load |
+| Transitions | `az-transition:fade`, `:slide`, `:scale` | Smooth enter/exit animations on DOM changes |
+| Scroll reveal | `az-reveal` | Fade in on scroll |
+| Two-way binding | `bind:value`, `bind:checked` | Sync input ↔ state automatically |
+| Keyed lists | `@keyed(id)` | Stable list item identity for smooth updates |
+| Form validation | `data-validate` | Client-side validation (8 rules) |
 | Scroll reveal | `az-reveal` | Animate elements on scroll into view |
 | Scroll top | `scroll-top` | Smooth scroll to top |
 
-### Pattern Catalog: Common UI Without JavaScript
+### Transitions
+
+Smooth animations on DOM enter/exit. Works automatically after `az-action` responses.
+
+```rust
+html! {
+    // Fade in when element appears, fade out when removed
+    <div az-transition:fade={"true"}>"I fade smoothly"</div>
+
+    // Slide open/closed
+    <div az-transition:slide={"true"}>"I slide in"</div>
+
+    // Scale 0.95→1.0 with opacity
+    <div az-transition:scale={"true"}>"I scale up"</div>
+
+    // Custom duration (default: 200ms)
+    <div az-transition:fade={"duration=500"}>"Slow fade"</div>
+}
+```
+
+**Supported: `fade`, `slide`, `scale`.** Works with `@keyed` — reordered items reposition without exiting/entering.
+
+### Scroll Reveal
 
 **Tabs:**
 ```rust
