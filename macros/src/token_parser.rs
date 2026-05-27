@@ -62,7 +62,7 @@ pub enum AttributeValue {
     StyleDsl(Vec<(String, TokenStream)>), // List of (property, value_expr)
     None,
     /// External CSS class names that bypass validation but are still HTML-escaped.
-    /// Used for `class:external="bg-blue-500 px-4"` to allow third-party CSS.
+    /// Used for `class:external="payment-widget"` to allow third-party component CSS.
     External(String),
 }
 

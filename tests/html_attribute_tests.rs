@@ -64,12 +64,12 @@ fn test_aria_attributes() {
 fn test_class_external() {
     // class:external allows third-party CSS class names without validation
     let output = html! {
-        <div class:external="bg-blue-500 px-4 py-2">"Button"</div>
+        <div class:external="payment-widget cms-card">"Button"</div>
     };
 
     let rendered = render_to_string(&output);
     // Renders as class="..." not class:external="..."
-    assert!(rendered.contains(r#"class="bg-blue-500 px-4 py-2""#));
+    assert!(rendered.contains(r#"class="payment-widget cms-card""#));
     assert!(!rendered.contains("class:external"));
 }
 
@@ -92,11 +92,11 @@ fn test_class_external_with_azumi_class() {
     // Note: Both render as class="..." in output, so they're merged
     let extra = "flex";
     let output = html! {
-        <div class:external="bg-blue-500" class={extra}>"Mixed"</div>
+        <div class:external="payment-widget" class={extra}>"Mixed"</div>
     };
 
     let rendered = render_to_string(&output);
-    assert!(rendered.contains("bg-blue-500"));
+    assert!(rendered.contains("payment-widget"));
     assert!(rendered.contains("flex"));
 }
 
