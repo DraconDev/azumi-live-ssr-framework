@@ -27,7 +27,7 @@ fn test_complete_page_with_all_patterns() {
                 <title>"Test Page"</title>
             </head>
             <body>
-                <div class={"container"}>
+                <div class:external="container">
                     <h1>"Welcome"</h1>
                     <style>{css}</style>
                     <script>{js}</script>
@@ -64,7 +64,7 @@ fn test_inline_patterns_siblings_with_regular_html() {
                 <style>{css}</style>
                 {azumi::json_data!("ARTICLE" = &data)}
                 <script>{js}</script>
-                <div class={"widget"}>"Widget content"</div>
+                <div class:external="widget">"Widget content"</div>
             </aside>
         </main>
     };

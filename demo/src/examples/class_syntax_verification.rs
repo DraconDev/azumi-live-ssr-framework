@@ -35,7 +35,7 @@ pub fn SyntaxReference() -> impl Component {
             // <div class="valid_class">"Static String"</div>
 
             // ❌ BANNED: String literals in brackets
-            // <div class={"valid_class"}>"Brackets String"</div>
+            // <div class:external="valid_class">"Brackets String"</div>
 
             // ❌ BANNED: Mixed string literals
             // <div class={valid_class "some_string"}>"Mixed"</div>

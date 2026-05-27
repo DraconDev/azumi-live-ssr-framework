@@ -9,7 +9,7 @@ pub fn post_list_page_inner() -> impl Component {
     let posts = get_posts();
 
     html! {
-        <section class={"post-list"}>
+        <section class:external="post-list">
             <h1 class={heading}>"Latest Posts"</h1>
             @for post in &posts {
                 <article class={post_card}>
@@ -111,7 +111,7 @@ pub fn post_page_inner(slug: String) -> Box<dyn Component> {
                                 <span class={tag}>{tag}</span>
                             }
                         </div>
-                        <div class={"post-content"}>
+                        <div class:external="post-content">
                             {TrustedHtml::from_string(content_html)}
                         </div>
                     </article>

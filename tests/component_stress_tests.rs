@@ -121,7 +121,7 @@ fn Layout<'a>(title: &'a str, children: impl Component + 'a) -> impl Component +
     html! {
         <section>
             <h1>{title}</h1>
-            <div class={"content_class"}>
+            <div class:external="content_class">
                 {children}
             </div>
         </section>

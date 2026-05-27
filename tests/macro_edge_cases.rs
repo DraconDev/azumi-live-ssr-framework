@@ -150,7 +150,7 @@ fn test_boolean_attr_explicit() {
 
 #[test]
 fn test_class_names_complex() {
-    let component = html! { <div class={"btn btn-primary--active text-lg"}></div> };
+    let component = html! { <div class:external="btn btn-primary--active text-lg"></div> };
     let html = test::render(&component);
     assert!(html.contains("btn-primary--active"));
 }

@@ -69,7 +69,7 @@ fn test_style_scoping_isolation() {
 #[azumi::component]
 fn GlobalStyled() -> impl Component {
     html! {
-        <div class={"global_box"}>"Global"</div>
+        <div class:external="global_box">"Global"</div>
         <style global>
             .global_box { background: "green"; }
         </style>

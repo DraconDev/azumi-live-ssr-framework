@@ -272,9 +272,9 @@ fn test_simple_component_no_children() {
 #[azumi::component]
 fn Boxed<'a>(label: &'a str, children: impl Component + 'a) -> impl Component + 'a {
     html! {
-        <div class={"box"}>
-            <span class={"label"}>{label}</span>
-            <div class={"content"}>{children}</div>
+        <div class:external="box">
+            <span class:external="label">{label}</span>
+            <div class:external="content">{children}</div>
         </div>
     }
 }
@@ -297,7 +297,7 @@ fn test_nested_boxed_components() {
 #[azumi::component]
 fn UserCard<'a>(name: &'a str) -> impl Component + 'a {
     html! {
-        <div class={"user-card"}>
+        <div class:external="user-card">
             <h2>{name}</h2>
         </div>
     }

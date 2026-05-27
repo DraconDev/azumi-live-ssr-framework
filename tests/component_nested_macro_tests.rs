@@ -29,7 +29,7 @@ fn test_nested_macro_expansion() {
 #[azumi::component]
 fn Wrapper(children: impl azumi::Component) -> impl azumi::Component {
     html! {
-        <div class={"wrapper"}>
+        <div class:external="wrapper">
             {children}
         </div>
     }
