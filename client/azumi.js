@@ -302,6 +302,21 @@ class Azumi {
         const action = this.parseAction(parts.slice(1).join(" "), target);
         if (!action) return; // Malformed action, don't prevent default
 
+        // Debounce support: az-on:input debounce=300 call search -> #results
+        const debounceMatch = attr.match(/debounce=(\d+)/);
+        if (debounceMatch && (e.type === 'input' || e.type === 'change')) {
+            const delay = parseInt(debounceMatch[1], 10);
+            const key = target;
+            clearTimeout(key._azumiDebounceTimer);
+            key._azumiDebounceTimer = setTimeout(() => {
+                if (e.type === "click" || e.type === "submit") {
+                    e.preventDefault();
+                }
+                this.execute(action, target);
+            }, delay);
+            return;
+        }
+
         // Only prevent default for click and submit events AFTER validating action
         if (e.type === "click" || e.type === "submit") {
             e.preventDefault();
@@ -1232,6 +1247,10 @@ class Azumi {
         }
 
         try {
+            // Add az-loading class during fetch
+            element.classList.add('az-loading');
+            element.setAttribute('aria-busy', 'true');
+
             this.log("Fetching Action:", action.url, "Payload:", body);
             const fetchOptions = {
                 method: "POST",
@@ -1312,12 +1331,22 @@ class Azumi {
 
                 // Run transitions on new/removed elements
                 this.runTransitions(target, exiting);
+
+                // Fire mount hooks on new elements
+                target.querySelectorAll('[az-on\\:mount]').forEach((el) => {
+                    const action = this.parseAction(el.getAttribute('az-on:mount'), el);
+                    if (action) this.execute(action, el);
+                });
             } else if (target) {
                 this.warn("Idiomorph not loaded, falling back to outerHTML replacement");
                 target.outerHTML = html;
             }
         } catch (err) {
             this.error("Action Call Error:", err);
+            // Mark target with error class
+            if (target) {
+                target.classList.add('az-error');
+            }
             // Rollback optimistic update
             if (predictionResult && scopeElement) {
                 this.rollbackPrediction(
@@ -1326,6 +1355,14 @@ class Azumi {
                 );
             }
         } finally {
+            // Remove loading state
+            element.classList.remove('az-loading');
+            element.removeAttribute('aria-busy');
+            // Clear error on next successful action
+            if (target) {
+                target.classList.remove('az-error');
+            }
+
             if (scopeElement) {
                 const scopeState = this.scopes.get(scopeElement);
                 if (scopeState) {
