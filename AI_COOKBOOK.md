@@ -396,8 +396,8 @@ let csp = ContentSecurityPolicy::new()
 
 | ❌ Wrong | ✅ Right | Why |
 |----------|---------|-----|
-| `class="button"` | `class={btn_class}` | Static strings banned. Use variable — validator checks it exists in `<style>`. |
-| `class={"button"}` | `class={btn_class}` | String literal in braces bypasses compile-time class validation. |
+| `class="button"` | `class={btn_class}` | Static HTML attribute banned. |
+| `class={"button"}` | `class={btn_class}` | String literal bypasses compile-time validation. Use a variable tied to a `<style>` block. |
 | `style="color: red"` | Use `<style>` block | Inline styles banned. Scoped CSS only. |
 | `<img src="...">` | `<img src={"..."} alt={"desc"} />` | `alt` required. Use braces. |
 | `format!("<div>{}</div>", x)` in `html!` | Build outside, inject safely | `format!` + HTML blocked. |
