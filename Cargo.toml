@@ -44,7 +44,7 @@ lru = { version = "0.16", optional = true }
 futures = { version = "0.3", optional = true }
 
 [dev-dependencies]
-azumi-live-ssr-framework = { version = "48", path = ".", features = ["test-utils"] }
+azumi-live-ssr-framework = { path = ".", features = ["test-utils"] }
 trybuild = "1.0"
 criterion = { version = "0.5", features = ["html_reports"] }
 proptest = "1.5"
