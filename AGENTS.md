@@ -709,6 +709,15 @@ azumi/
 ## Common Anti-Patterns (caught at compile time)
 
 ```rust
+// ❌ Static class attribute — compile error
+html! { <div class="button"></div> }
+// ❌ String literal in braces — compile error (bypasses validation)
+html! { <div class={"button"}></div> }
+// ✅ Variable — validated against <style> blocks
+html! { <div class={btn_class}></div> }
+// ✅ class:external — third-party CSS (Tailwind, Bootstrap, etc.)
+html! { <div class:external="bg-blue-500 px-4"></div> }
+
 // ❌ Raw() is always wrong in html!
 html! { @{Raw(format!("<div>{}</div>", x))} }
 // ✅ Use TrustedHtml for pre-sanitized HTML, or auto-escaping for text:

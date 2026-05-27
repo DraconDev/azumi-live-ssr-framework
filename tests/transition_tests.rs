@@ -121,7 +121,7 @@ fn test_transition_preserves_other_attributes() {
     #[azumi::component]
     fn styled_fade() -> impl azumi::Component {
         html! {
-            <div class:external={"box"} az-transition:fade={"true"} id={"main"}>"Content"</div>
+            <div class:external="box" az-transition:fade={"true"} id={"main"}>"Content"</div>
         }
     }
     let output = render_to_string(&styled_fade());

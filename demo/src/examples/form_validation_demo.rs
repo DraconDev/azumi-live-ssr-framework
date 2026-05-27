@@ -8,55 +8,55 @@ use azumi::prelude::*;
 #[azumi::component]
 fn signup_form() -> impl Component {
     html! {
-        <div class={"signup-container"}>
+        <div class:external="signup-container">
             <h2>"Create Account"</h2>
-            <p class={"subtitle"}>"All fields required."</p>
+            <p class:external="subtitle">"All fields required."</p>
 
-            <form az-action={"signup"} az-target={"#signup-result"} class={"signup-form"}>
-                <div class={"form-group"}>
-                    <label class={"form-label"} for={"name"}>"Full Name"</label>
+            <form az-action={"signup"} az-target={"#signup-result"} class:external="signup-form">
+                <div class:external="form-group">
+                    <label class:external="form-label" for={"name"}>"Full Name"</label>
                     <input
                         type={"text"}
                         id={"name"}
                         name={"name"}
-                        class={"form-input"}
+                        class:external="form-input"
                         placeholder={"Jane Smith"}
                         bind:value={""}
                         data-validate={"name:required,min-length:2"}
                     />
-                    <p id={"name_error"} class={"form-error"} style={"display: none"}></p>
+                    <p id={"name_error"} class:external="form-error" style={"display: none"}></p>
                 </div>
 
-                <div class={"form-group"}>
-                    <label class={"form-label"} for={"email"}>"Email address"</label>
+                <div class:external="form-group">
+                    <label class:external="form-label" for={"email"}>"Email address"</label>
                     <input
                         type={"email"}
                         id={"email"}
                         name={"email"}
-                        class={"form-input"}
+                        class:external="form-input"
                         placeholder={"jane@example.com"}
                         bind:value={""}
                         data-validate={"email:required,email"}
                     />
-                    <p id={"email_error"} class={"form-error"} style={"display: none"}></p>
+                    <p id={"email_error"} class:external="form-error" style={"display: none"}></p>
                 </div>
 
-                <div class={"form-group"}>
-                    <label class={"form-label"} for={"password"}>"Password"</label>
+                <div class:external="form-group">
+                    <label class:external="form-label" for={"password"}>"Password"</label>
                     <input
                         type={"password"}
                         id={"password"}
                         name={"password"}
-                        class={"form-input"}
+                        class:external="form-input"
                         placeholder={"At least 8 characters"}
                         bind:value={""}
                         data-validate={"password:required,min-length:8"}
                     />
-                    <p id={"password_error"} class={"form-error"} style={"display: none"}></p>
+                    <p id={"password_error"} class:external="form-error" style={"display: none"}></p>
                 </div>
 
-                <div class={"form-group form-group-checkbox"}>
-                    <label class={"form-label-checkbox"}>
+                <div class:external="form-group form-group-checkbox">
+                    <label class:external="form-label-checkbox">
                         <input
                             type={"checkbox"}
                             name={"agree"}
@@ -65,10 +65,10 @@ fn signup_form() -> impl Component {
                         />
                         <span>"I agree to the Terms of Service"</span>
                     </label>
-                    <p id={"agree_error"} class={"form-error"} style={"display: none"}></p>
+                    <p id={"agree_error"} class:external="form-error" style={"display: none"}></p>
                 </div>
 
-                <button type={"submit"} class={"submit-btn"}>"Create Account"</button>
+                <button type={"submit"} class:external="submit-btn">"Create Account"</button>
             </form>
 
             <div id={"signup-result"}></div>

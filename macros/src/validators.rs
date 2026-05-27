@@ -60,7 +60,7 @@ pub(crate) fn validate_nodes(
                                 token_parser::AttributeValue::Static(_) => {
                                     let error_span = attr.value_span.unwrap_or(attr.span);
                                     errors.push(quote_spanned! { error_span =>
-                                        compile_error!("Static class attributes are banned (e.g. class=\"...\"). Use class:external=\"...\" for third-party CSS or class={variable_name} for Azumi-managed classes.");
+                                        compile_error!("Static class attributes are banned. Use class:external=\"...\" for third-party CSS or class={variable_name} for Azumi-managed classes.");
                                     });
                                 }
                                 token_parser::AttributeValue::Dynamic(tokens) => {

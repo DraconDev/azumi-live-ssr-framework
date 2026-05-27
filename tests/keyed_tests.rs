@@ -20,9 +20,9 @@ fn test_keyed_generates_data_key_attribute() {
     #[azumi::component]
     fn item_list(items: Vec<Item>) -> impl azumi::Component {
         html! {
-            <div class:external={"list"}>
+            <div class:external="list">
                 @for item in &items @keyed(item.id) {
-                    <div class:external={"row"}>{&item.name}</div>
+                    <div class:external="row">{&item.name}</div>
                 }
             </div>
         }
@@ -53,7 +53,7 @@ fn test_keyed_preserves_class_attribute() {
         html! {
             <ul>
                 @for item in &items @keyed(item.id) {
-                    <li class:external={"list-item"}>{&item.name}</li>
+                    <li class:external="list-item">{&item.name}</li>
                 }
             </ul>
         }
@@ -150,8 +150,8 @@ fn test_keyed_only_first_element_gets_data_key() {
         html! {
             <div>
                 @for item in &items @keyed(item.id) {
-                    <div class:external={"outer"}>
-                        <span class:external={"inner"}>{&item.name}</span>
+                    <div class:external="outer">
+                        <span class:external="inner">{&item.name}</span>
                     </div>
                 }
             </div>
@@ -182,7 +182,7 @@ fn test_keyed_with_if_inside_loop() {
             <div>
                 @for item in &items @keyed(item.id) {
                     @if item.id > 0 {
-                        <div class:external={"row"}>{&item.name}</div>
+                        <div class:external="row">{&item.name}</div>
                     }
                 }
             </div>
@@ -211,9 +211,9 @@ fn test_keyed_integration_with_component_state() {
     #[azumi::component]
     fn task_view(tasks: Vec<Task>) -> impl azumi::Component {
         html! {
-            <div class:external={"tasks"}>
+            <div class:external="tasks">
                 @for task in &tasks @keyed(task.id) {
-                    <div class:external={"task-row"}>{&task.title}</div>
+                    <div class:external="task-row">{&task.title}</div>
                 }
             </div>
         }
