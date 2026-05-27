@@ -64,7 +64,7 @@ fn products_page(products: Vec<Product>) -> impl Component {
 
 **Rules:**
 - All text content must be double-quoted: `"hello"`, not bare text
-- Static classes use braces: `class={"my-class"}`, not `class="my-class"`
+- Static classes use variables: `class={my_class}`, not `class={"button"}` (bypasses validation)
 - Use `@for item in &items` — borrow to avoid `.clone()`
 - Use `{&field}` in text nodes — borrow instead of consuming
 
@@ -396,7 +396,8 @@ let csp = ContentSecurityPolicy::new()
 
 | ❌ Wrong | ✅ Right | Why |
 |----------|---------|-----|
-| `class="button"` | `class={"button"}` | Static classes banned. Use braces. |
+| `class="button"` | `class={btn_class}` | Static strings banned. Use variable — validator checks it exists in `<style>`. |
+| `class={"button"}` | `class={btn_class}` | String literal in braces bypasses compile-time class validation. |
 | `style="color: red"` | Use `<style>` block | Inline styles banned. Scoped CSS only. |
 | `<img src="...">` | `<img src={"..."} alt={"desc"} />` | `alt` required. Use braces. |
 | `format!("<div>{}</div>", x)` in `html!` | Build outside, inject safely | `format!` + HTML blocked. |
