@@ -49,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Doc consolidation**: 12 docs → 3 (README, why-azumi, guide) + archive.
 - **Zero clippy warnings** workspace-wide.
 
+## [48.0.1] - 2026-05-31
+
+### Fixed
+- **CSS double-quote enforcement in `<style>` tags**: The `style!` macro enforces double-quoted CSS values, but raw `<style>` tag content bypassed this. Added `validate_style_tag_css` to the `html!` macro validation pipeline — unquoted CSS values now produce compile errors.
+- **`content` property invalid CSS**: The `style!` macro stripped quotes from ALL values uniformly, producing invalid CSS for `content: "→"` (became `content: →`). Added `preserve_quotes` for properties requiring quoted strings (`content`, `font-family`, `string-set`).
+- **`font-family` quotes preserved**: `font-family: "Arial"` now correctly outputs `font-family: "Arial"` in CSS instead of `font-family: Arial`.
+
 ## [48.0.0] - 2026-05-12
 
 ### Stability Promise
