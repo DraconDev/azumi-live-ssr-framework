@@ -997,11 +997,74 @@ fn minify_css(css: &str) -> String {
             ..PrinterOptions::default()
         };
         if let Ok(minified) = stylesheet.to_css(print_options) {
-            return restore_pseudo_elements(&minified.code);
+            let result = restore_pseudo_elements(&minified.code);
+            return requote_property_values(&result);
         }
     }
 
     css.trim().to_string()
+}
+
+/// Re-add quotes to CSS property values that require them in valid CSS.
+///
+/// lightningcss strips quotes during minification, but properties like
+/// `content`, `font-family`, and `string-set` require quoted string values.
+/// This post-processes the minified CSS to re-add quotes where needed.
+fn requote_property_values(css: &str) -> String {
+    let mut result = String::with_capacity(css.len());
+    let mut remaining = css;
+
+    for &prop in CSS_QUOTE_REQUIRED_PROPERTIES {
+        while let Some(pos) = remaining.find(&format!("{}:", prop)) {
+            // Copy everything before this property
+            result.push_str(&remaining[..pos]);
+            remaining = &remaining[pos..];
+
+            // Find the property name end (the colon)
+            let colon_pos = remaining.find(':').unwrap_or(0);
+            let after_colon = &remaining[colon_pos + 1..];
+
+            // Check if the value is already quoted
+            let trimmed = after_colon.trim_start();
+            if trimmed.starts_with('"') || trimmed.starts_with('\'') {
+                // Already quoted, skip
+                result.push_str(&remaining[..colon_pos + 1]);
+                remaining = &remaining[colon_pos + 1..];
+                continue;
+            }
+
+            // Find the value end (semicolon or closing brace)
+            let value_end = after_colon.find(';')
+                .or_else(|| after_colon.find('}'))
+                .unwrap_or(after_colon.len());
+            let value = after_colon[..value_end].trim();
+
+            // Skip empty values, keywords, and function calls
+            if value.is_empty()
+                || value.starts_with("var(")
+                || value.contains('(')
+                || value == "none"
+                || value == "normal"
+                || value.starts_with("attr(")
+                || value.starts_with("counter(")
+            {
+                result.push_str(&remaining[..colon_pos + 1]);
+                remaining = &remaining[colon_pos + 1..];
+                continue;
+            }
+
+            // Re-add quotes
+            let prop_end = colon_pos + 1;
+            result.push_str(&remaining[..prop_end]);
+            result.push_str(&format!(" \"{}\"", value));
+            // Skip past the old unquoted value and the delimiter
+            let skip = prop_end + after_colon[..value_end].len();
+            remaining = &remaining[skip..];
+        }
+    }
+
+    result.push_str(remaining);
+    result
 }
 
 fn restore_pseudo_elements(css: &str) -> String {
@@ -1240,14 +1303,14 @@ mod tests {
     fn test_regular_property_strips_quotes() {
         let input: TokenStream = ".card { padding: \"1rem\" }".parse().unwrap();
         let output = process_style_macro(input);
-        // Regular properties should NOT have quotes
+        // Regular properties should NOT have quotes in CSS output
         assert!(
-            output.css.contains("padding: 1rem"),
+            output.css.contains("padding:1rem") || output.css.contains("padding: 1rem"),
             "Regular properties should have quotes stripped, got: {}",
             output.css
         );
         assert!(
-            !output.css.contains("padding: \"1rem\""),
+            !output.css.contains("padding:\"1rem\"") && !output.css.contains("padding: \"1rem\""),
             "Regular properties should not retain quotes, got: {}",
             output.css
         );
