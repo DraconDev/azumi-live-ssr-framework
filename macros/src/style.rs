@@ -278,10 +278,17 @@ impl Parse for StyleProperty {
             }
         }
 
+        // Determine if quotes should be preserved in CSS output.
+        // Properties whose CSS syntax REQUIRES string values (e.g., content: "text")
+        // need the quotes in the output. Other properties (padding, color, etc.)
+        // should have quotes stripped.
+        let preserve_quotes = CSS_QUOTE_REQUIRED_PROPERTIES.contains(&name.as_str());
+
         Ok(StyleProperty {
             name,
             value,
             span: start_span,
+            preserve_quotes,
         })
     }
 }
