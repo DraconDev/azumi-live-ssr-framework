@@ -116,8 +116,6 @@ pub fn resolve_css_file_path(css_path: &str) -> String {
 ///
 /// Returns a TokenStream of compile errors for any unquoted values found.
 pub fn validate_style_tag_css(nodes: &[Node]) -> proc_macro2::TokenStream {
-    use quote::quote;
-
     let mut errors = proc_macro2::TokenStream::new();
     collect_style_tag_css_errors(nodes, &mut errors);
     errors
