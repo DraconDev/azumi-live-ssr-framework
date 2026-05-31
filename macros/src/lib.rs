@@ -160,14 +160,18 @@ fn generate_body(
     }
 
     let raw_warnings = html_structure_validator::validate_raw_usage(nodes);
-    for warn in raw_warnings {
-        all_errors.extend(warn);
-    }
+        for warn in raw_warnings {
+            all_errors.extend(warn);
+        }
 
-    let format_warnings = validators::validate_format_in_expressions(nodes);
-    for warn in format_warnings {
-        all_errors.extend(warn);
-    }
+        let format_warnings = validators::validate_format_in_expressions(nodes);
+        for warn in format_warnings {
+            all_errors.extend(warn);
+        }
+
+        // Validate double-quoted CSS values in <style> tags
+        let style_value_errors = css_validator::validate_style_tag_css(nodes);
+        all_errors.extend(style_value_errors);
 
     let global_css = &extraction.global_css;
     let scoped_css = &extraction.scoped_css;
