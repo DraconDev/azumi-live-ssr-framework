@@ -1,6 +1,6 @@
 [package]
 name = "azumi-live-ssr-framework"
-version = "48.0.0"
+version = "48.0.1"
 edition = "2021"
 rust-version = "1.70"
 authors = ["DraconDev <dracsharp@gmail.com>"]
