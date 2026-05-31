@@ -109,7 +109,8 @@ pub fn resolve_css_file_path(css_path: &str) -> String {
 // CSS Value Double-Quote Enforcement
 // ============================================================================
 
-/// Validate CSS declarations inside `<style>` tags for unquoted values.
+/// Validate CSS declarations inside `<style>` tags and `style!` blocks
+/// for unquoted values.
 ///
 /// Enforces the Azumi rule that CSS values must be double-quoted strings.
 /// This prevents lexer issues with values like `#colors`, `2em`, `rgba(...)`.
@@ -147,6 +148,13 @@ fn collect_style_tag_css_errors(nodes: &[Node], errors: &mut proc_macro2::TokenS
                     }
                 } else {
                     collect_style_tag_css_errors(&elem.children, errors);
+                }
+            }
+            // Validate style! macro blocks — convert token stream to CSS and validate
+            Node::Block(token_parser::Block::Style(style_block)) => {
+                let raw_css = crate::style::tokens_to_css_string(&style_block.content);
+                if let Some(err) = validate_css_values_in_text(&raw_css, style_block.span) {
+                    errors.extend(err);
                 }
             }
             Node::Fragment(frag) => {

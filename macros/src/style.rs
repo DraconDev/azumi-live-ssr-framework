@@ -602,7 +602,12 @@ pub fn reconstruct_css_from_parsed(style_input: &StyleInput) -> String {
                 raw_css.push_str(&selector_str);
                 raw_css.push_str(" { ");
                 for prop in &rule.block.properties {
-                    raw_css.push_str(&format!("{}: {}; ", prop.name, prop.value));
+                    if prop.preserve_quotes {
+                        // Re-add quotes for properties that require them in CSS
+                        raw_css.push_str(&format!("{}: \"{}\"; ", prop.name, prop.value));
+                    } else {
+                        raw_css.push_str(&format!("{}: {}; ", prop.name, prop.value));
+                    }
                 }
                 raw_css.push_str("} ");
             }
@@ -612,7 +617,7 @@ pub fn reconstruct_css_from_parsed(style_input: &StyleInput) -> String {
     raw_css
 }
 
-fn tokens_to_css_string(tokens: &TokenStream) -> String {
+pub(crate) fn tokens_to_css_string(tokens: &TokenStream) -> String {
     let mut css = String::new();
     let mut last_char_was_hyphen = false;
     let mut last_char_was_dot_or_hash_or_colon = false;
