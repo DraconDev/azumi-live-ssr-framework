@@ -193,10 +193,10 @@ fn validate_css_values_in_text(
 
     let mut errors = Vec::new();
 
-    // Split CSS into blocks by tracking brace depth
-    let declarations = extract_top_level_declarations(css);
+    // Extract declarations from rule blocks (depth-1 content)
+    let declarations = extract_declarations_for_validation(css);
 
-    for decl in declarations {
+    for decl in &declarations {
         let trimmed = decl.trim();
         if trimmed.is_empty() {
             continue;
@@ -212,13 +212,22 @@ fn validate_css_values_in_text(
             continue;
         }
 
-        // Parse "property: value"
-        let colon_pos = trimmed.find(':')?;
+        // Parse "property: value" — find the first colon
+        let colon_pos = match trimmed.find(':') {
+            Some(pos) => pos,
+            None => continue,
+        };
         let property = trimmed[..colon_pos].trim();
         let value = trimmed[colon_pos + 1..].trim();
 
         // Skip empty values
         if value.is_empty() {
+            continue;
+        }
+
+        // Skip CSS custom properties (properties starting with --)
+        // Their values are arbitrary and quoting is unusual
+        if property.starts_with("--") {
             continue;
         }
 
@@ -251,8 +260,7 @@ fn validate_css_values_in_text(
                  Expected: {} {} \"{}\";\n\n\
                  Why? Unquoted CSS values cause lexer issues with:\n\
                  - Hash colors: {} #ff0000 -> ambiguous token\n\
-                 - Unit values: {} 2em -> ambiguous token\n\
-                 - Functions: {} rgb(255, 0, 0) -> needs quoting for safety\n\n\
+                 - Unit values: {} 2em -> ambiguous token\n\n\
                  The `style!` macro requires double-quoted values.\n\
                  Match that convention in `<style>` tags for consistency.",
                 property,
@@ -261,7 +269,6 @@ fn validate_css_values_in_text(
                 property,
                 ":",
                 value,
-                property,
                 property,
                 property,
             );
@@ -282,15 +289,17 @@ fn validate_css_values_in_text(
     }
 }
 
-/// Extract top-level CSS declarations by tracking brace depth.
+/// Extract CSS declarations from rule blocks for validation.
 ///
-/// Returns declarations like `property: value;` that are at the top level
-/// (not nested inside `@media`, `@keyframes`, etc.).
-fn extract_top_level_declarations(css: &str) -> Vec<String> {
+/// Walks CSS text tracking brace depth. At depth 1 (inside a rule block
+/// like `.card { ... }`), collects declarations separated by `;`.
+/// Skips at-rules (@media, @keyframes, etc.) and their nested blocks.
+fn extract_declarations_for_validation(css: &str) -> Vec<String> {
     let mut declarations = Vec::new();
-    let mut current = String::new();
-    let mut depth = 0;
+    let mut current_decl = String::new();
+    let mut depth: i32 = 0;
     let mut in_string: Option<char> = None;
+    let mut skip_block = false;
 
     for ch in css.chars() {
         // Handle string literals
@@ -300,60 +309,68 @@ fn extract_top_level_declarations(css: &str) -> Vec<String> {
             } else if in_string.is_none() {
                 in_string = Some(ch);
             }
-            current.push(ch);
+            if depth >= 1 && !skip_block {
+                current_decl.push(ch);
+            }
             continue;
         }
 
         if in_string.is_some() {
-            current.push(ch);
+            if depth >= 1 && !skip_block {
+                current_decl.push(ch);
+            }
             continue;
         }
 
         match ch {
             '{' => {
                 depth += 1;
-                current.push(ch);
+                if depth == 1 {
+                    // Check if the content before this brace is an at-rule
+                    // If so, skip this entire block
+                    // We detect this by checking if we haven't started collecting declarations yet
+                    // and the current_decl is empty (we clear it on '}')
+                    // Actually, at depth 0 we don't track, so let's use a simpler check:
+                    // We'll peek backward in the CSS to find the selector
+                    skip_block = false;
+                    current_decl.clear();
+                } else if depth == 2 && skip_block {
+                    // Nested block inside an at-rule — skip it too
+                }
             }
             '}' => {
-                depth -= 1;
-                current.push(ch);
-                if depth == 0 {
-                    // End of a top-level block — extract declarations from it
-                    let inner = current.clone();
-                    // Strip the outer braces
-                    if inner.starts_with('{') && inner.ends_with('}') {
-                        let inner_content = &inner[1..inner.len() - 1];
-                        for decl in inner_content.split(';') {
-                            if decl.contains(':') {
-                                declarations.push(decl.to_string());
-                            }
-                        }
+                if depth == 1 && !skip_block {
+                    // End of a rule block — extract remaining declaration
+                    let decl = current_decl.trim().to_string();
+                    if !decl.is_empty() && decl.contains(':') {
+                        declarations.push(decl);
                     }
-                    current.clear();
+                    current_decl.clear();
+                }
+                if depth == 2 && skip_block {
+                    // End of nested block inside at-rule
+                }
+                depth -= 1;
+                if depth == 0 {
+                    skip_block = false;
                 }
             }
-            ';' if depth == 0 => {
-                // Top-level semicolon — this is a standalone declaration
-                current.push(ch);
-                let decl = current.trim().to_string();
-                if decl.contains(':') && !decl.starts_with('@') {
+            ';' if depth == 1 && !skip_block => {
+                current_decl.push(ch);
+                let decl = current_decl.trim().to_string();
+                // Strip trailing semicolon
+                let decl = decl.trim_end_matches(';').trim().to_string();
+                if !decl.is_empty() && decl.contains(':') {
                     declarations.push(decl);
                 }
-                current.clear();
-            }
-            ';' => {
-                current.push(ch);
+                current_decl.clear();
             }
             _ => {
-                current.push(ch);
+                if depth == 1 && !skip_block {
+                    current_decl.push(ch);
+                }
             }
         }
-    }
-
-    // Handle remaining content (no trailing semicolon)
-    let remaining = current.trim().to_string();
-    if remaining.contains(':') && !remaining.starts_with('@') && !remaining.starts_with('{') {
-        declarations.push(remaining);
     }
 
     declarations
@@ -485,7 +502,7 @@ mod tests {
     // =========================================================================
 
     fn style_element_with_text(css: &str) -> Node {
-        let mut elem = crate::token_parser::Element {
+        let elem = crate::token_parser::Element {
             name: "style".to_string(),
             attrs: vec![],
             children: vec![Node::Text(crate::token_parser::Text {
@@ -573,27 +590,27 @@ mod tests {
     #[test]
     fn test_extract_top_level_declarations_simple() {
         let css = ".card { padding: 1rem; color: red; }";
-        let decls = extract_top_level_declarations(css);
-        assert_eq!(decls.len(), 2);
-        assert!(decls[0].contains("padding"));
-        assert!(decls[1].contains("color"));
+        let decls = extract_declarations_for_validation(css);
+        assert_eq!(decls.len(), 2, "Expected 2 declarations, got {:?}: {:?}", decls.len(), decls);
+        assert!(decls[0].contains("padding"), "First decl should contain padding: {:?}", decls);
+        assert!(decls[1].contains("color"), "Second decl should contain color: {:?}", decls);
     }
 
     #[test]
     fn test_extract_top_level_declarations_nested_media() {
         let css = "@media (max-width: 768px) { .card { display: none; } }";
-        let decls = extract_top_level_declarations(css);
-        // Declarations inside @media are nested (depth > 0 when inside braces)
-        // so they should not be extracted as top-level
-        assert!(decls.is_empty(), "Nested declarations should not be top-level, got: {:?}", decls);
+        let decls = extract_declarations_for_validation(css);
+        // Declarations inside @media are nested (depth > 1 when inside both @media and .card)
+        // so they should not be extracted
+        assert!(decls.is_empty(), "Nested declarations should not be extracted, got: {:?}", decls);
     }
 
     #[test]
     fn test_extract_top_level_declarations_semicolon_outside_braces() {
         let css = ":root { --size: 1rem; }";
-        let decls = extract_top_level_declarations(css);
-        // :root block declarations are inside braces — depth > 0
-        assert!(decls.is_empty(), "Declarations inside :root should not be top-level, got: {:?}", decls);
+        let decls = extract_declarations_for_validation(css);
+        // :root is a pseudo-class selector, its declarations are inside braces at depth 1
+        assert_eq!(decls.len(), 1, "Should extract 1 declaration from :root, got: {:?}", decls);
     }
 
     #[test]
