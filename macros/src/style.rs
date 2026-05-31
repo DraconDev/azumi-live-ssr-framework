@@ -1223,4 +1223,44 @@ mod tests {
             output
         );
     }
+
+    #[test]
+    fn test_content_property_preserves_quotes() {
+        let input: TokenStream = ".tooltip::before { content: \"→\" }".parse().unwrap();
+        let output = process_style_macro(input);
+        // content property requires quotes in valid CSS
+        assert!(
+            output.css.contains("content: \"→\""),
+            "content property should preserve quotes in CSS output, got: {}",
+            output.css
+        );
+    }
+
+    #[test]
+    fn test_regular_property_strips_quotes() {
+        let input: TokenStream = ".card { padding: \"1rem\" }".parse().unwrap();
+        let output = process_style_macro(input);
+        // Regular properties should NOT have quotes
+        assert!(
+            output.css.contains("padding: 1rem"),
+            "Regular properties should have quotes stripped, got: {}",
+            output.css
+        );
+        assert!(
+            !output.css.contains("padding: \"1rem\""),
+            "Regular properties should not retain quotes, got: {}",
+            output.css
+        );
+    }
+
+    #[test]
+    fn test_font_family_preserves_quotes() {
+        let input: TokenStream = ".text { font-family: \"Arial\" }".parse().unwrap();
+        let output = process_style_macro(input);
+        assert!(
+            output.css.contains("font-family: \"Arial\""),
+            "font-family should preserve quotes, got: {}",
+            output.css
+        );
+    }
 }
