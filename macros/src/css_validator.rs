@@ -150,13 +150,6 @@ fn collect_style_tag_css_errors(nodes: &[Node], errors: &mut proc_macro2::TokenS
                     collect_style_tag_css_errors(&elem.children, errors);
                 }
             }
-            // Validate style! macro blocks — convert token stream to CSS and validate
-            Node::Block(token_parser::Block::Style(style_block)) => {
-                let raw_css = crate::style::tokens_to_css_string(&style_block.content);
-                if let Some(err) = validate_css_values_in_text(&raw_css, style_block.span) {
-                    errors.extend(err);
-                }
-            }
             Node::Fragment(frag) => {
                 collect_style_tag_css_errors(&frag.children, errors);
             }
