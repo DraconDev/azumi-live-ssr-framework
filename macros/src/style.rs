@@ -41,7 +41,19 @@ struct StyleProperty {
     value: String,
     #[allow(dead_code)]
     span: proc_macro2::Span,
+    /// If true, the CSS output should include the quotes around the value.
+    /// Used for properties where CSS syntax requires quoted strings (e.g., content).
+    preserve_quotes: bool,
 }
+
+/// CSS properties whose values REQUIRE quotes in valid CSS output.
+/// The `style!` macro strips quotes from all values by default, but these
+/// properties produce invalid CSS without them.
+const CSS_QUOTE_REQUIRED_PROPERTIES: &[&str] = &[
+    "content",
+    "font-family",
+    "string-set",
+];
 
 impl Parse for StyleInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
